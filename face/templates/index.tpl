@@ -26,11 +26,20 @@
     you each day and gives you points based on how quickly you can answer it.</span>
     </div>
     <div style="clear: both;">&nbsp;</div>
+
+	{% if errors %}
+	<div class="error">
+      {% for e in errors %}
+      <p>{{ e }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
     
     <div id="login_form" style="margin: 0 auto; width: 550px;">
-      <form action="http://temple.lukesegars.com/regis/account/login" method="post" accept-charset="utf-8">    
-      <label for="email">Email: </label>    
-      <input type="text" name="email" value="" id="email" style="width: 12em;"  />    
+      <form action="http://localhost:8000/account/login" method="post" accept-charset="utf-8">    
+      {% csrf_token %}
+      <label for="username">Username: </label>    
+      <input type="text" name="username" value="" id="email" style="width: 12em;"  />    
       
       <span style="margin-left: 1em;">
         <label for="password">Password: </label>

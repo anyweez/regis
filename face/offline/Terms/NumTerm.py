@@ -1,5 +1,4 @@
-#import Term
-import Terms.Term as Term
+import offline.Terms.Term as Term
 import random
 
 class NumTerm(Term.BaseTerm):

@@ -18,4 +18,6 @@ urlpatterns = patterns('',
     ('^$', views.index),
     ('account/create$', views.create_account),
     ('account/store$', views.store_account),
+    ('account/login$', views.login),
+    ('dash$', views.dash),
 )

@@ -25,7 +25,7 @@ class QuestionParser(object):
 				# formula for doing this based on the name of the defining function.
 				mod_name = '%sTerm' % def_components[0].capitalize()
 				
-				f, pn, dsc = imp.find_module(mod_name, ['Terms'])
+				f, pn, dsc = imp.find_module(mod_name, ['offline/Terms'])
 				mod = imp.load_module(mod_name, f, pn, dsc)
 				
 				term_obj = mod.__dict__[mod_name]()
