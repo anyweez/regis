@@ -1,0 +1,336 @@
+@CHARSET "UTF-8";
+
+body {
+	background-image: url('../img/bg.png');
+	font-family: Arial;
+}
+
+body input[type="text"] {
+	border: 2px solid #333;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	background-color: #EBF2FF;
+	height: 20px;
+	
+	font-size: 14px;
+	padding: 4px;
+}
+
+body input[type="password"] {
+	border: 2px solid #333;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	background-color: #EBF2FF;
+	height: 20px;
+	
+	font-size: 14px;
+	padding: 4px;
+}
+
+body select {
+	border: 2px solid #333;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	background-color: #EBF2FF;
+	height: 30px;
+	
+	font-size: 14px;
+	padding: 4px;
+}
+
+body input[type="submit"] {
+	border: 2px solid #333;
+	background-color: #ccc;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	height: 28px;	
+}
+
+body input[type="button"] {
+	border: 2px solid #333;
+	background-color: #ccc;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	height: 28px;	
+	margin-right: 22px;
+}
+
+body label {
+	vertical-align: middle;
+}
+
+table {
+	border-width: 0px;	
+}
+
+table p {
+	margin: .3em;	
+}
+
+#display_body {
+	position: relative;
+	bottom: 10px;	
+}
+
+#heading {
+	border: 1px solid black;
+	width: 98%;
+	height: 50px;
+	margin: 0 1% 0 1%;
+	
+	position: relative;
+	
+	background-color: black;
+	color: #CCCCCC;	
+    border: 3px solid black;
+}
+
+#heading #navigation {
+	float: left;
+}
+
+#heading ul {
+	padding-left: 0;
+}
+
+#heading li {
+	display: inline;
+	list-style-type: none;
+	margin-right: 15px;
+}
+
+#heading li a {
+	text-decoration: none;
+	color: #E6F7E8;	
+}
+
+#heading li a:hover {
+	text-decoration: underline;	
+}
+
+#logbox {
+	background-color: white;
+    border: 3px solid black;	
+}
+
+#main_body {
+	margin: 0 1% 0 1%;
+	width: 98%;
+	
+	background-color: white;
+    border: 3px solid black;
+}
+
+#main_body #question_body {
+	float: left;
+	width: 72%;
+	
+	margin: 1%;
+	margin-bottom: 0;
+}
+
+#main_body #question_body h2 {
+	font-size: 30px;	
+	margin: 0;
+}
+
+#question_body #main_q {
+	font-size: 24px;
+}
+
+#main_body #right_col {
+	float: right;
+	width: 25%;
+	border-left: 3px solid black;
+	
+	background-color: #E1F7E4;
+}
+
+#right_col h3 {
+	margin: 0;
+	padding: 0;	
+}
+
+#main_body #right_col #small_right {
+	width: 92%;
+	border-bottom: 2px dashed black;
+	
+	padding: 4%;
+}
+
+#main_body #right_col #large_right {
+	margin: 4%;
+	width: 90%;
+}
+
+
+#footer {
+	font-size: small;
+	color: white;
+	height: 20px;
+	width: 98%;
+	margin: 0 1% 0 1%;
+	text-align: right;
+}
+
+#footer p {
+	margin-top: .5em;
+}
+
+.qbox {
+	float: left;
+	width: 20%;
+	height: 20%;
+	margin: 2%;
+	border: 3px solid #666666;
+	border-radius: 2px;	
+}
+
+.qbox .qbox_head {
+	font-weight: bold;
+	margin: 0px;
+	margin-top: 6px;
+	padding: 0px;
+}
+
+.qbox .qbox_sub {
+	font-size: 12px;
+	margin: 5px;
+}
+
+.qbox .qbox_pts {
+	margin: 0;	
+}
+
+.qbox .qid {
+	display: inline;
+	float: left;
+	padding: 18px;
+	margin: 3px;
+	
+	font-size: 30px;
+	border: 4px double black;		
+}
+
+.qbox .q_answered {
+	background-color: #98EBA5;
+}
+
+.qbox .q_unanswered {
+	background-color: #EBEB98;
+}
+
+.qbox .q_unavailable {
+	background-color: #CFCFCF;
+}
+
+.q_suggest_list {
+	list-style: none;
+	padding-left: 1em;
+	margin-left: 0px;
+}
+
+.q_suggestion {
+	margin: .5em;
+}
+
+.team_line {
+	margin: 2px 2px 2px 0px;
+	font-size: small;
+	font-weight: normal;
+}
+
+.factoid {
+	margin-left: 1em;
+	font-size: small;
+	font-weight: bold;
+	color: 	#002B60;
+}
+
+#reg_fields {
+	text-align: right;
+	width: 65%;	
+}
+
+#reg_form {
+	margin: 10px;	
+
+	width: 100%;
+}
+
+#reg_form label {
+	width: 200px;
+	font-style: italic;
+	margin-right: 10px;
+}
+
+#reg_form div {
+	margin: 10px 0px 10px 0px;	
+}
+
+#simpleevent_list li {
+	font-size: .9em;
+}
+
+div.warning {
+	padding: 2px;
+	border: 2px solid #FFFF33;
+	background-color: #FFFF66;
+	color: black;
+}
+
+div.error {
+	padding: 2px 2px 2px 5px;
+	margin: 2px 0px 5px 0px;
+	border: 2px solid #CC0000;
+	background-color: #CC3333;
+	color: black;
+}
+
+#team_stats {
+	width: 50%;
+	margin: 0 auto;
+	margin-bottom: 10px;
+	border: 1px solid black;
+}
+
+#team_table {
+	margin-left: 1%;
+	width: 45%;
+	border: 1px solid black;
+	float: left;
+}
+
+#team_graph {
+	height: 500px;
+}
+
+#team_graph_legend {
+	margin-left: 6%;
+}
+
+#team_table th {
+	text-align: center;
+	border: 1px solid black;
+	background-color: #666;
+	color: #DDD;
+}
+
+#team_table td {
+	text-align: center;
+	margin-bottom: 6px;
+}
+
+#team_table span {
+	position: relative;
+	bottom: 2px;	
+}
+
+.team_img {
+	width: 20px;
+	height: 20px;
+	border: 1x solid black;
+	position: relative;
+	top: 2px;
+	right: 4px;
+}
