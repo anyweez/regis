@@ -20,4 +20,6 @@ urlpatterns = patterns('',
     ('account/store$', views.store_account),
     ('account/login$', views.login),
     ('dash$', views.dash),
+    ('question/check', views.check_q),
+    ('question/view/all', views.list_questions)
 )

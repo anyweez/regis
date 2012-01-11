@@ -5,7 +5,7 @@ from django.contrib import admin
 
 class RegisLeague(models.Model):
     name = models.CharField(max_length=100)
-    date_created = models.DateField()
+    date_created = models.DateTimeField()
     owner = models.ForeignKey('RegisUser')
     
     def __str__(self):
@@ -26,13 +26,14 @@ class QuestionTemplate(models.Model):
     q_text = models.TextField()
     q_title = models.CharField(max_length=50)
     
-    added_on = models.TimeField(auto_now_add=True)
+    added_on = models.DateTimeField(auto_now_add=True)
     solver_name = models.CharField(max_length=40)
 
 QUESTION_STATUS = (
-    ('solved', 'Solved'),
-    ('released', 'Released'),
-    ('unreleased', 'Unreleased')
+    ('solved', 'Solved'),       # question has been released and answered
+    ('released', 'Released'),   # question has been released but not answered
+    ('ready', 'Ready'),         # question parsed and answers available, not released
+    ('pending', 'Pending')      # question parsed but answers not available
 )
 
 class Question(models.Model):
@@ -40,10 +41,13 @@ class Question(models.Model):
     uid = models.ForeignKey(RegisUser)
     
     text = models.TextField()
-    time_computed = models.TimeField()
-    time_released = models.TimeField()
+    variables = models.TextField()
+    
+    time_computed = models.DateTimeField(auto_now_add=True)
+    time_released = models.DateTimeField(null=True)
     
     status = models.CharField(max_length=10, choices=QUESTION_STATUS)
+    order = models.IntegerField()
     
 class Answer(models.Model):
     qid = models.ForeignKey(Question)
@@ -52,17 +56,20 @@ class Answer(models.Model):
     value = models.CharField(max_length=100)
     message = models.CharField(max_length=200)
     
-    time_computed = models.TimeField()
+    time_computed = models.DateTimeField(auto_now_add=True)
     
 class Guess(models.Model):
     uid = models.ForeignKey(RegisUser)
     qid = models.ForeignKey(Question)
     
     value = models.CharField(max_length=100)
-    time_guessed = models.TimeField()
+    correct = models.BooleanField()
+    time_guessed = models.DateTimeField()
     
     
 # Add some stuff to the admin interface.
+admin.site.register(RegisLeague)
+admin.site.register(RegisUser)
 admin.site.register(QuestionTemplate)
 admin.site.register(Question)
 admin.site.register(Answer)

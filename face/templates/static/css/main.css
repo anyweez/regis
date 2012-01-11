@@ -129,7 +129,7 @@ table p {
 	margin-bottom: 0;
 }
 
-#main_body #question_body h2 {
+h2 {
 	font-size: 30px;	
 	margin: 0;
 }
@@ -179,18 +179,19 @@ table p {
 
 .qbox {
 	float: left;
-	width: 20%;
+	width: 90%;
 	height: 20%;
+	
 	margin: 2%;
-	border: 3px solid #666666;
-	border-radius: 2px;	
+	padding: 1%;
+	
+	border: 2px solid #666666;
+	background-color: #EEE;
 }
 
-.qbox .qbox_head {
+.qbox h2.qbox_head {
+	font-size: 20px;
 	font-weight: bold;
-	margin: 0px;
-	margin-top: 6px;
-	padding: 0px;
 }
 
 .qbox .qbox_sub {
@@ -198,30 +199,44 @@ table p {
 	margin: 5px;
 }
 
-.qbox .qbox_pts {
-	margin: 0;	
-}
-
-.qbox .qid {
-	display: inline;
-	float: left;
-	padding: 18px;
-	margin: 3px;
-	
-	font-size: 30px;
-	border: 4px double black;		
-}
-
 .qbox .q_answered {
-	background-color: #98EBA5;
+	background-color: #AFDEB6;
 }
 
 .qbox .q_unanswered {
-	background-color: #EBEB98;
+	background-color: #EBEB98;	
 }
 
 .qbox .q_unavailable {
 	background-color: #CFCFCF;
+}
+
+.q_decoration {
+	height: 90px;
+	width: 130px;
+	
+	border: 2px solid #999;
+	border-radius: 4px;
+	
+	margin-right: 10px;
+	text-align: center;
+	
+	float: left;
+}
+
+.q_decoration p {
+	margin: 0;
+	padding: 0;
+	
+	font-size: small;
+}
+
+.qbox .q_status {
+	font-weight: bold;
+	margin-top: 15px;
+	margin-bottom: 10px;
+	
+	font-size: medium;
 }
 
 .q_suggest_list {

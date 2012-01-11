@@ -3,4 +3,3 @@ error_msg = {
     2 : 'Invalid username or password',
     3 : 'Your account has been suspended.  You must contact your league administrator to resolve this.'
 }
-    

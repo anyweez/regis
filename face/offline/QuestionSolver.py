@@ -1,16 +1,17 @@
-import imp 
+import imp, json
+import face.models.models as regis
 
 class QuestionSolver(object):
 	def __init__(self):
 		pass
 		
-	def solve(self, qid):
-		# TODO: Get the solver class for the template from the DB.
-		# TODO: Also get the parameter list from the DB.
-		solver_name = 'WoodChuckSolver'
-		params = { 'days' : 12, 'pounds' : 8 }
+	def solve(self, question):
+		# Get the name of the solver from the database.
+		solver_name = question.tid.solver_name
+		# The values of the variables are also stored in the DB.
+		params = json.loads(question.variables)
 		
-		f, pn, dsc = imp.find_module(solver_name, ['Solvers'])
+		f, pn, dsc = imp.find_module(solver_name, ['offline/Solvers'])
 		mod = imp.load_module(solver_name, f, pn, dsc)
 		
 		solver = mod.__dict__[solver_name]()

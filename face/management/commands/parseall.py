@@ -1,6 +1,8 @@
 import face.models.models as regis
 import face.offline.QuestionParser as qp
 
+import json
+
 from django.core.management.base import BaseCommand, CommandError
 
 class Command(BaseCommand):
@@ -13,24 +15,35 @@ class Command(BaseCommand):
 
     parser = qp.QuestionParser()
 
-    templates = regis.QuestionTemplate.objects.all()
-
-    for t in templates:
-      text, values = parser.parse(t.q_text)
-      print text
-
-# STAGE 1: Replenish new user supply.
-# Query the database to determine how many unassigned users are avail.
-#   if num < threshold, let's generate more.
-
-# For each question template that exists, parse the template for the
-# new user.
-# JSON-ify the VARIABLES dictionary that we get back and store that
-# with the question.
-
-
-# STAGE 2: Check for new questions
-# Build list of all tid's that exist.
-# Check whether each user has a question definition for each ID.
-
-# If not, parse one for them and insert it.
+    # Get all valid template ID's
+    all_templates = regis.QuestionTemplate.objects.all()
+    all_tids = [t.id for t in all_templates]
+    
+    users = regis.RegisUser.objects.all()
+    print 'Scanning and updating records for %d user(s)...' % len(users)
+    records_added = 0
+    for user in users:
+        ready_questions = regis.Question.objects.filter(uid__exact=user.id)
+        ready_tids = [q.tid.id for q in ready_questions]
+        
+        # The default position of this question will be LAST until the
+        # shuffler does its work.
+        if len(ready_questions) > 0:
+            next_order = max([rq.order for rq in ready_questions]) + 1
+        else:
+            next_order = 0
+                              
+        for t in ( set(all_tids) - set(ready_tids) ):
+            template = regis.QuestionTemplate.objects.get(id=t)
+            text, values = parser.parse(template.q_text)
+            
+            # Save the information as a processed question.  The solver processor
+            # will pick it up once it's been inserted.
+            q = regis.Question(tid=template, uid=user, text=text, variables=json.dumps(values), status='pending', order=next_order)
+            q.save()
+            
+            records_added += 1
+            # Increment the value of 'order' that will be stored on the next record.
+            next_order += 1
+            
+    print '%d records added.' % records_added

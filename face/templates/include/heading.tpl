@@ -5,11 +5,9 @@
     
     <div id="navigation">
       <ul>
-        <li><a href="http://temple.lukesegars.com/regis/today">today's question</a></li>
-        <li><a href="http://temple.lukesegars.com/regis/qlist">question list</a></li>
+        <li><a href="http://localhost:8000/dash">current question</a></li>
+        <li><a href="http://localhost:8000/question/view/all">question list</a></li>
         <li><a href="http://temple.lukesegars.com/regis/teams">team standings</a></li>
-        <li><a href="http://temple.lukesegars.com/regis/store">store</a></li>
-        <li><a href="http://temple.lukesegars.com/regis/history">point history</a></li>
 
         <li><a href="http://temple.lukesegars.com/regis/about">about</a></li>
         <li><a href="http://temple.lukesegars.com/regis/account/logout">log out</a></li>
