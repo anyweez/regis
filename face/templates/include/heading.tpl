@@ -10,7 +10,7 @@
         <li><a href="http://temple.lukesegars.com/regis/teams">team standings</a></li>
 
         <li><a href="http://temple.lukesegars.com/regis/about">about</a></li>
-        <li><a href="http://temple.lukesegars.com/regis/account/logout">log out</a></li>
+        <li><a href="http://localhost:8000/account/logout">log out</a></li>
       </ul>
     </div>
     

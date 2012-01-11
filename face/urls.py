@@ -17,9 +17,9 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     ('^$', views.index),
     ('account/create$', views.create_account),
-    ('account/store$', views.store_account),
     ('account/login$', views.login),
+    ('account/logout$', views.logout),
     ('dash$', views.dash),
-    ('question/check', views.check_q),
-    ('question/view/all', views.list_questions)
+    ('question/check$', views.check_q),
+    ('question/view/all$', views.list_questions),
 )

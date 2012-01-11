@@ -1,10 +1,10 @@
-import msg
+import errors
 
 active_errors = []
 active_messages = []
 
 def get_error_msg(eid):
-    return msg.error_msg[eid]
+    return errors.error_msg[eid]
     
 def register_error(eid, target=None):
     active_errors.append( (eid, target) )

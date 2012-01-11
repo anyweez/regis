@@ -21,23 +21,39 @@
 <body>
   <div style="margin-top: 7%;" id="logbox">
     <p>Registration for Regis is quick and free.  Just fill out the form below and you'll be good to go.</p>
-    <form action="http://localhost:8000/account/store" method="post" accept-charset="utf-8">  
+    <form action="http://localhost:8000/account/create" method="post" accept-charset="utf-8">  
       {% csrf_token %}
       <div>
-        <label for="id_league">League:</label> 
-        {{ form.league }}
+		{% for m in messages %}
+		<p>{{ m.0 }}</p>
+		{% endfor %}
+		
+		{% for e in errors %}
+		<p>{{ e }}</p>
+		{% endfor %}
+		
+        <label for="league_id">League:</label> 
+        <select name="league_id">
+          {% for league in form.leagues %}
+          <option value="{{ league.0 }}">{{ league.1 }}</option>
+          {% endfor %}
+        </select>
       </div>
       <div>
-        <label for="id_username">Username:</label>
-        {{ form.username }}
+        <label for="username">Username:</label>
+        <input type="text" name="username" />
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="text" name="email" />
       </div>
       <div>
         <label for="id_password">Password:</label>
-        {{ form.password }}
+        <input type="password" name="password" />
       </div>
       <div>
-        <label for="id_password">Email:</label>
-        {{ form.email }}
+        <label for="id_password">Repeat password:</label>
+        <input type="password" name="password2" />
       </div>
 	  <div style="margin-top: 10px;">
 	    <input onclick="window.location='http://localhost:8000/'" type="button" value="Cancel" />

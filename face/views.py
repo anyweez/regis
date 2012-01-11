@@ -9,24 +9,103 @@ import util.QuestionManager as util
 import msg.msghub as msghub
 import util.exceptions as exception
 
+import re
+
 # View is activated when the index page is viewed.
 # There's not a lot of dynamic action here at
 # this point.
 def index(request):
     return render_to_response('index.tpl', { 'errors' : msghub.get_printable_errors() }, context_instance=RequestContext(request))
 
+def _find_acct_errors(uname, email, pwd, lid):
+    errors = []
+    
+    # Check the username
+    if len(uname) < 3 or len(uname) > 12:
+        errors.append('Username must be between 3 and 10 characters long.')
+        
+    # Check the email address.
+    exp = re.compile('[a-zA-Z0-9]+@[a-zA-Z]+\.[a-zA-Z]+')
+    if re.match(exp, email) is None:
+        errors.append('Please provide a valid email address.')
+        
+    # Check the password length.
+    if len(pwd) < 6:
+        errors.append('You password must be at least six characters long.')
+    
+    # Check that the lid is an int and that the league exists.
+    if int(lid) != lid:
+        errors.append('Please specify a valid league ID.')
+    if len(users.RegisLeague.objects.filter(id=lid)) is 0:
+        errors.append('Please specify a valid league ID.')
+        
+    return errors
+
 def create_account(request):
-    form = users.RegisUserForm()
-  
-    return render_to_response('register.tpl', { 'form' : form })
-  
-def store_account(request):
-    form = users.RegisUserForm(request.POST)
-  
-    if form.is_valid():
-        form.save()
-     
-    return render_to_response('register.tpl')
+    # TODO: This isn't the best way to do this.  Django supposedly has nice
+    # form support that can take care of a lot of validation for us...we
+    # should look into upgrading this to use the forms API.    
+    if request.method == 'POST':
+        data = request.POST.copy()
+        try:
+            # Check to see if the two passwords match.
+            if data['password'] != data['password2']:
+                raise exception.DifferingPasswordException()
+            
+            uname = data['username']
+            email = data['email']
+            pwd = data['password']
+            league_id = int(data['league_id'])
+
+            # Check for registration errors.
+            acct_errors = _find_acct_errors(uname, email, pwd, league_id)
+            if len(acct_errors) > 0:
+                for error in acct_errors:
+                    msghub.register_message(error)
+                return redirect('/account/create')
+
+            # Check to make sure that the username doesn't exist yet.
+            dups = users.User.objects.filter(username=uname)
+            if len(dups) > 0:
+                raise exception.DuplicateNameException(uname)
+            
+            # Save the general profile.
+            user = users.User.objects.create_user(uname, email, pwd)
+            # Save the profile for this user.
+            ruser = users.RegisUser(league=users.RegisLeague.objects.get(id=league_id))
+            ruser.user = user
+            ruser.save()
+            
+            msghub.register_message('Account created!', target=None, status=True)
+            return redirect('/')
+            
+        # Some field wasn't provided.
+        except KeyError:
+            msghub.register_error(4, target=None)
+            return redirect('/account/create')
+        # Invalid type for at least one field was provided.
+        except TypeError as e:
+            print e
+            msghub.register_error(4, target=None)
+            return redirect('/account/create')
+        # Two passwords didn't match.
+        except exception.DifferingPasswordException:
+            msghub.register_error(6, target=None)
+            return redirect('/account/create')
+        # The username was already taken.
+        except exception.DuplicateNameException(uname):
+            msghub.register_error(5, target=None)
+            return redirect('/account/create')
+    
+    else:
+        form = {
+            'leagues' : [(l.id, l.name) for l in users.RegisLeague.objects.all()]
+        }
+        return render_to_response('register.tpl', 
+            { 'form' : form,
+              'messages' : msghub.get_messages(),
+              'errors' : msghub.get_printable_errors()
+            }, context_instance=RequestContext(request))
 
 @login_required
 def dash(request):
@@ -69,8 +148,9 @@ def login(request):
         
         if user is not None:
             if user.is_active:
-                return redirect('/dash')
+                auth.login(request, user)
                 # Correct, let's proceed
+                return redirect('/dash')
             else:
                 msghub.register_error(3)
                 return redirect('/')
@@ -83,6 +163,11 @@ def login(request):
         msghub.register_error(1) # Register an error saying info was missing.
         # Didn't provide a username or password.
         return redirect('/')
+
+@login_required
+def logout(request):
+    auth.logout(request)
+    return redirect('/')
 
 @login_required
 def check_q(request):
@@ -102,7 +187,8 @@ def check_q(request):
         msghub.register_message(msg, target=qid, status=correct)
         
         # Record the guess.
-        ruser = users.RegisUser.objects.filter(user=request.user)[0]
+        
+        ruser = request.user.get_profile()
         g = users.Guess(uid=ruser, qid=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
         g.save()
         

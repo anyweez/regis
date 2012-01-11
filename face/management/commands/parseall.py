@@ -39,7 +39,7 @@ class Command(BaseCommand):
             
             # Save the information as a processed question.  The solver processor
             # will pick it up once it's been inserted.
-            q = regis.Question(tid=template, uid=user, text=text, variables=json.dumps(values), status='pending', order=next_order)
+            q = regis.Question(tid=template, uid=user.user, text=text, variables=json.dumps(values), status='pending', order=next_order)
             q.save()
             
             records_added += 1

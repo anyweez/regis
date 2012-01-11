@@ -150,4 +150,6 @@ LOGGING = {
     }
 }
 
-AUTH_PROFILE_MODULE = 'faces.models.Users.RegisUser'
+AUTH_PROFILE_MODULE = 'faces.RegisUser'
+
+LOGIN_URL = '/'

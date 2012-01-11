@@ -6,20 +6,20 @@ from django.contrib import admin
 class RegisLeague(models.Model):
     name = models.CharField(max_length=100)
     date_created = models.DateTimeField()
-    owner = models.ForeignKey('RegisUser')
+    owner = models.ForeignKey(User)
     
     def __str__(self):
         return self.name
 
-class RegisUser(User):
+class RegisUser(models.Model):
     # This is how you extend the base user class.
-    user = models.OneToOneField(User)
-    
-    league = models.ForeignKey('RegisLeague')
+    user = models.ForeignKey(User, unique=True)
+    league = models.ForeignKey(RegisLeague)
     
 class RegisUserForm(ModelForm):
     class Meta:
         model = RegisUser
+
 
 ## Question-related models.
 class QuestionTemplate(models.Model):
@@ -38,7 +38,7 @@ QUESTION_STATUS = (
 
 class Question(models.Model):
     tid = models.ForeignKey(QuestionTemplate)
-    uid = models.ForeignKey(RegisUser)
+    uid = models.ForeignKey(User)
     
     text = models.TextField()
     variables = models.TextField()
@@ -59,7 +59,7 @@ class Answer(models.Model):
     time_computed = models.DateTimeField(auto_now_add=True)
     
 class Guess(models.Model):
-    uid = models.ForeignKey(RegisUser)
+    uid = models.ForeignKey(User)
     qid = models.ForeignKey(Question)
     
     value = models.CharField(max_length=100)
