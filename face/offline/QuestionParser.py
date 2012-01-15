@@ -21,6 +21,12 @@ class QuestionParser(object):
 				var_name, var_def = [x.strip() for x in line[1:].split(':')]
 				def_components = var_def.split(' ')
 
+				# Replace the value with the variable's name.  The variable that's
+				# used as part of a definition must be defined first.
+				for i, var in enumerate(def_components[1:]):
+					if variables.has_key(var):
+						def_components[i] = variables[var]
+
 				# Figure out what the handler module's name is.  There's a simple
 				# formula for doing this based on the name of the defining function.
 				mod_name = '%sTerm' % def_components[0].capitalize()
