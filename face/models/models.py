@@ -3,6 +3,8 @@ from django.forms import ModelForm
 from django.contrib.auth.models import User, UserManager
 from django.contrib import admin
 
+import re
+
 class RegisLeague(models.Model):
     name = models.CharField(max_length=100)
     date_created = models.DateTimeField()
@@ -20,7 +22,16 @@ class RegisUserForm(ModelForm):
     class Meta:
         model = RegisUser
 
+REGIS_EVENT_TYPE = (
+    ('login', 'Log In'),
+)
 
+class RegisEvent(models.Model):
+    event_type = models.CharField(max_length=10, choices=REGIS_EVENT_TYPE)
+    
+    who = models.ForeignKey(RegisUser)
+    when = models.DateTimeField(auto_now_add=True)
+    
 ## Question-related models.
 class QuestionTemplate(models.Model):
     q_text = models.TextField()
@@ -28,6 +39,8 @@ class QuestionTemplate(models.Model):
     
     added_on = models.DateTimeField(auto_now_add=True)
     solver_name = models.CharField(max_length=40)
+    
+    live = models.BooleanField()
 
 QUESTION_STATUS = (
     ('solved', 'Solved'),       # question has been released and answered
@@ -35,6 +48,9 @@ QUESTION_STATUS = (
     ('ready', 'Ready'),         # question parsed and answers available, not released
     ('pending', 'Pending')      # question parsed but answers not available
 )
+    
+class QuestionTag(models.Model):
+    name = models.CharField(max_length=100)
 
 class Question(models.Model):
     tid = models.ForeignKey(QuestionTemplate)
@@ -49,6 +65,21 @@ class Question(models.Model):
     status = models.CharField(max_length=10, choices=QUESTION_STATUS)
     order = models.IntegerField()
     
+    # Record properties of this question.
+    categories = models.ManyToManyField(QuestionTag)
+    
+    def decoded_text(self):
+        base_url = 'http://localhost:8000'
+            
+        pattern = re.compile('\[\[([a-z0-9\/]+)\]\]')
+        matches = pattern.search(self.text)
+        if matches is None:
+            return self.text
+        else:
+            path = matches.group(0)[2:-2]
+            text = self.text.replace(matches.group(0), '<a href="%s/%s">View link</a>' % (base_url, path))
+            return text
+
 class Answer(models.Model):
     qid = models.ForeignKey(Question)
     correct = models.BooleanField()

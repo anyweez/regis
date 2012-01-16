@@ -1,7 +1,8 @@
 import face.models.models as regis
 import face.offline.QuestionParser as qp
+import face.offline.ParserTools.ParserTools as ParserTools
 
-import json
+import json, datetime
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -15,16 +16,19 @@ class Command(BaseCommand):
 
     parser = qp.QuestionParser()
 
-    # Get all valid template ID's
-    all_templates = regis.QuestionTemplate.objects.all()
+    # Get all live templates.  Templates can be made live in the database.
+    all_templates = regis.QuestionTemplate.objects.filter(live=True)
     all_tids = [t.id for t in all_templates]
     
     users = regis.RegisUser.objects.all()
+    print 'Processing %d question templates...' % len(all_templates)
     print 'Scanning and updating records for %d user(s)...' % len(users)
     records_added = 0
     for user in users:
         ready_questions = regis.Question.objects.filter(uid__exact=user.id)
         ready_tids = [q.tid.id for q in ready_questions]
+        
+        parser.user = user
         
         # The default position of this question will be LAST until the
         # shuffler does its work.
@@ -35,11 +39,13 @@ class Command(BaseCommand):
                               
         for t in ( set(all_tids) - set(ready_tids) ):
             template = regis.QuestionTemplate.objects.get(id=t)
+            parser.template = template
+            
             text, values = parser.parse(template.q_text)
             
             # Save the information as a processed question.  The solver processor
             # will pick it up once it's been inserted.
-            q = regis.Question(tid=template, uid=user.user, text=text, variables=json.dumps(values), status='pending', order=next_order)
+            q = regis.Question(tid=template, uid=user.user, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
             q.save()
             
             records_added += 1

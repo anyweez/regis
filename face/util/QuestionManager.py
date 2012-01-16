@@ -22,17 +22,17 @@ class QuestionManager(object):
     # then it displays the question with the lowest ORDER value.
     def get_current_question(self, user):
         target_order = regis.Question.objects.filter(uid=user, status='released').aggregate(Min('order'))
-        
         q = regis.Question.objects.filter(uid=user, order=target_order['order__min'])
-        if len(q) > 0:
+
+        try:
             return q[0]
-        else:
+        except:
             raise exception.NoQuestionReadyException(user)
     
     def time_until_next(self, user):
         nextq = self.get_current_question(user)
-        print nextq.time_released
         time_expires = nextq.time_released + datetime.timedelta(days=1)
+        
         return (time_expires - datetime.datetime.now())
         
     # Returns a tuple (bool, str) that states whether the answer

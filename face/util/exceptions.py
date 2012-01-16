@@ -29,3 +29,9 @@ class UnauthorizedAttemptException(Exception):
     def __str__(self):
         return '%s made an authorized guess attempt on question ID #%d' % (self.user.username, self.qid)
     
+class CommandParsingError(Exception):
+    def __init__(self, command):
+        self.command = command
+        
+    def __str__(self):
+        return 'Could not parse command %s' % self.command

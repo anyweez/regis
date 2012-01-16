@@ -7,14 +7,6 @@
   <title>Regis: Available Questions</title>
 </head>
 <body>
-	{% if errors %}
-	<div class="error">
-      {% for e in errors %}
-      <p>{{ e }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-    
   <!-- The heading, which contains the title and appears above everything else. -->
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
@@ -26,6 +18,7 @@
       <p>The following questions are available in the system.  Additional questions will be released to you once
       you either solve a problem or work on it for 24 hours without solving it.</p>     
       {% for q in questions %}
+        {% if q.status != 'pending' %}
         <div class="qbox">
 		  
 		  {% if q.status == 'ready' %}
@@ -45,14 +38,22 @@
 		    <p>( 25% )</p>
 		  </div>
           <div>
-            <h2 class="qbox_head">{{ q.tid.q_title }}</h2>
-            {% if q.text|length > 60 %}
-            <p class="qbox_preview">{{ q.text|slice:":60" }}...</p>
+            {% if q.status == 'ready' %}
+              <h2 class="qbox_head">Question #{{ q.tid.id }}: {{ q.tid.q_title }}</h2>
+              <p class="qbox_preview" style="font-style: italic">This question isn't available yet.</p>
             {% else %}
-            <p class="qbox_preview">{{ q.text }}</p>
+              <h2 class="qbox_head">Question #{{ q.tid.id }}: <a href="{{q.tid.id}}/">{{ q.tid.q_title }}</a></h2>
+              {% if q.text|length > 60 %}
+                <p class="qbox_preview">{{ q.text|slice:":205" }}...</p>
+              {% else %}
+                <p class="qbox_preview">{{ q.text }}</p>
+              {% endif %}
             {% endif %}
+            
+
           </div>
         </div>
+        {% endif %}
       {% endfor %}
     </div>  
     {% include 'include/sidebar.tpl' %}
@@ -61,8 +62,7 @@
 
   <!-- Container for the information that appears below the main content (i.e. licensing info). -->
     <div id="footer">
-    <p>Page rendered in 0.0328 seconds</p>
-  </div>
+    </div>
 </div> 
   </div>
 </body>

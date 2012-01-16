@@ -20,12 +20,9 @@
 </head>
 <body>
   <div style="margin-top: 7%;" id="logbox">
-    <div style="display: inline;">
-    <img style="float: left; width: 237px; margin-right: 10px;" src="images/title_big_bl.png" />
-    <span style="float: left; width: 350px; margin-top: 20px;">Regis is a tool for practicing programming skills.  It generates a unique question for
-    you each day and gives you points based on how quickly you can answer it.</span>
-    </div>
-    <div style="clear: both;">&nbsp;</div>
+    <img style="display: block; margin: 0 auto" src="static/img/logo-large.png" />
+    <p style="margin-top: 20px;">Regis is a tool for practicing programming skills.  It generates a unique question for
+    you each day and customizes its content to give you the best practice possible.</p>
 
 	{% if errors %}
 	<div class="error">

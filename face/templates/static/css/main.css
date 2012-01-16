@@ -67,6 +67,10 @@ table p {
 	margin: .3em;	
 }
 
+h2 a {
+	color: black;
+}
+
 #display_body {
 	position: relative;
 	bottom: 10px;	
@@ -86,7 +90,9 @@ table p {
 }
 
 #heading #navigation {
-	float: left;
+	display: inline-block;
+	position: relative;
+	bottom: 12px;
 }
 
 #heading ul {
@@ -152,9 +158,7 @@ h2 {
 }
 
 #main_body #right_col #small_right {
-	width: 92%;
-	border-bottom: 2px dashed black;
-	
+	width: 92%;	
 	padding: 4%;
 }
 
@@ -187,6 +191,11 @@ h2 {
 	
 	border: 2px solid #666666;
 	background-color: #EEE;
+}
+
+br {
+	display: block;
+	margin: 10px 0;
 }
 
 .qbox h2.qbox_head {
@@ -300,6 +309,7 @@ div.error {
 	border: 2px solid #CC0000;
 	background-color: #CC3333;
 	color: black;
+	line-height: .2em;
 }
 
 #team_stats {

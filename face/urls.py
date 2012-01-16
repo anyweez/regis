@@ -21,5 +21,8 @@ urlpatterns = patterns('',
     ('account/logout$', views.logout),
     ('dash$', views.dash),
     ('question/check$', views.check_q),
+    ('question/files/(\d+)', views.get_question_file),
+    ('question/view/(\d+)', views.view_question),
     ('question/view/all$', views.list_questions),
+    ('question/status/(\d+)', views.question_status),
 )

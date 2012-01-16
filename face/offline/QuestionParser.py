@@ -6,7 +6,8 @@ parameters that were used to complete the string.
 '''
 class QuestionParser(object):
 	def __init__(self):
-		pass
+		self.user = None
+		self.template = None
 		
 	def parse(self, qtxt):
 		# Replace each [*] with the appropriate value.
@@ -21,11 +22,12 @@ class QuestionParser(object):
 				var_name, var_def = [x.strip() for x in line[1:].split(':')]
 				def_components = var_def.split(' ')
 
+				print def_components
 				# Replace the value with the variable's name.  The variable that's
 				# used as part of a definition must be defined first.
 				for i, var in enumerate(def_components[1:]):
 					if variables.has_key(var):
-						def_components[i] = variables[var]
+						def_components[i+1] = variables[var]
 
 				# Figure out what the handler module's name is.  There's a simple
 				# formula for doing this based on the name of the defining function.
@@ -43,6 +45,8 @@ class QuestionParser(object):
 				#
 				# Format:
 				#   variables[var_name] = (display_value, store_value)
+				term_obj.user = self.user
+				term_obj.template = self.template
 				returned = term_obj.execute(def_components[1:])
 				try:
 					variables[var_name] = tuple(returned[0:2])

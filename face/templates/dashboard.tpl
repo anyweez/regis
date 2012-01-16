@@ -35,10 +35,10 @@
   <div id="main_body">
     <div id="question_body">          
     {% if question.not_ready %}
-      <h2 style="font-weight: normal">Congrats!  You've finished all the questions that we have for you now.</h2>
+      <h2 style="font-weight: normal"><b>Congrats!</b><br />You've finished all the questions that we have for you now.</h2>
       <p>We're constantly working on writing new questions...if you think you have an idea for one, feel free to email it to us!</p>
     {% else %}
-      <h2 style="margin-bottom: 5px;">Challenge: <span style="font-weight: normal">{{ question.title }}</span></h2>
+      <h2 style="margin-bottom: 5px;">Challenge: <span style="font-weight: normal">{{ question.tid.q_title }} (#{{ question.tid.id }})</span></h2>
       <p style="font-size: small; margin-top: 0px; color: #666666;">A new question will be released in {{ ttl.hours }} hours and {{ ttl.minutes }} minutes.</p>
       {% if messages %}
         {% for m in messages %}
@@ -49,7 +49,7 @@
           {% endif %}
         {% endfor %}
       {% endif %}
-      <p id="main_q">{{ question.text }}</p>
+      <p id="main_q">{{ question.decoded_text|safe }}</p>
       {% include 'include/qbox.tpl' %}
     {% endif %}
     </div>  
@@ -59,8 +59,7 @@
 
   <!-- Container for the information that appears below the main content (i.e. licensing info). -->
     <div id="footer">
-    <p>Page rendered in 0.0328 seconds</p>
-  </div>
+    </div>
 </div> 
   </div>
 </body>

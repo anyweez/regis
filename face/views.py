@@ -9,7 +9,7 @@ import util.QuestionManager as util
 import msg.msghub as msghub
 import util.exceptions as exception
 
-import re
+import re, json
 
 # View is activated when the index page is viewed.
 # There's not a lot of dynamic action here at
@@ -111,7 +111,7 @@ def create_account(request):
 def dash(request):
     qm = util.QuestionManager()
     try:
-        next_q = qm.get_current_question(request.user)
+        current_q = qm.get_current_question(request.user)
         # Get the time until next release in seconds
         next_release_s = qm.time_until_next(request.user).seconds
     
@@ -121,20 +121,12 @@ def dash(request):
         next_release['minutes'] = int(math.floor(next_release_s / 60))
         next_release_s -= (next_release['minutes'] * 60)
     
-        qdata = {
-            'title' : next_q.tid.q_title,
-            'text' : next_q.text,
-            'id': next_q.id
-        }
     except exception.NoQuestionReadyException:
-        qdata = {
-            'not_ready' : True
-        }
         next_release = None
 
     return render_to_response('dashboard.tpl', 
         { 'user': request.user, 
-          'question': qdata, 
+          'question': current_q, 
           'ttl' : next_release,
           'messages' : msghub.get_messages() },
         context_instance=RequestContext(request)
@@ -148,6 +140,11 @@ def login(request):
         
         if user is not None:
             if user.is_active:
+                ruser = users.RegisUser.objects.filter(user=user)[0]
+                
+                # Save an event recording that the user just logged in. 
+                users.RegisEvent(who=ruser, event_type="login").save()
+                
                 auth.login(request, user)
                 # Correct, let's proceed
                 return redirect('/dash')
@@ -213,5 +210,71 @@ def list_questions(request):
     all_questions = users.Question.objects.filter(uid=ruser)
     
     return render_to_response('list_questions.tpl', 
-        { 'questions' : all_questions }
+        { 'questions' : all_questions,
+          'user' : request.user }
     )
+
+@login_required
+def view_question(request, tid):
+    ruser = users.RegisUser.objects.filter(user=request.user)[0]
+    template = users.QuestionTemplate.objects.filter(id=tid)
+    
+    if template is not None:
+        question = users.Question.objects.filter(uid=ruser, tid=template[0])
+    
+        # If there is a question that matches their request, display it.
+        if len(question) > 0:
+            question = question[0]
+            return render_to_response('view_question.tpl', { 'question' : question, 'user': request.user })
+        # There is no question matching the requested data.
+        else:
+            # TODO: Need to return some error responses here.
+            pass
+    else:
+        # TODO: Error response needed here as well.
+        pass
+
+@login_required
+def question_status(request, gid):
+    ruser = users.RegisUser.objects.filter(user=request.user)[0]
+    guesses = users.Guess.objects.filter(id=gid)
+    
+    if len(guesses) > 0:
+        guess = guesses[0]
+        question = guess.qid
+        
+        answers = users.Answer.objects.filter(qid=question, value=guess.value)
+        
+        answer = None
+        if len(answers) > 0:
+            answer = answers[0]
+        
+        return render_to_response('question_status.tpl', 
+            { 'guess' : guess, 
+              'question' : question, 
+              'user': request.user,
+              'answer': answer })
+
+@login_required
+def get_question_file(request, tid):
+    ruser = users.RegisUser.objects.filter(user=request.user)[0]
+    templates = users.QuestionTemplate.objects.filter(id=tid)
+    
+    data = None
+    field = []
+    
+    if len(templates) > 0:
+        questions = users.Question.objects.filter(uid=ruser, tid=templates[0])
+        
+        if len(questions) > 0:
+            data = json.loads(questions[0].variables)
+            for actual, visible in data.values():
+                try:
+                    if list(actual) == actual and len(actual) > len(field):
+                        field = actual
+                except TypeError:
+                    continue
+    
+    return render_to_response('show_file.tpl', { 'data' : field }, mimetype='text/plain')
+
+            
