@@ -4,6 +4,15 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="static/css/main.css" />
 
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+  </script>
+  <script type="text/javascript" src="static/js/hints.js">
+  </script>
+  
+  <script type="text/javascript">
+    var question_id = {{ question.tid.id }};
+  </script>
+  
   <style type="text/css">
     #logbox {
       background-color: white;
@@ -51,6 +60,8 @@
       {% endif %}
       <p id="main_q">{{ question.decoded_text|safe }}</p>
       {% include 'include/qbox.tpl' %}
+      <p id="hintzone">Want a hint?</p>
+      <div id="hintdisplay"></div>
     {% endif %}
     </div>  
     {% include 'include/sidebar.tpl' %}

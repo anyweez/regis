@@ -3,7 +3,7 @@ from django.forms import ModelForm
 from django.contrib.auth.models import User, UserManager
 from django.contrib import admin
 
-import re
+import re, hashlib
 
 class RegisLeague(models.Model):
     name = models.CharField(max_length=100)
@@ -32,6 +32,8 @@ class RegisEvent(models.Model):
     who = models.ForeignKey(RegisUser)
     when = models.DateTimeField(auto_now_add=True)
     
+    target = models.CharField(max_length=50, null=True)
+    
 ## Question-related models.
 class QuestionTemplate(models.Model):
     q_text = models.TextField()
@@ -53,7 +55,9 @@ class QuestionTag(models.Model):
     name = models.CharField(max_length=100)
 
 class Question(models.Model):
+    # TODO: Rename this to 'template'
     tid = models.ForeignKey(QuestionTemplate)
+    # TODO: Rename this to 'user'
     uid = models.ForeignKey(User)
     
     text = models.TextField()
@@ -97,11 +101,26 @@ class Guess(models.Model):
     correct = models.BooleanField()
     time_guessed = models.DateTimeField()
     
+class QuestionHint(models.Model):
+    question = models.ForeignKey(Question)
+    # The person who provided the hint
+    src = models.ForeignKey(RegisUser)
+    text = models.TextField()
     
+    def get_hash(self):
+        return hashlib.sha1(str(self.id) + self.text).hexdigest()
+
+class QuestionHintRating(models.Model):
+    hint = models.ForeignKey(QuestionHint)
+    # The person who provided the rating.
+    src = models.ForeignKey(RegisUser)
+    rating = models.BooleanField()
+
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)
 admin.site.register(RegisUser)
 admin.site.register(QuestionTemplate)
 admin.site.register(Question)
+admin.site.register(QuestionHint)
 admin.site.register(Answer)
 admin.site.register(Guess)

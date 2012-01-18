@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 
 import math, datetime
 import models.models as users
@@ -9,7 +10,7 @@ import util.QuestionManager as util
 import msg.msghub as msghub
 import util.exceptions as exception
 
-import re, json
+import re, json, hashlib
 
 # View is activated when the index page is viewed.
 # There's not a lot of dynamic action here at
@@ -277,4 +278,57 @@ def get_question_file(request, tid):
     
     return render_to_response('show_file.tpl', { 'data' : field }, mimetype='text/plain')
 
-            
+@login_required
+def get_all_hints(request, tid):
+    template = users.QuestionTemplate.objects.filter(id=tid)
+    outlist = []
+    if template:
+        ruser = users.RegisUser.objects.filter(user=request.user)
+        question = users.Question.objects.filter(tid=template, uid=ruser)
+        
+        hints = users.QuestionHint.objects.filter(question=question)
+        outlist = [hint.get_hash() for hint in hints]
+    
+    return HttpResponse(json.dumps(outlist), mimetype='application/json')
+
+@login_required
+def get_hint_details(request, tid, hinthash):
+    template = users.QuestionTemplate.objects.filter(id=tid)
+    if template:
+        ruser = users.RegisUser.objects.filter(user=request.user)[0]
+        questions = users.Question.objects.filter(uid=ruser, tid=template[0])
+
+        if questions:
+            hints = users.QuestionHint.objects.filter(question=questions[0])
+        
+            # TODO: order the hints somehow.
+        
+            # Get the specific hint that we want to return.
+            chosen = None
+            for hint in hints:
+                if hint.get_hash() == hinthash:
+                    chosen = hint
+                
+            # Tally the votes
+            votes = users.QuestionHintRating.objects.filter(hint=chosen)
+        
+            upvotes = 0
+            downvotes = 0
+            for vote in votes:
+                if vote.rating:
+                    upvotes += 1
+                else:
+                    downvotes += 1
+        
+            # Show all of this info.
+            chosen_data = {
+                'hint_id' : hinthash,
+                'hint_body' : chosen.text,
+                'upvotes' : upvotes,
+                'downvotes' : downvotes 
+            }
+
+            # Register an event saying that the user viewed the hint.
+            users.RegisEvent(event_type='gethint', who=ruser, target=chosen.id).save()
+        
+            return HttpResponse(json.dumps(chosen_data), mimetype='application/json')

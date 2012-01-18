@@ -25,4 +25,7 @@ urlpatterns = patterns('',
     ('question/view/(\d+)', views.view_question),
     ('question/view/all$', views.list_questions),
     ('question/status/(\d+)', views.question_status),
+    
+    ('ajax/hints/basic/(\d+)', views.get_all_hints),
+    ('ajax/hints/get/(\d+)/([a-z0-9]+)', views.get_hint_details),
 )
