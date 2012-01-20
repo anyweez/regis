@@ -1,6 +1,7 @@
 
 class BaseTerm(object):
   def __init__(self):
+    # TODO: Move term_focus code into constructors in Terms.
     self.user = None
     self.template = None
 		

@@ -9,6 +9,8 @@ import random
 # the set.  It has two arguments, one required and one
 # optional.
 #    mixset setfile.txt [setlength]
+#
+# setlength will be honored when possible.
 
 class MixsetTerm(Term.BaseTerm):
     def execute(self, params):
@@ -30,7 +32,7 @@ class MixsetTerm(Term.BaseTerm):
             if len(sets) is 0:
                 sets = [s for s in sets if len(s) >= size_limit]
                 if len(sets) is 0:
-                    raise exceptions.CommandParsingError('mixset')
+                    sets = pt.make_sets(lines)
 
         # Randomly choose a set and shuffle it around.
         chosen = random.choice(sets)

@@ -41,11 +41,16 @@ class Command(BaseCommand):
             template = regis.QuestionTemplate.objects.get(id=t)
             parser.template = template
             
-            text, values = parser.parse(template.q_text)
+            try:
+                text, values = parser.parse(template.q_text)
+            except Exception as e:
+                print '[ERROR] Error parsing template #%d' % template.id
+                print e
+                continue
             
             # Save the information as a processed question.  The solver processor
             # will pick it up once it's been inserted.
-            q = regis.Question(tid=template, uid=user.user, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
+            q = regis.Question(tid=template, uid=user, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
             q.save()
             
             records_added += 1

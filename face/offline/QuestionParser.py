@@ -22,7 +22,6 @@ class QuestionParser(object):
 				var_name, var_def = [x.strip() for x in line[1:].split(':')]
 				def_components = var_def.split(' ')
 
-				print def_components
 				# Replace the value with the variable's name.  The variable that's
 				# used as part of a definition must be defined first.
 				for i, var in enumerate(def_components[1:]):
@@ -58,7 +57,7 @@ class QuestionParser(object):
 
 		# Replace the variables with the appropriate values.
 		for i, line in enumerate(question):
-			strvars = list(set(re.findall('(?<=\[)[a-zA-Z1-9]*(?=\])', line)))
+			strvars = list(set(re.findall('(?<=\[)[a-zA-Z1-9_]*(?=\])', line)))
 			for var in strvars:
 				line = re.sub('\[%s\]' % var, str(variables[var][0]), line, count=10)
 			question[i] = line

@@ -1,9 +1,12 @@
 import offline.Terms.Term as Term
+import offline.ParserTools.ParserTools as ParserTools
 import random
 
 class NumTerm(Term.BaseTerm):
 	def execute(self, params):
-		low = int(params[0])
-		high = int(params[1])
+		pt = ParserTools.ParserTools()
 		
-		return (random.randint(low, high), 3)
+		low, high = pt.prepare_params(params)
+		num = random.randint(int(low), int(high))
+
+		return (num, num)

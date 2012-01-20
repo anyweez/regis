@@ -31,17 +31,31 @@ class ParserTools(object):
         directory = '../resources/user'
 
         fp = open('%s/%d.%d.txt' % (directory, self.user.id, self.template.id), 'w')
-        fp.writelines(contents)
+        for content in contents:
+            fp.write('%s\n' % content)
         fp.close()
         
         return 'question/files/%d' % self.template.id
 
+    def prepare_params(self, params):
+        finals = []
+        for param in params:
+            if tuple(param) == param or list(param) == param:
+                finals.append(param[0])
+            else:
+                finals.append(param)
+                
+        if len(finals) is 1:
+            return finals[0]
+        else:
+            return finals
+                
     def make_sets(self, lines):
         sets = []
         current = []
 
         for line in lines:
-            if len(line) is 0:
+            if len(line.strip()) is 0:
                 sets.append(current)
                 current = []
             else:
