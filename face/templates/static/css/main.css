@@ -27,6 +27,16 @@ body input[type="password"] {
 	padding: 4px;
 }
 
+body textarea {
+	border: 2px solid #333;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	background-color: #EBF2FF;
+	
+	font-size: 14px;
+	padding: 4px;
+}
+
 body select {
 	border: 2px solid #333;
 	border-radius: 2px;
@@ -358,4 +368,66 @@ div.error {
 	position: relative;
 	top: 2px;
 	right: 4px;
+}
+
+.hintbox {
+	border: 1px solid #E0D01B;
+	border-radius: 3px;
+
+	background-color: #FFF7A3;
+	font-size: small;
+
+	padding: 5px;
+	margin-top: 10px;
+	
+}
+
+.hintbox img {
+	vertical-align: middle;
+	margin-right: 3px;
+	margin-bottom: 3px;
+}
+
+.hintbox a {
+	color: #000;
+}
+
+.hintbox li {
+	list-style-type: none;
+	margin-left: 10px;
+	padding: 0;
+
+	font-style: italic;
+
+	display: block;
+}
+
+.hintbox .votepane {
+	background-color: #E0D01B;
+	display: inline-block;
+	vertical-align: top;
+
+	margin-right: 5px;
+	margin-bottom: 5px;
+	padding: 3px 6px 3px 6px;
+
+	border: 1px solid #333;
+	border-radius: 2px;
+}
+
+.hintbox .hintvoter {
+	display: inline-block;
+	width: 20px;
+	height: 40px;
+
+	margin-right: 2px;
+}
+
+.hintbox .hintscore {
+	display: inline-block;
+	width: 20px;
+	height: 40px;
+	vertical-align: top;
+
+	font-size: 30px;
 }

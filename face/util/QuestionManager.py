@@ -8,14 +8,15 @@ class QuestionManager(object):
     # Activates the next question for the user.
     def activate_next(self, user):
         target_order = regis.Question.objects.filter(uid=user, status='ready').aggregate(Min('order'))
-        q = regis.Question.objects.filter(uid=user, order=target_order['order__min'])[0]
-        
+
         # If there is a question to be released, release it.
-        if q is not None:
+        try:
+            q = regis.Question.objects.get(uid=user, order=target_order['order__min'])
+        
             q.time_released = datetime.datetime.now()
             q.status = 'released'
             q.save()
-        else:
+        except regis.Question.DoesNotExist:
             raise exception.NoQuestionReadyException(user)
         
     # Gets the most recently available question.  If multiple questions are available

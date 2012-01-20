@@ -28,4 +28,7 @@ urlpatterns = patterns('',
     
     ('ajax/hints/basic/(\d+)', views.get_all_hints),
     ('ajax/hints/get/(\d+)/([a-z0-9]+)', views.get_hint_details),
+    ('ajax/hints/submit/(\d+)', views.submit_hint),
+    ('ajax/hints/vote/yes/([a-f0-9]+)', views.tally_vote, { 'vote' : True }),
+    ('ajax/hints/vote/no/([a-f0-9]+)', views.tally_vote, { 'vote' : False }),
 )

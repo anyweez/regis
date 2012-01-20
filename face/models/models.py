@@ -58,7 +58,7 @@ class Question(models.Model):
     # TODO: Rename this to 'template'
     tid = models.ForeignKey(QuestionTemplate)
     # TODO: Rename this to 'user'
-    uid = models.ForeignKey(User)
+    uid = models.ForeignKey(RegisUser)
     
     text = models.TextField()
     variables = models.TextField()
@@ -94,7 +94,7 @@ class Answer(models.Model):
     time_computed = models.DateTimeField(auto_now_add=True)
     
 class Guess(models.Model):
-    uid = models.ForeignKey(User)
+    uid = models.ForeignKey(RegisUser)
     qid = models.ForeignKey(Question)
     
     value = models.CharField(max_length=100)
@@ -102,7 +102,7 @@ class Guess(models.Model):
     time_guessed = models.DateTimeField()
     
 class QuestionHint(models.Model):
-    question = models.ForeignKey(Question)
+    template = models.ForeignKey(QuestionTemplate)
     # The person who provided the hint
     src = models.ForeignKey(RegisUser)
     text = models.TextField()

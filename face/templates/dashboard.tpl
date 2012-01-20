@@ -8,10 +8,17 @@
   </script>
   <script type="text/javascript" src="static/js/hints.js">
   </script>
-  
+
+  {% if question %}
   <script type="text/javascript">
     var question_id = {{ question.tid.id }};
+
+    // Fetch information about hints as soon as the page is loaded.
+    $(document).ready(function() {
+      get_hints(question_id);
+    });
   </script>
+  {% endif %}
   
   <style type="text/css">
     #logbox {
@@ -27,7 +34,15 @@
 
   <title>Regis: Dashboard for {{ user.username }}</title>
 </head>
-<body>
+<body>    
+  <!-- The heading, which contains the title and appears above everything else. -->
+  <div id="display_body">   
+    {% include 'include/heading.tpl' %}
+    
+  <!-- Container for the majority of the page's content. -->
+  <div id="main_body">
+    <div id="question_body"> 
+    
 	{% if errors %}
 	<div class="error">
       {% for e in errors %}
@@ -35,15 +50,8 @@
       {% endfor %}
     </div>
     {% endif %}
-    
-  <!-- The heading, which contains the title and appears above everything else. -->
-  <div id="display_body">   
-    {% include 'include/heading.tpl' %}
-    
-  <!-- Container for the majority of the page's content. -->
-  <div id="main_body">
-    <div id="question_body">          
-    {% if question.not_ready %}
+             
+    {% if not question %}
       <h2 style="font-weight: normal"><b>Congrats!</b><br />You've finished all the questions that we have for you now.</h2>
       <p>We're constantly working on writing new questions...if you think you have an idea for one, feel free to email it to us!</p>
     {% else %}
@@ -60,8 +68,7 @@
       {% endif %}
       <p id="main_q">{{ question.decoded_text|safe }}</p>
       {% include 'include/qbox.tpl' %}
-      <p id="hintzone">Want a hint?</p>
-      <div id="hintdisplay"></div>
+      {% include 'include/hintzone.tpl' %}
     {% endif %}
     </div>  
     {% include 'include/sidebar.tpl' %}
