@@ -213,7 +213,7 @@ def check_q(request):
 @login_required
 def list_questions(request):
     ruser = users.RegisUser.objects.filter(user=request.user)[0]
-    all_questions = users.Question.objects.filter(uid=ruser)
+    all_questions = users.Question.objects.filter(uid=ruser).order_by('tid')
     
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,

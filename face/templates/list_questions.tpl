@@ -44,7 +44,7 @@
             {% else %}
               <h2 class="qbox_head">Question #{{ q.tid.id }}: <a href="{{q.tid.id}}/">{{ q.tid.q_title }}</a></h2>
               {% if q.text|length > 60 %}
-                <p class="qbox_preview">{{ q.text|slice:":205" }}...</p>
+                <p class="qbox_preview">{{ q.text|slice:":200" }}...</p>
               {% else %}
                 <p class="qbox_preview">{{ q.text }}</p>
               {% endif %}

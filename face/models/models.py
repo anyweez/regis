@@ -89,7 +89,7 @@ class Answer(models.Model):
     correct = models.BooleanField()
     
     value = models.CharField(max_length=100)
-    message = models.CharField(max_length=200)
+    message = models.CharField(max_length=200, null=True)
     
     time_computed = models.DateTimeField(auto_now_add=True)
     

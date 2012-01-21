@@ -7,7 +7,7 @@ class QuestionSolver(object):
 		
 	def solve(self, question):
 		# Get the name of the solver from the database.
-		solver_name = question.tid.solver_name
+		solver_name = '%sSolver' % (question.tid.solver_name)
 		# The values of the variables are also stored in the DB.
 		params = json.loads(question.variables)
 		

@@ -12,20 +12,24 @@ class Command(BaseCommand):
 
         solved_count = 0
         for q in qlist:
-            results = solver.solve(q)
+            try:
+                results = solver.solve(q)
             
-            for val, msg in results['correct']:
-                ans = regis.Answer(qid=q, correct=True, value=val, message=msg)
-                ans.save()
+                for val, msg in results['correct']:
+                    ans = regis.Answer(qid=q, correct=True, value=val, message=msg)
+                    ans.save()
                 
-            for val, msg in results['mistakes']:
-                ans = regis.Answer(qid=q, correct=False, value=val, message=msg)
-                ans.save()
+                for val, msg in results['mistakes']:
+                    ans = regis.Answer(qid=q, correct=False, value=val, message=msg)
+                    ans.save()
             
-            q.status = 'ready'
-            q.save()
+                q.status = 'ready'
+                q.save()
             
-            solved_count += 1
+                solved_count += 1
+            except Exception as e:
+                print '[ERROR] Error solving problem #%d for user #%d.' % (q.id, q.uid.id)
+                print e
             
         print 'Solved %d new problems.' % solved_count
       
