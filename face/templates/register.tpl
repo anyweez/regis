@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <link rel="stylesheet" type="text/css" href="../static/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
   <style type="text/css">
     #logbox {
@@ -21,7 +21,7 @@
 <body>
   <div style="margin-top: 7%;" id="logbox">
     <p>Registration for Regis is quick and free.  Just fill out the form below and you'll be good to go.</p>
-    <form action="http://localhost:8000/account/create" method="post" accept-charset="utf-8">  
+    <form action="/account/create" method="post" accept-charset="utf-8">  
       {% csrf_token %}
       <div>
 		{% for m in messages %}
@@ -56,7 +56,7 @@
         <input type="password" name="password2" />
       </div>
 	  <div style="margin-top: 10px;">
-	    <input onclick="window.location='http://localhost:8000/'" type="button" value="Cancel" />
+	    <input onclick="window.location='/'" type="button" value="Cancel" />
 	    <input type="submit" name="login" value="Create account"  />        
 	  </div>
 	</form>

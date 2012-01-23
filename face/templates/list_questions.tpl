@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <link rel="stylesheet" type="text/css" href="http://localhost:8000/static/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
   <title>Regis: Available Questions</title>
 </head>

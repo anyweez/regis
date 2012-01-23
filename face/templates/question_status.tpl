@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <link rel="stylesheet" type="text/css" href="http://localhost:8000/static/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
   
   <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
   </script>
@@ -74,7 +74,7 @@
         {{ answer.message }}
         {% endif %}
       
-      <p>Care to <a href="http://localhost:8000/question/view/{{question.tid.id}}">try again</a>?</p>
+      <p>Care to <a href="/question/view/{{question.tid.id}}">try again</a>?</p>
       {% include 'include/hintbox.tpl' %}
       {% endif %}
 
