@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
     ('^$', views.index),
+    ('^authsub?token=([a-zA-Z0-9\%]+)$', views.authsub),
     ('account/create$', views.create_account),
     ('account/login$', views.login),
     ('account/logout$', views.logout),

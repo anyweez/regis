@@ -109,6 +109,10 @@ def create_account(request):
               'errors' : msghub.get_printable_errors()
             }, context_instance=RequestContext(request))
 
+def authsub(request):
+    
+    pass
+
 @login_required
 def dash(request):
     qm = util.QuestionManager()

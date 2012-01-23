@@ -154,6 +154,7 @@ LOGGING = {
 AUTH_PROFILE_MODULE = 'models.regisuser'
 
 LOGIN_URL = '/'
+LOGIN_REDIRECT_URL = '/dash'
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.google.GoogleOAuthBackend',
@@ -162,4 +163,9 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SOCIAL_AUTH_ENABLED_BACKENDS = ('google-oauth', 'facebook', 'twitter')
+SOCIAL_AUTH_ENABLED_BACKENDS = ('google-oauth',) #('google-oauth', 'facebook', 'twitter')
+SOCIAL_AUTH_ASSOCIATE_BY_MAIL = True
+
+GOOGLE_CONSUMER_KEY = ''
+GOOGLE_CONSUMER_SECRET = ''
+GOOGLE_DISPLAY_NAME = 'Regis'
