@@ -145,7 +145,7 @@ def login(request):
         
         if user is not None:
             if user.is_active:
-                ruser = users.RegisUser.objects.filter(user=user)[0]
+                ruser = user.get_profile()
                 
                 # Save an event recording that the user just logged in. 
                 users.RegisEvent(who=ruser, event_type="login").save()
@@ -212,7 +212,7 @@ def check_q(request):
 
 @login_required
 def list_questions(request):
-    ruser = users.RegisUser.objects.filter(user=request.user)[0]
+    ruser = request.user.get_profile()
     all_questions = users.Question.objects.filter(uid=ruser).order_by('tid')
     
     return render_to_response('list_questions.tpl', 
@@ -222,11 +222,11 @@ def list_questions(request):
 
 @login_required
 def view_question(request, tid):
-    ruser = users.RegisUser.objects.filter(user=request.user)[0]
-    template = users.QuestionTemplate.objects.filter(id=tid)
+    ruser = request.user.get_profile()
+    template = users.QuestionTemplate.objects.get(id=tid)
     
     if template is not None:
-        question = users.Question.objects.filter(uid=ruser, tid=template[0])
+        question = users.Question.objects.filter(uid=ruser, tid=template)
     
         # If there is a question that matches their request, display it.
         if len(question) > 0:
@@ -244,7 +244,7 @@ def view_question(request, tid):
 
 @login_required
 def question_status(request, gid):
-    ruser = users.RegisUser.objects.filter(user=request.user)[0]
+    ruser = request.user.get_profile()
     try:
         guess = users.Guess.objects.get(id=gid)
         question = guess.qid
@@ -276,7 +276,7 @@ def question_status(request, gid):
 
 @login_required
 def get_question_file(request, tid):
-    ruser = users.RegisUser.objects.filter(user=request.user)[0]
+    ruser = request.user.get_profile()
     templates = users.QuestionTemplate.objects.filter(id=tid)
     
     data = None
