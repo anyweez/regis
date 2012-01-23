@@ -157,7 +157,7 @@ def login(request):
                 qm = util.QuestionManager()
                 try:
                     currentq = qm.get_current_question(ruser)
-                except exception.NoQuestionReadyException():
+                except exception.NoQuestionReadyException:
                     qm.activate_next(ruser)
                     
                 # If it's been more than 2 days, release a new question.
@@ -165,7 +165,7 @@ def login(request):
                     try:
                         qm.activate_next(ruser)
                     # The template will work fine if no question is ready.
-                    except exception.NoQuestionReadyException():
+                    except exception.NoQuestionReadyException:
                         pass
                     
                 # Correct, let's proceed
