@@ -155,9 +155,13 @@ def login(request):
                 # If the user hasn't had a question released in 48 hours, release
                 # a new one.
                 qm = util.QuestionManager()
-                currentq = qm.get_current_question(ruser)
-                # If it's been more than 48 hours, release a new question.
-                if (datetime.datetime.now() - currentq.time_released).seconds > 172800:
+                try:
+                    currentq = qm.get_current_question(ruser)
+                except exception.NoQuestionReadyException():
+                    qm.activate_next(ruser)
+                    
+                # If it's been more than 2 days, release a new question.
+                if (datetime.datetime.now() - currentq.time_released) > datetime.timedelta(days=2):
                     try:
                         qm.activate_next(ruser)
                     # The template will work fine if no question is ready.
