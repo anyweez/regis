@@ -1,4 +1,4 @@
-from django.db.models import Min
+from django.db.models import Min, Max
 
 import face.models.models as regis
 import face.util.exceptions as exception
@@ -22,8 +22,8 @@ class QuestionManager(object):
     # Gets the most recently available question.  If multiple questions are available
     # then it displays the question with the lowest ORDER value.
     def get_current_question(self, user):
-        target_order = regis.Question.objects.filter(uid=user, status='released').aggregate(Min('order'))
-        q = regis.Question.objects.filter(uid=user, order=target_order['order__min'])
+        target_order = regis.Question.objects.filter(uid=user, status='released').aggregate(Max('order'))
+        q = regis.Question.objects.filter(uid=user, order=target_order['order__max'])
 
         try:
             return q[0]

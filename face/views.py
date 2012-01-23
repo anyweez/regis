@@ -151,6 +151,19 @@ def login(request):
                 users.RegisEvent(who=ruser, event_type="login").save()
                 
                 auth.login(request, user)
+                
+                # If the user hasn't had a question released in 48 hours, release
+                # a new one.
+                qm = util.QuestionManager()
+                currentq = qm.get_current_question(ruser)
+                # If it's been more than 48 hours, release a new question.
+                if (datetime.datetime.now() - currentq.time_released).seconds > 172800:
+                    try:
+                        qm.activate_next(ruser)
+                    # The template will work fine if no question is ready.
+                    except exception.NoQuestionReadyException():
+                        pass
+                    
                 # Correct, let's proceed
                 return redirect('/dash')
             else:

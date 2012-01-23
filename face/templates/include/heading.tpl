@@ -1,5 +1,5 @@
 <div id="heading">
-    <a href="/" style="display: inline-block; margin: 5px 15px 0px 15px;">
+    <a href="/dash" style="display: inline-block; margin: 5px 15px 0px 15px;">
       <img src="/static/img/logo-white-small.png" />
     </a>
     
