@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <link rel="stylesheet" type="text/css" href="static/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
   <style type="text/css">
     #logbox {
@@ -33,7 +33,7 @@
     {% endif %}
     
     <div id="login_form" style="margin: 0 auto; width: 550px;">
-      <form action="http://localhost:8000/account/login" method="post" accept-charset="utf-8">    
+      <form action="/account/login" method="post" accept-charset="utf-8">    
       {% csrf_token %}
       <label for="username">Username: </label>    
       <input type="text" name="username" value="" id="email" style="width: 12em;"  />    

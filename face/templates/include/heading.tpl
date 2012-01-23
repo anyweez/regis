@@ -1,6 +1,6 @@
 <div id="heading">
     <a href="/" style="display: inline-block; margin: 5px 15px 0px 15px;">
-      <img src="http://localhost:8000/static/img/logo-white-small.png" />
+      <img src="/static/img/logo-white-small.png" />
     </a>
     
     <div id="navigation">

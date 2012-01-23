@@ -1,5 +1,5 @@
 <div id="answerbox" style="height: 40px;">
-  <form action="http://localhost:8000/question/check" method="post" accept-charset="utf-8">
+  <form action="/question/check" method="post" accept-charset="utf-8">
     {% csrf_token %}
     <input type="text" name="answer" value="" style="font-size: 20px; margin: 0; border-radius: 5px 0px 0px 5px; height: 30px;"  />
     <input type="hidden" name="qid" value="{{ question.id }}" />
