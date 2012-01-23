@@ -156,19 +156,26 @@ def login(request):
                 # a new one.
                 qm = util.QuestionManager()
                 try:
+                    # Raises a NoQuestionReadyException if user hasn't ever had a
+                    # question released.
                     currentq = qm.get_current_question(ruser)
-                except exception.NoQuestionReadyException:
-                    qm.activate_next(ruser)
+                    last_unlock = (datetime.datetime.now() - currentq.time_released)
                     
-                # If it's been more than 2 days, release a new question.
-                if (datetime.datetime.now() - currentq.time_released) > datetime.timedelta(days=2):
+                    # If it's been more than 2 days, release a new question.
+                    if last_unlock > datetime.timedelta(days=2):
+                        # Raises a NoQuestionReadyException if there are no
+                        # questions left to unlock.
+                        qm.activate_next(ruser)
+                except exception.NoQuestionReadyException:
                     try:
                         qm.activate_next(ruser)
-                    # The template will work fine if no question is ready.
-                    except exception.NoQuestionReadyException:
+                    # If the exception gets thrown again then there are no new questions
+                    # to activate and we can just proceed.  The view logic and template
+                    # code is designed to deal with this situation.
+                    except:
                         pass
                     
-                # Correct, let's proceed
+                # Correct, let's proceed.
                 return redirect('/dash')
             else:
                 msghub.register_error(3)
