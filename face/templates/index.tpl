@@ -17,6 +17,7 @@
   </style>
 
   <title>Welcome to Regis!</title>
+  {% include 'include/common_header.tpl' %}
 </head>
 <body>
   <div style="margin-top: 7%;" id="logbox">
@@ -50,7 +51,6 @@
 	<div id="extra_login" style="text-align: center; margin-top: 5px;">
 	  <a href="account/create">register</a>
 	</div>
-    {% include 'include/footer.tpl' %}
   </div>
 </body>
 </html>
