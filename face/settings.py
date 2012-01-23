@@ -124,7 +124,8 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'face.models',
-    'face'
+    'face',
+    'social_auth'
 )
 
 # A sample logging configuration. The only tangible logging
@@ -153,3 +154,12 @@ LOGGING = {
 AUTH_PROFILE_MODULE = 'models.regisuser'
 
 LOGIN_URL = '/'
+
+AUTHENTICATION_BACKENDS = (
+    'social_auth.backends.google.GoogleOAuthBackend',
+    'social_auth.backends.twitter.TwitterBackend',
+    'social_auth.backends.facebook.FacebookBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+SOCIAL_AUTH_ENABLED_BACKENDS = ('google-oauth', 'facebook', 'twitter')

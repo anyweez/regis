@@ -50,7 +50,7 @@
 	<div id="extra_login" style="text-align: center; margin-top: 5px;">
 	  <a href="account/create">register</a>
 	</div>
-    
+    {% include 'include/footer.tpl' %}
   </div>
 </body>
 </html>

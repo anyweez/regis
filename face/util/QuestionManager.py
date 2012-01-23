@@ -32,7 +32,7 @@ class QuestionManager(object):
     
     def time_until_next(self, user):
         nextq = self.get_current_question(user)
-        time_expires = nextq.time_released + datetime.timedelta(days=1)
+        time_expires = nextq.time_released + datetime.timedelta(days=2)
         
         return (time_expires - datetime.datetime.now())
         

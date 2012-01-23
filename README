@@ -1,0 +1,3 @@
+
+Dependencies:
+	pip install django-social-auth
