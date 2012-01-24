@@ -157,7 +157,7 @@ LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/dash'
 
 AUTHENTICATION_BACKENDS = (
-    'social_auth.backends.google.GoogleOAuthBackend',
+    'social_auth.backends.google.GoogleBackend',
     'social_auth.backends.twitter.TwitterBackend',
     'social_auth.backends.facebook.FacebookBackend',
     'django.contrib.auth.backends.ModelBackend',

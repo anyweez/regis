@@ -124,3 +124,14 @@ admin.site.register(Question)
 admin.site.register(QuestionHint)
 admin.site.register(Answer)
 admin.site.register(Guess)
+
+# Social auth handlers.
+from social_auth.signals import socialauth_registered
+from social_auth.backends.google import GoogleBackend
+
+def google_extra_values(sender, user, response, details, **kwargs):
+    print 'Updating username'
+    user.username = '%s %s' % (response.get('first_name'), response.get('last_name'))
+    return True
+
+socialauth_registered.connect(google_extra_values, sender=GoogleBackend)
