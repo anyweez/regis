@@ -17,7 +17,12 @@ from face.util.QuestionManager import QuestionManager
 # There's not a lot of dynamic action here at
 # this point.
 def index(request):
-    return render_to_response('index.tpl', { 'errors' : msghub.get_printable_errors() }, context_instance=RequestContext(request))
+    if request.user.is_authenticated():
+        return redirect('/dash')
+    else:
+        return render_to_response('index.tpl', 
+            { 'errors' : msghub.get_printable_errors() }, 
+            context_instance=RequestContext(request))
 
 def _find_acct_errors(uname, email, pwd, lid):
     errors = []
@@ -42,7 +47,7 @@ def _find_acct_errors(uname, email, pwd, lid):
         errors.append('Please specify a valid league ID.')
         
     return errors
-
+'''
 def create_account(request):
     # TODO: This isn't the best way to do this.  Django supposedly has nice
     # form support that can take care of a lot of validation for us...we
@@ -108,9 +113,9 @@ def create_account(request):
               'messages' : msghub.get_messages(),
               'errors' : msghub.get_printable_errors()
             }, context_instance=RequestContext(request))
+'''
 
 def authsub(request):
-    
     pass
 
 @login_required

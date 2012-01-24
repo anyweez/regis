@@ -50,6 +50,15 @@
     </div>
 	<div id="extra_login" style="text-align: center; margin-top: 5px;">
 	  <a href="account/create">register</a>
+	  {% for name in social_auth.backends.oauth %}
+	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
+	  {% endfor %}
+	  {% for name in social_auth.backends.oauth2 %}
+	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
+	  {% endfor %}
+	  {% for name in social_auth.backends.openid %}
+	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
+	  {% endfor %}
 	</div>
   </div>
 </body>

@@ -163,8 +163,15 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SOCIAL_AUTH_ENABLED_BACKENDS = ('google-oauth',) #('google-oauth', 'facebook', 'twitter')
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'social_auth.context_processors.social_auth_by_type_backends',
+    'django.contrib.auth.context_processors.auth',
+)
+
+SOCIAL_AUTH_ENABLED_BACKENDS = ('google',) #('google-oauth', 'facebook', 'twitter')
 SOCIAL_AUTH_ASSOCIATE_BY_MAIL = True
+SOCIAL_AUTH_CREATE_USERS = True
+SOCIAL_AUTH_FORCE_RANDOM_USERNAME = False
 
 GOOGLE_CONSUMER_KEY = ''
 GOOGLE_CONSUMER_SECRET = ''
