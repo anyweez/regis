@@ -24,6 +24,27 @@ def index(request):
             { 'errors' : msghub.get_printable_errors() }, 
             context_instance=RequestContext(request))
 
+@login_required
+def build_acct(request):
+    try:
+        users.RegisUser.objects.get(user=request.user)
+    except users.RegisUser.DoesNotExist:
+        print 'building new user account!'
+        # Update the user's username.
+        u = request.user
+        u.username = '%s %s' % (u.first_name, u.last_name)
+        u.save()
+
+        # Create their RegisUser record.        
+        league = users.RegisLeague.objects.get(id=1)
+        
+        ruser = users.RegisUser(user=u, league=league)
+        ruser.save()
+        
+        # Good to go!
+        
+    return redirect('/dash')
+
 def _find_acct_errors(uname, email, pwd, lid):
     errors = []
     

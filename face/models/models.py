@@ -130,8 +130,8 @@ from social_auth.signals import socialauth_registered
 from social_auth.backends.google import GoogleBackend
 
 def google_extra_values(sender, user, response, details, **kwargs):
-    print 'Updating username'
-    user.username = '%s %s' % (response.get('first_name'), response.get('last_name'))
+    print 'marking user %s as new' % str(user)
+    user.is_new = True
     return True
 
 socialauth_registered.connect(google_extra_values, sender=GoogleBackend)

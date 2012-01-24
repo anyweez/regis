@@ -23,7 +23,7 @@
   <div style="margin-top: 7%;" id="logbox">
     <img style="display: block; margin: 0 auto" src="static/img/logo-large.png" />
     <p style="margin-top: 20px;">Regis is a tool for practicing programming skills.  It generates a unique question for
-    you each day and customizes its content to give you the best practice possible.</p>
+    you every other day and customizes its content to give you the best practice possible.</p>
 
 	{% if errors %}
 	<div class="error">
@@ -33,6 +33,7 @@
     </div>
     {% endif %}
     
+    <!--
     <div id="login_form" style="margin: 0 auto; width: 550px;">
       <form action="/account/login" method="post" accept-charset="utf-8">    
       {% csrf_token %}
@@ -48,8 +49,9 @@
       </div>
     </form>    
     </div>
+    -->
 	<div id="extra_login" style="text-align: center; margin-top: 5px;">
-	  <a href="account/create">register</a>
+	  <!--<a href="account/create">register</a>-->
 	  {% for name in social_auth.backends.oauth %}
 	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
 	  {% endfor %}

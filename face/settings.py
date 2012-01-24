@@ -153,8 +153,16 @@ LOGGING = {
 
 AUTH_PROFILE_MODULE = 'models.regisuser'
 
+## Set some social auth settings
 LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/dash'
+LOGIN_REDIRECT_URL = '/build-acct'
+SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/build-acct'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = LOGIN_REDIRECT_URL
+
+SOCIAL_AUTH_ENABLED_BACKENDS = ('google', 'facebook') #('google-oauth', 'facebook', 'twitter')
+SOCIAL_AUTH_ASSOCIATE_BY_MAIL = True
+SOCIAL_AUTH_CREATE_USERS = True
+SOCIAL_AUTH_FORCE_RANDOM_USERNAME = False
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.google.GoogleBackend',
@@ -168,11 +176,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.contrib.auth.context_processors.auth',
 )
 
-SOCIAL_AUTH_ENABLED_BACKENDS = ('google',) #('google-oauth', 'facebook', 'twitter')
-SOCIAL_AUTH_ASSOCIATE_BY_MAIL = True
-SOCIAL_AUTH_CREATE_USERS = True
-SOCIAL_AUTH_FORCE_RANDOM_USERNAME = False
-
 GOOGLE_CONSUMER_KEY = ''
 GOOGLE_CONSUMER_SECRET = ''
 GOOGLE_DISPLAY_NAME = 'Regis'
+
+FACEBOOK_APP_ID = ''
+FACEBOOK_API_SECRET = ''
