@@ -126,12 +126,13 @@ admin.site.register(Answer)
 admin.site.register(Guess)
 
 # Social auth handlers.
-from social_auth.signals import socialauth_registered
-from social_auth.backends.google import GoogleBackend
+#from social_auth.signals import socialauth_registered
+#from social_auth.backends.google import GoogleBackend
+#from social_auth.backends.facebook import FacebookBackend
 
-def google_extra_values(sender, user, response, details, **kwargs):
-    print 'marking user %s as new' % str(user)
-    user.is_new = True
-    return True
 
-socialauth_registered.connect(google_extra_values, sender=GoogleBackend)
+#def google_extra_values(sender, user, response, details, **kwargs):
+#    return True
+
+#socialauth_registered.connect(google_extra_values, sender=GoogleBackend)
+#socialauth_registered.connect(google_extra_values, sender=FacebookBackend)
