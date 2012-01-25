@@ -134,6 +134,7 @@ from social_auth.backends.facebook import FacebookBackend
 #def google_extra_values(sender, user, response, details, **kwargs):
 #    return True
 
+# TODO: This currently doesn't work.  Not a big deal for us but would be nice to fix.
 def facebook_extra_values(sender, user, response, details, **kwargs):
     user.email = response.get('email')
     return True

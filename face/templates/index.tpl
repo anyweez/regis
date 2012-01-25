@@ -32,34 +32,30 @@
       {% endfor %}
     </div>
     {% endif %}
-    
-    <!--
-    <div id="login_form" style="margin: 0 auto; width: 550px;">
-      <form action="/account/login" method="post" accept-charset="utf-8">    
-      {% csrf_token %}
-      <label for="username">Username: </label>    
-      <input type="text" name="username" value="" id="email" style="width: 12em;"  />    
-      
-      <span style="margin-left: 1em;">
-        <label for="password">Password: </label>
-      </span>
-      <input type="password" name="password" value="" id="password" style="width: 12em;" />
-      <div style="text-align: center; margin: 1em 0em 1em 0em;">
-        <input type="submit" name="login" value="Log In" id="login" style="width: 5em;" />
-      </div>
-    </form>    
-    </div>
-    -->
+
 	<div id="extra_login" style="text-align: center; margin-top: 5px;">
-	  <!--<a href="account/create">register</a>-->
 	  {% for name in social_auth.backends.oauth %}
 	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
 	  {% endfor %}
-	  {% for name in social_auth.backends.oauth2 %}
-	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
-	  {% endfor %}
 	  {% for name in social_auth.backends.openid %}
-	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
+	    {% if name == 'google' %}
+	    <a rel="nofollow" href="{% url socialauth_begin name %}">
+	      <div class="login_btn">
+	        <img src="/static/img/google.png" />
+	        <span>Log in with Google</span>
+	      </div>
+	    </a>	  
+	    {% endif %}
+	  {% endfor %}
+	  {% for name in social_auth.backends.oauth2 %}
+	    {% if name == 'facebook' %}
+	    <a rel="nofollow" href="{% url socialauth_begin name %}">
+	      <div class="login_btn">
+	        <img src="/static/img/facebook.png" />
+	        <span>Log in with Facebook</span>
+	      </div>
+	    </a>
+	    {% endif %}
 	  {% endfor %}
 	</div>
   </div>

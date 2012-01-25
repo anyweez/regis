@@ -431,3 +431,24 @@ div.error {
 
 	font-size: 30px;
 }
+
+.login_btn {
+	background-color: #333;
+	border-radius: 5px;
+	border: 1px solid #AAA;
+	width: 210px;
+
+	display: inline-block;
+	margin: 5px;
+	padding: 4px;
+}
+
+.login_btn img {
+	vertical-align: middle;
+	border-radius: 3px;
+}
+
+.login_btn span {
+	font-weight: bold;
+	color: white;
+}
