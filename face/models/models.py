@@ -58,7 +58,7 @@ class Question(models.Model):
     # TODO: Rename this to 'template'
     tid = models.ForeignKey(QuestionTemplate)
     # TODO: Rename this to 'user'
-    uid = models.ForeignKey(RegisUser)
+    uid = models.ForeignKey(RegisUser, null=True)
     
     text = models.TextField()
     variables = models.TextField()
@@ -115,6 +115,14 @@ class QuestionHintRating(models.Model):
     # The person who provided the rating.
     src = models.ForeignKey(RegisUser)
     rating = models.BooleanField()
+
+class PendingQuestionSet(models.Model):
+    # The uid that is registered to the question set.  This user isn't
+    # the ACTUAL user.
+    created_on = models.DateTimeField(auto_now_add=True)
+    # Keeps track of the actual user that has reserved the question set.
+    reserved_by = models.ForeignKey(RegisUser, null=True)
+    questions = models.ManyToManyField(Question)
 
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)

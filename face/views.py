@@ -6,11 +6,11 @@ from django.http import HttpResponse
 
 import math, datetime
 import models.models as users
-import util.QuestionManager as util
+import util
 import msg.msghub as msghub
 import util.exceptions as exception
 
-import re, json, hashlib
+import re, json
 from face.util.QuestionManager import QuestionManager
 
 # View is activated when the index page is viewed.
@@ -24,6 +24,16 @@ def index(request):
             { 'errors' : msghub.get_printable_errors() }, 
             context_instance=RequestContext(request))
 
+# This is the major login method.  After the social-auth module
+# has processed the user's login, we do a couple of things.
+#
+# 1) If this is the user's first login, do some important acct
+#    info generation.  Change their username, assign them to
+#    a question set, and generate a RegisUser record for them.
+# 2) For all users, check to see if a new question needs to be
+#    released.
+# 3) Record that the user is logging in.
+# 4) Forward them to the dashboard ("/dash").
 @login_required
 def build_acct(request):
     try:
@@ -40,8 +50,41 @@ def build_acct(request):
         ruser = users.RegisUser(user=u, league=league)
         ruser.save()
         
-        # Good to go!
-        
+        # Activate a question set for this user.
+        concierge = util.Concierge.Concierge()
+        try:
+            concierge.activate_question_set(ruser)
+        except exception.NoQuestionSetReadyException:
+            msghub.register_error(10, ruser)
+            return render_to_response('error.tpl', { 'errors' : msghub.get_printable_errors() })
+                
+    # Save an event recording that the user just logged in. 
+    users.RegisEvent(who=ruser, event_type="login").save()
+                
+    # If the user hasn't had a question released in 48 hours, release
+    # a new one.
+    qm = util.QuestionManager()
+    try:
+        # Raises a NoQuestionReadyException if user hasn't ever had a
+        # question released.
+        currentq = qm.get_current_question(ruser)
+        last_unlock = (datetime.datetime.now() - currentq.time_released)
+                    
+        # If it's been more than 2 days, release a new question.
+        if last_unlock > datetime.timedelta(days=2):
+            # Raises a NoQuestionReadyException if there are no
+            # questions left to unlock.
+            qm.activate_next(ruser)
+    except exception.NoQuestionReadyException:
+        try:
+            qm.activate_next(ruser)
+        # If the exception gets thrown again then there are no new questions
+        # to activate and we can just proceed.  The view logic and template
+        # code is designed to deal with this situation.
+        except:
+            pass
+                    
+    # Correct, let's proceed.
     return redirect('/dash')
 
 def _find_acct_errors(uname, email, pwd, lid):
@@ -95,59 +138,6 @@ def dash(request):
           'errors' : msghub.get_printable_errors() },
         context_instance=RequestContext(request)
     )
-
-def login(request):    
-    if len(request.POST['username']) > 0 and len(request.POST['password']) > 0:
-        uname = request.POST['username']
-        pwd = request.POST['password']
-        user = auth.authenticate(username=uname, password=pwd)
-        
-        if user is not None:
-            if user.is_active:
-                ruser = user.get_profile()
-                
-                # Save an event recording that the user just logged in. 
-                users.RegisEvent(who=ruser, event_type="login").save()
-                
-                auth.login(request, user)
-                
-                # If the user hasn't had a question released in 48 hours, release
-                # a new one.
-                qm = util.QuestionManager()
-                try:
-                    # Raises a NoQuestionReadyException if user hasn't ever had a
-                    # question released.
-                    currentq = qm.get_current_question(ruser)
-                    last_unlock = (datetime.datetime.now() - currentq.time_released)
-                    
-                    # If it's been more than 2 days, release a new question.
-                    if last_unlock > datetime.timedelta(days=2):
-                        # Raises a NoQuestionReadyException if there are no
-                        # questions left to unlock.
-                        qm.activate_next(ruser)
-                except exception.NoQuestionReadyException:
-                    try:
-                        qm.activate_next(ruser)
-                    # If the exception gets thrown again then there are no new questions
-                    # to activate and we can just proceed.  The view logic and template
-                    # code is designed to deal with this situation.
-                    except:
-                        pass
-                    
-                # Correct, let's proceed.
-                return redirect('/dash')
-            else:
-                msghub.register_error(3)
-                return redirect('/')
-                # Correct, but account has been deactivated
-        else:
-            # Username or password is incorrect.
-            msghub.register_error(2)
-            return redirect('/')
-    else:
-        msghub.register_error(1) # Register an error saying info was missing.
-        # Didn't provide a username or password.
-        return redirect('/')
 
 @login_required
 def logout(request):

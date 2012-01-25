@@ -7,5 +7,6 @@ error_msg = {
     6 : 'Both passwords must match.',
     7 : "You can only provide a hint for a question you've answered.",
     8 : "You've already provided a hint for this question.",
-    9 : "The information you've provided doesn't make any sense."
+    9 : "The information you've provided doesn't make any sense.",
+    10 : "No question sets are ready right now.  Please send an email to lukes@eecs.berkeley.edu and request that additional question sets be made."
 }
