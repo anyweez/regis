@@ -59,7 +59,7 @@ function get_hints(qid) {
          $('#hintdisplay').append('</ul>');
        }
        else {
-         $('#hintzone').html('No hints are currently available for this question.');
+         $('#hintdrop').html('No hints are currently available for this question.');
        }       
      }
    );

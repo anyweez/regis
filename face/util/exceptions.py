@@ -37,8 +37,8 @@ class CommandParsingError(Exception):
         return 'Could not parse command %s' % self.command
     
 class NoQuestionSetReadyException(Exception):
-    def __init__(self, ruser):
-        self.ruser = ruser
+    def __init__(self, user):
+        self.user = user
     
     def __str__(self):
-        return 'No question set available for user #%d (%s)' % (self.ruser.id, self.ruser.username)
+        return 'No question set available for user #%d (%s)' % (self.user.id, self.user.username)

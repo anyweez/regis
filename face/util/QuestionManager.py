@@ -7,11 +7,11 @@ import datetime
 class QuestionManager(object):
     # Activates the next question for the user.
     def activate_next(self, user):
-        target_order = regis.Question.objects.filter(uid=user, status='ready').aggregate(Min('order'))
+        target_order = regis.Question.objects.filter(user=user, status='ready').aggregate(Min('order'))
 
         # If there is a question to be released, release it.
         try:
-            q = regis.Question.objects.get(uid=user, order=target_order['order__min'])
+            q = regis.Question.objects.get(user=user, order=target_order['order__min'])
         
             q.time_released = datetime.datetime.now()
             q.status = 'released'
@@ -23,11 +23,9 @@ class QuestionManager(object):
     # then it displays the question with the lowest ORDER value.
     def get_current_question(self, user):
         try:
-            target_order = regis.Question.objects.filter(uid=user, status='released').aggregate(Max('order'))
-            q = regis.Question.objects.filter(uid=user, order=target_order['order__max'])
-
-            return q[0]
-        except:
+            target_order = regis.Question.objects.filter(user=user, status='released').aggregate(Max('order'))
+            return regis.Question.objects.get(user=user, order=target_order['order__max'])
+        except regis.Question.DoesNotExist:
             raise exception.NoQuestionReadyException(user)
     
     def time_until_next(self, user):

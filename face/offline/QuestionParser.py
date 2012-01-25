@@ -44,7 +44,7 @@ class QuestionParser(object):
 				#
 				# Format:
 				#   variables[var_name] = (display_value, store_value)
-				term_obj.user = self.user
+				term_obj.qset = self.qset
 				term_obj.template = self.template
 				returned = term_obj.execute(def_components[1:])
 				try:

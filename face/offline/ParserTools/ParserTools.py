@@ -3,17 +3,17 @@ import os
 # ParserTools class
 class ParserTools(object):
     def __init__(self):
-        self.user = None
+        self.qset = None
         self.template = None
     
     # Called before running any PT functions in a term definition.
     def term_focus(self, term):
-        self.user = term.user
+        self.qset = term.qset
         self.template = term.template
     
     # Called after running all PT functions in a term definition.
     def term_unfocus(self):
-        self.user = None
+        self.qset = None
         self.template = None
     
     # Load a full datafile.
@@ -30,7 +30,7 @@ class ParserTools(object):
     def store_userfile(self, contents):
         directory = '../resources/user'
 
-        fp = open('%s/%d.%d.txt' % (directory, self.user.id, self.template.id), 'w')
+        fp = open('%s/%d.%d.txt' % (directory, self.qset.id, self.template.id), 'w')
         for content in contents:
             fp.write('%s\n' % content)
         fp.close()

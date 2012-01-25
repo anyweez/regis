@@ -35,7 +35,7 @@
   <div id="main_body">
     <div id="question_body">  
       {% if question.status != 'pending' and question.status != 'ready' %}         
-      <h2 style="margin-bottom: 5px;">Question #{{question.tid.id}}: <span style="font-weight: normal">{{ question.tid.q_title }}</span></h2>
+      <h2 style="margin-bottom: 5px;">Question #{{question.template.id}}: <span style="font-weight: normal">{{ question.template.title }}</span></h2>
       <p style="color: #555; margin: 0px 0px 10px 3px; padding: 0;">released on {{ question.time_released }}</p>
       <p id="main_q">{{ question.decoded_text|safe }}</p>
       {% include 'include/qbox.tpl' %}
@@ -45,7 +45,7 @@
       <p>You haven't unlocked this question yet.  Keep working and you'll get it in no time!</p>
       {% endif %}
       
-      
+      {% include 'include/hintbox.tpl' %}
     </div>  
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>

@@ -11,7 +11,7 @@
 
   {% if question %}
   <script type="text/javascript">
-    var question_id = {{ question.tid.id }};
+    var question_id = {{ question.template.id }};
 
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
@@ -55,7 +55,7 @@
       <h2 style="font-weight: normal"><b>Congrats!</b><br />You've finished all the questions that we have for you now.</h2>
       <p>We're constantly working on writing new questions...if you think you have an idea for one, feel free to email it to us!</p>
     {% else %}
-      <h2 style="margin-bottom: 5px;">Challenge: <span style="font-weight: normal">{{ question.tid.q_title }} (#{{ question.tid.id }})</span></h2>
+      <h2 style="margin-bottom: 5px;">Challenge: <span style="font-weight: normal">{{ question.template.title }} (#{{ question.template.id }})</span></h2>
       <p style="font-size: small; margin-top: 0px; color: #666666;">A new question will be released in {{ ttl.hours }} hours and {{ ttl.minutes }} minutes.</p>
       {% if messages %}
         {% for m in messages %}

@@ -39,10 +39,10 @@
 		  </div>
           <div>
             {% if q.status == 'ready' %}
-              <h2 class="qbox_head">Question #{{ q.tid.id }}: {{ q.tid.q_title }}</h2>
+              <h2 class="qbox_head">Question #{{ q.template.id }}: {{ q.template.title }}</h2>
               <p class="qbox_preview" style="font-style: italic">This question isn't available yet.</p>
             {% else %}
-              <h2 class="qbox_head">Question #{{ q.tid.id }}: <a href="{{q.tid.id}}/">{{ q.tid.q_title }}</a></h2>
+              <h2 class="qbox_head">Question #{{ q.template.id }}: <a href="{{q.template.id}}/">{{ q.template.title }}</a></h2>
               {% if q.text|length > 60 %}
                 <p class="qbox_preview">{{ q.text|slice:":200" }}...</p>
               {% else %}

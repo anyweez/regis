@@ -7,6 +7,6 @@
     <input type="hidden" name="on_correct" value="/dash" />
     <input type="hidden" name="on_incorrect" value="/dash" />
 
-    <input type="submit" name="submit" value="Guess" style="position: relative; right: 4px; bottom: 1px; font-size: 1em; border-radius: 0px 5px 5px 0px; height: 42px; border-left-width: 0px;"  />
+    <input type="submit" name="submit" value="Guess"  />
   </form>
 </div>

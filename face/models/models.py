@@ -1,6 +1,5 @@
 from django.db import models
-from django.forms import ModelForm
-from django.contrib.auth.models import User, UserManager
+from django.contrib.auth.models import User
 from django.contrib import admin
 
 import re, hashlib
@@ -18,10 +17,6 @@ class RegisUser(models.Model):
     user = models.ForeignKey(User, unique=True)
     league = models.ForeignKey(RegisLeague)
     
-class RegisUserForm(ModelForm):
-    class Meta:
-        model = RegisUser
-
 REGIS_EVENT_TYPE = (
     ('login', 'Log In'),
 )
@@ -29,15 +24,15 @@ REGIS_EVENT_TYPE = (
 class RegisEvent(models.Model):
     event_type = models.CharField(max_length=10, choices=REGIS_EVENT_TYPE)
     
-    who = models.ForeignKey(RegisUser)
+    who = models.ForeignKey(User)
     when = models.DateTimeField(auto_now_add=True)
     
     target = models.CharField(max_length=50, null=True)
     
 ## Question-related models.
 class QuestionTemplate(models.Model):
-    q_text = models.TextField()
-    q_title = models.CharField(max_length=50)
+    text = models.TextField()
+    title = models.CharField(max_length=50)
     
     added_on = models.DateTimeField(auto_now_add=True)
     solver_name = models.CharField(max_length=40)
@@ -55,10 +50,8 @@ class QuestionTag(models.Model):
     name = models.CharField(max_length=100)
 
 class Question(models.Model):
-    # TODO: Rename this to 'template'
-    tid = models.ForeignKey(QuestionTemplate)
-    # TODO: Rename this to 'user'
-    uid = models.ForeignKey(RegisUser, null=True)
+    template = models.ForeignKey(QuestionTemplate)
+    user = models.ForeignKey(User, null=True)
     
     text = models.TextField()
     variables = models.TextField()
@@ -85,7 +78,7 @@ class Question(models.Model):
             return text
 
 class Answer(models.Model):
-    qid = models.ForeignKey(Question)
+    question = models.ForeignKey(Question)
     correct = models.BooleanField()
     
     value = models.CharField(max_length=100)
@@ -94,8 +87,8 @@ class Answer(models.Model):
     time_computed = models.DateTimeField(auto_now_add=True)
     
 class Guess(models.Model):
-    uid = models.ForeignKey(RegisUser)
-    qid = models.ForeignKey(Question)
+    user = models.ForeignKey(User)
+    question = models.ForeignKey(Question)
     
     value = models.CharField(max_length=100)
     correct = models.BooleanField()
@@ -104,7 +97,7 @@ class Guess(models.Model):
 class QuestionHint(models.Model):
     template = models.ForeignKey(QuestionTemplate)
     # The person who provided the hint
-    src = models.ForeignKey(RegisUser)
+    src = models.ForeignKey(User)
     text = models.TextField()
     
     def get_hash(self):
@@ -113,15 +106,13 @@ class QuestionHint(models.Model):
 class QuestionHintRating(models.Model):
     hint = models.ForeignKey(QuestionHint)
     # The person who provided the rating.
-    src = models.ForeignKey(RegisUser)
+    src = models.ForeignKey(User)
     rating = models.BooleanField()
 
-class PendingQuestionSet(models.Model):
-    # The uid that is registered to the question set.  This user isn't
-    # the ACTUAL user.
+class QuestionSet(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     # Keeps track of the actual user that has reserved the question set.
-    reserved_by = models.ForeignKey(RegisUser, null=True)
+    reserved_by = models.ForeignKey(User, null=True)
     questions = models.ManyToManyField(Question)
 
 # Add some stuff to the admin interface.

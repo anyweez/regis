@@ -9,7 +9,6 @@ class TimeForAChangeSolver(Solver.BaseSolver):
 		cents = 8#int(params['cents']) * (int(params['dollars']) * 100)
 
 		coins = [25, 10, 5, 1]
-		
 
 		return [(self.count_possibilities(cents, coins), None),]
 	

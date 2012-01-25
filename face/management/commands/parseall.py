@@ -10,9 +10,10 @@ class Command(BaseCommand):
   args = 'none'
   help = 'Parses all of the questions that havent been parsed for all users.'
 
+  # The number of unassigned users that should be ready at any point.
+  SETS_AVAILABLE = 10
+
   def handle(self, *args, **options):
-    # The number of unassigned users that should be ready at any point.
-    standby_threshold = 100
 
     parser = qp.QuestionParser()
 
@@ -21,28 +22,38 @@ class Command(BaseCommand):
     all_tids = [t.id for t in all_templates]
     
     users = regis.RegisUser.objects.all()
-    print 'Processing %d question templates...' % len(all_templates)
-    print 'Scanning and updating records for %d user(s)...' % len(users)
+    avail_qsets = regis.QuestionSet.objects.filter(reserved_by=None)
+    print '%d users are registered in the system.' % len(users)
+    print '%d question sets are available of the requested %d' % (len(avail_qsets), self.SETS_AVAILABLE)
+    print '  Processing %d question templates for each set.' % len(all_templates)
     records_added = 0
-    for user in users:
-        ready_questions = regis.Question.objects.filter(uid__exact=user.id)
-        ready_tids = [q.tid.id for q in ready_questions]
+    
+    # Add new question sets
+    for i in xrange(self.SETS_AVAILABLE - len(avail_qsets)):
+        qset = regis.QuestionSet(reserved_by=None)
+        qset.save()
+    
+    all_qsets = regis.QuestionSet.objects.all()
+    # Process all question sets and add missing questions.
+    for qset in all_qsets:
+        questions = qset.questions.all()
         
-        parser.user = user
+        target_tids = list(set(all_tids) - set([q.tid.id for q in questions]))
+        parser.qset = qset
         
         # The default position of this question will be LAST until the
         # shuffler does its work.
-        if len(ready_questions) > 0:
-            next_order = max([rq.order for rq in ready_questions]) + 1
+        if len(questions) > 0:
+            next_order = max([rq.order for rq in questions]) + 1
         else:
             next_order = 0
                               
-        for t in ( set(all_tids) - set(ready_tids) ):
+        for t in target_tids:
             template = regis.QuestionTemplate.objects.get(id=t)
             parser.template = template
             
             try:
-                text, values = parser.parse(template.q_text)
+                text, values = parser.parse(template.text)
             except Exception as e:
                 print '[ERROR] Error parsing template #%d' % template.id
                 print e
@@ -50,11 +61,17 @@ class Command(BaseCommand):
             
             # Save the information as a processed question.  The solver processor
             # will pick it up once it's been inserted.
-            q = regis.Question(tid=template, uid=user, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
+            q = regis.Question(template=template, user=qset.reserved_by, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
             q.save()
+            
+            # TODO: Test this.
+            # Add this question to the question set.  THIS LINE MAY NOT WORK.
+            qset.questions.add(q)
             
             records_added += 1
             # Increment the value of 'order' that will be stored on the next record.
             next_order += 1
+        # Save the question set.
+        qset.save()
             
     print '%d records added.' % records_added

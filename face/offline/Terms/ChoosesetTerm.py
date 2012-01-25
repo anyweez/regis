@@ -20,7 +20,5 @@ class ChoosesetTerm(Term.BaseTerm):
         lines = pt.load_datafile(filename)
         sets = pt.make_sets(lines)
         
-        print len(sets)
-
         chosen = random.choice(sets)
         return (chosen, chosen)

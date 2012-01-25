@@ -7,11 +7,12 @@ from django.http import HttpResponse
 import math, datetime
 import models.models as users
 import util
+import util.QuestionManager as qm
+import util.Concierge as question_link
 import msg.msghub as msghub
 import util.exceptions as exception
 
 import re, json
-from face.util.QuestionManager import QuestionManager
 
 # View is activated when the index page is viewed.
 # There's not a lot of dynamic action here at
@@ -36,8 +37,9 @@ def index(request):
 # 4) Forward them to the dashboard ("/dash").
 @login_required
 def build_acct(request):
+    ruser = None
     try:
-        users.RegisUser.objects.get(user=request.user)
+        ruser = users.RegisUser.objects.get(user=request.user)
     except users.RegisUser.DoesNotExist:
         # Update the user's username.
         u = request.user
@@ -51,41 +53,39 @@ def build_acct(request):
         ruser.save()
         
         # Activate a question set for this user.
-        concierge = util.Concierge.Concierge()
+        concierge = question_link.Concierge()
         try:
             # Allocates a question set and activates the first
             # question.
-            concierge.activate_question_set(ruser)
+            print 'starting concierge'
+            concierge.activate_question_set(u)
+            print 'concierge is finished'
         except exception.NoQuestionSetReadyException:
-            msghub.register_error(10, ruser)
+            msghub.register_error(10, u)
             return render_to_response('error.tpl', { 'errors' : msghub.get_printable_errors() })
                 
     # Save an event recording that the user just logged in. 
-    users.RegisEvent(who=ruser, event_type="login").save()
+    users.RegisEvent(who=request.user, event_type="login").save()
                 
     # If the user hasn't had a question released in 48 hours, release
     # a new one.
-    qm = util.QuestionManager()
+    question_m = qm.QuestionManager()
     try:
         # Raises a NoQuestionReadyException if user hasn't ever had a
-        # question released.
-        currentq = qm.get_current_question(ruser)
+        # question released.  This should never happen because a new
+        # question is released when the question set is assigned to
+        # a user.
+        currentq = question_m.get_current_question(ruser)
         last_unlock = (datetime.datetime.now() - currentq.time_released)
-                    
+
         # If it's been more than 2 days, release a new question.
         if last_unlock > datetime.timedelta(days=2):
             # Raises a NoQuestionReadyException if there are no
             # questions left to unlock.
-            qm.activate_next(ruser)
+            question_m.activate_next(request.user)
     except exception.NoQuestionReadyException:
-        try:
-            qm.activate_next(ruser)
-        # If the exception gets thrown again then there are no new questions
-        # to activate and we can just proceed.  The view logic and template
-        # code is designed to deal with this situation.
-        except:
-            pass
-                    
+        pass
+
     # Correct, let's proceed.
     return redirect('/dash')
 
@@ -115,13 +115,13 @@ def _find_acct_errors(uname, email, pwd, lid):
 
 @login_required
 def dash(request):
-    qm = util.QuestionManager()
+    question_m = qm.QuestionManager()
     current_q = None
     
     try:
-        current_q = qm.get_current_question(request.user)
+        current_q = question_m.get_current_question(request.user)
         # Get the time until next release in seconds
-        next_release_s = qm.time_until_next(request.user).seconds
+        next_release_s = question_m.time_until_next(request.user).seconds
     
         next_release = {}
         next_release['hours'] = int(math.floor(next_release_s / 3600))
@@ -153,19 +153,19 @@ def check_q(request):
         answer = str(request.POST['answer'])
         
         # Check to make sure the current user is allowed to answer this question.
-        qset = users.Question.objects.filter(id=qid, uid=request.user)
+        qset = users.Question.objects.filter(id=qid, user=request.user)
         if len(qset) is 0:
             raise exception.UnauthorizedAttemptException(request.user, qid)
         q = qset[0]
         
-        qm = util.QuestionManager()
-        correct, msg = qm.check_question(q, answer)
+        question_m = qm.QuestionManager()
+        correct, msg = question_m.check_question(q, answer)
         
         msghub.register_message(msg, target=qid, status=correct)
         
         # Record the guess.
         ruser = request.user.get_profile()
-        g = users.Guess(uid=ruser, qid=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
+        g = users.Guess(user=request.user, qid=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
         g.save()
         
         # If correct, change the status of the question and select a next candidate.
@@ -173,9 +173,9 @@ def check_q(request):
             q.status = 'solved'
             q.save()
             
-            qm = QuestionManager()
+            question_m = qm.QuestionManager()
             # Activate the next question.
-            qm.activate_next(ruser)
+            question_m.activate_next(ruser)
 
         return redirect('/question/status/%d' % g.id)
         
@@ -188,7 +188,7 @@ def check_q(request):
 @login_required
 def list_questions(request):
     ruser = request.user.get_profile()
-    all_questions = users.Question.objects.filter(uid=ruser).order_by('tid')
+    all_questions = users.Question.objects.filter(user=request.user).order_by('template')
     
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,
@@ -201,7 +201,7 @@ def view_question(request, tid):
     template = users.QuestionTemplate.objects.get(id=tid)
     
     if template is not None:
-        question = users.Question.objects.filter(uid=ruser, tid=template)
+        question = users.Question.objects.filter(user=request.user, template=template)
     
         # If there is a question that matches their request, display it.
         if len(question) > 0:
@@ -225,9 +225,9 @@ def question_status(request, gid):
         question = guess.qid
         
         # Get the information for the next question
-        qm = QuestionManager()
+        question_m = qm.QuestionManager()
         try:
-            next_q = qm.get_current_question(ruser)
+            next_q = question_m.get_current_question(ruser)
         except exception.NoQuestionReadyException:
             next_q = None
             
@@ -258,7 +258,7 @@ def get_question_file(request, tid):
     field = []
     
     if len(templates) > 0:
-        questions = users.Question.objects.filter(uid=ruser, tid=templates[0])
+        questions = users.Question.objects.filter(user=request.user, templates=templates[0])
         
         if len(questions) > 0:
             data = json.loads(questions[0].variables)
@@ -338,7 +338,7 @@ def submit_hint(request, tid):
     ruser = request.user.get_profile()
     # Save the hint!
     try:
-        user_q = users.Question.objects.get(tid=template, uid=ruser)
+        user_q = users.Question.objects.get(template=template, user=request.user)
         prev_hints = users.QuestionHint.objects.filter(template=template, src=ruser)
 
         # Check that the problem has been solved and that the user hasn't provided

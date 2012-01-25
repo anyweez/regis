@@ -10,10 +10,11 @@ body input[type="text"] {
 	border-radius: 2px;
 	box-shadow:inset 0 0 8px #666;
 	background-color: #EBF2FF;
-	height: 20px;
 	
-	font-size: 14px;
-	padding: 4px;
+	font-size: 1em;
+	padding: 6px;
+
+	vertical-align: middle;
 }
 
 body input[type="password"] {
@@ -25,6 +26,31 @@ body input[type="password"] {
 	
 	font-size: 14px;
 	padding: 4px;
+}
+
+body input[type="submit"] {
+	border: 2px solid #333;
+	background-color: #ccc;
+	border-radius: 0px 10px 10px 0px;
+	box-shadow:inset 0 0 8px #666;
+	height: 46px;	
+	min-width: 70px;
+
+	font-size: normal;
+
+	position: relative;
+	right: 8px;
+
+	vertical-align: middle;
+}
+
+body input[type="button"] {
+	border: 2px solid #333;
+	background-color: #ccc;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	height: 32px;	
+	margin-right: 22px;
 }
 
 body textarea {
@@ -46,23 +72,6 @@ body select {
 	
 	font-size: 14px;
 	padding: 4px;
-}
-
-body input[type="submit"] {
-	border: 2px solid #333;
-	background-color: #ccc;
-	border-radius: 2px;
-	box-shadow:inset 0 0 8px #666;
-	height: 28px;	
-}
-
-body input[type="button"] {
-	border: 2px solid #333;
-	background-color: #ccc;
-	border-radius: 2px;
-	box-shadow:inset 0 0 8px #666;
-	height: 28px;	
-	margin-right: 22px;
 }
 
 body label {
@@ -440,7 +449,7 @@ div.error {
 
 	display: inline-block;
 	margin: 5px;
-	padding: 4px;
+	padding: 3px;
 }
 
 .login_btn img {
