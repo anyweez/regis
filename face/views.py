@@ -53,6 +53,8 @@ def build_acct(request):
         # Activate a question set for this user.
         concierge = util.Concierge.Concierge()
         try:
+            # Allocates a question set and activates the first
+            # question.
             concierge.activate_question_set(ruser)
         except exception.NoQuestionSetReadyException:
             msghub.register_error(10, ruser)
