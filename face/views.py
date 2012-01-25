@@ -29,7 +29,6 @@ def build_acct(request):
     try:
         users.RegisUser.objects.get(user=request.user)
     except users.RegisUser.DoesNotExist:
-        print 'building new user account!'
         # Update the user's username.
         u = request.user
         u.username = '%s %s' % (u.first_name, u.last_name)
