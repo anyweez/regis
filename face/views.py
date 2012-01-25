@@ -57,9 +57,7 @@ def build_acct(request):
         try:
             # Allocates a question set and activates the first
             # question.
-            print 'starting concierge'
             concierge.activate_question_set(u)
-            print 'concierge is finished'
         except exception.NoQuestionSetReadyException:
             msghub.register_error(10, u)
             return render_to_response('error.tpl', { 'errors' : msghub.get_printable_errors() })

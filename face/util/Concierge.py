@@ -15,13 +15,11 @@ class Concierge(object):
     def activate_question_set(self, user):
         searching = True
         target_set = None
-        print 'Diving into while loop.'
         # Search until you can grab a question set.
         while searching:
             open_sets = regis.QuestionSet.objects.filter(reserved_by=None)
         
             if len(open_sets) > 0:
-                print 'Choosing a set...'
                 target_set = random.choice(open_sets)
         
                 target_set.reserved_by = user
@@ -38,7 +36,6 @@ class Concierge(object):
             else:
                 raise exception.NoQuestionSetReadyException(user)
             
-            print 'Question set #%d' % target_set.id
             # The question set has been chosen.  Activate it for the user.
             questions = target_set.questions.all()
             for question in questions:
