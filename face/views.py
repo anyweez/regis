@@ -172,7 +172,7 @@ def check_q(request):
             
             question_m = qm.QuestionManager()
             # Activate the next question.
-            question_m.activate_next(user)
+            question_m.activate_next(request.user)
 
         return redirect('/question/status/%d' % g.id)
         
