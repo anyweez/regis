@@ -324,7 +324,7 @@ div.warning {
 
 div.error {
 	padding: 4px;
-	margin: 2px 0px 5px 0px;
+	margin: 0px;
 	border: 2px solid #CF5151;
 	border-radius: 3px;
 	background-color: #E67E7E;

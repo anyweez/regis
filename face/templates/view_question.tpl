@@ -3,7 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
-
+  
+  <script type="text/javascript" src="/static/js/hints.js">
+  </script>
+  
   <style type="text/css">
     #logbox {
       background-color: white;
