@@ -162,7 +162,6 @@ def check_q(request):
         msghub.register_message(msg, target=qid, status=correct)
         
         # Record the guess.
-        ruser = request.user.get_profile()
         g = users.Guess(user=request.user, question=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
         g.save()
         
@@ -173,7 +172,7 @@ def check_q(request):
             
             question_m = qm.QuestionManager()
             # Activate the next question.
-            question_m.activate_next(ruser)
+            question_m.activate_next(user)
 
         return redirect('/question/status/%d' % g.id)
         
