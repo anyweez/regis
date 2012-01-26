@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
   
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
+  </script>
   <script type="text/javascript" src="/static/js/hints.js">
   </script>
   
