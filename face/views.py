@@ -216,18 +216,17 @@ def view_question(request, tid):
 
 @login_required
 def question_status(request, gid):
-    ruser = request.user.get_profile()
     try:
         guess = users.Guess.objects.get(id=gid)
-        question = guess.qid
+        question = guess.question
         
         # Get the information for the next question
         question_m = qm.QuestionManager()
         try:
-            next_q = question_m.get_current_question(ruser)
+            next_q = question_m.get_current_question(request.user)
         except exception.NoQuestionReadyException:
             next_q = None
-            
+
         answers = users.Answer.objects.filter(question=question, value=guess.value)
         
         answer = None
