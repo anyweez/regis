@@ -163,7 +163,7 @@ def check_q(request):
         
         # Record the guess.
         ruser = request.user.get_profile()
-        g = users.Guess(user=request.user, qid=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
+        g = users.Guess(user=request.user, question=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
         g.save()
         
         # If correct, change the status of the question and select a next candidate.
@@ -229,7 +229,7 @@ def question_status(request, gid):
         except exception.NoQuestionReadyException:
             next_q = None
             
-        answers = users.Answer.objects.filter(qid=question, value=guess.value)
+        answers = users.Answer.objects.filter(question=question, value=guess.value)
         
         answer = None
         if len(answers) > 0:
