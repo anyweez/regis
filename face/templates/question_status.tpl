@@ -21,7 +21,7 @@
     }
   </style>
 
-  <title>Regis: {{ question.tid.q_title }} [status]</title>
+  <title>Regis: {{ question.template.title }} [status]</title>
 </head>
 <body>
 	{% if errors %}
@@ -57,7 +57,7 @@
       </div>  
       
         {% if next_q %}
-        <p>A new question has been unlocked for you: {{ next_q.tid.q_title }}</p>
+        <p>A new question has been unlocked for you: {{ next_q.template.title }}</p>
         {% endif %}
       {% endif %}
       
@@ -74,12 +74,12 @@
         {{ answer.message }}
         {% endif %}
       
-      <p>Care to <a href="/question/view/{{question.tid.id}}">try again</a>?</p>
+      <p>Care to <a href="/question/view/{{question.template.id}}">try again</a>?</p>
       {% include 'include/hintbox.tpl' %}
       {% endif %}
 
       {% if question.status == 'ready' or question.status == 'pending' %}
-      <h2 style="margin-bottom: 5px; font-weight: normal">{{ question.tid.q_title}}: Question Unavailable</h2>
+      <h2 style="margin-bottom: 5px; font-weight: normal">{{ question.template.title}}: Question Unavailable</h2>
       <p>This question isn't available to you yet, and it's amazing that you were able to make a guess at it.</p>
       {% endif %}
       
