@@ -37,7 +37,7 @@ class QuestionManager(object):
     # Returns a tuple (bool, str) that states whether the answer
     # is correct and an accompanying message.
     def check_question(self, question, answer):
-        answers = regis.Answer.objects.filter(qid=question)
+        answers = regis.Answer.objects.filter(question=question)
         
         correct = False
         msg = 'Sorry, try again.' # Default incorrect message.
