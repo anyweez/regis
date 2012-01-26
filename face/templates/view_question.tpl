@@ -59,7 +59,7 @@
       <p>You haven't unlocked this question yet.  Keep working and you'll get it in no time!</p>
       {% endif %}
       
-      {% include 'include/hintbox.tpl' %}
+      {% include 'include/hintzone.tpl' %}
     </div>  
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>
