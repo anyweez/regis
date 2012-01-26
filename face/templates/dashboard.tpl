@@ -46,7 +46,7 @@
 	{% if errors %}
 	<div class="error">
       {% for e in errors %}
-      <p class="message">{{ e }}</p>
+      <p>{{ e }}</p>
       {% endfor %}
     </div>
     {% endif %}

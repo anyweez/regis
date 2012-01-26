@@ -339,7 +339,7 @@ def submit_hint(request, tid):
             users.QuestionHint(template=template, src=request.user, text=request.POST['hinttext']).save()
             msghub.register_message('Thanks for providing a hint!', template, True)
         # Error: the user has already provided a hint.
-        elif len(prev_hints) is 0:
+        elif len(prev_hints) > 0:
             msghub.register_error(8, template)
         # Error: the user hasn't answered the question yet.
         else:
