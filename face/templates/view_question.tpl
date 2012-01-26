@@ -7,6 +7,15 @@
   <script type="text/javascript" src="/static/js/hints.js">
   </script>
   
+  <script type="text/javascript">
+    var question_id = {{ question.template.id }};
+
+    // Fetch information about hints as soon as the page is loaded.
+    $(document).ready(function() {
+      get_hints(question_id);
+    });
+  </script>
+  
   <style type="text/css">
     #logbox {
       background-color: white;
