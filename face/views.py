@@ -73,7 +73,7 @@ def build_acct(request):
         # question released.  This should never happen because a new
         # question is released when the question set is assigned to
         # a user.
-        currentq = question_m.get_current_question(ruser)
+        currentq = question_m.get_current_question(request.user)
         last_unlock = (datetime.datetime.now() - currentq.time_released)
 
         # If it's been more than 2 days, release a new question.
@@ -184,7 +184,6 @@ def check_q(request):
 
 @login_required
 def list_questions(request):
-    ruser = request.user.get_profile()
     all_questions = users.Question.objects.filter(user=request.user).order_by('template')
     
     return render_to_response('list_questions.tpl', 
@@ -194,7 +193,6 @@ def list_questions(request):
 
 @login_required
 def view_question(request, tid):
-    ruser = request.user.get_profile()
     template = users.QuestionTemplate.objects.get(id=tid)
     
     if template is not None:
@@ -247,7 +245,6 @@ def question_status(request, gid):
 
 @login_required
 def get_question_file(request, tid):
-    ruser = request.user.get_profile()
     templates = users.QuestionTemplate.objects.filter(id=tid)
     
     data = None
@@ -284,8 +281,6 @@ def get_all_hints(request, tid):
 def get_hint_details(request, tid, hinthash):
     try:
         template = users.QuestionTemplate.objects.get(id=tid)
-
-        ruser = request.user.get_profile()
         try:
             hints = users.QuestionHint.objects.filter(template=template)
         
@@ -317,7 +312,7 @@ def get_hint_details(request, tid, hinthash):
             }
 
             # Register an event saying that the user viewed the hint.
-            users.RegisEvent(event_type='gethint', who=ruser, target=chosen.id).save()
+            users.RegisEvent(event_type='gethint', who=request.user, target=chosen.id).save()
             return HttpResponse(json.dumps(chosen_data), mimetype='application/json')
 
         except users.Question.DoesNotExist:
@@ -331,16 +326,15 @@ def get_hint_details(request, tid, hinthash):
 @login_required
 def submit_hint(request, tid):
     template = users.QuestionTemplate.objects.get(id=tid)
-    ruser = request.user.get_profile()
     # Save the hint!
     try:
         user_q = users.Question.objects.get(template=template, user=request.user)
-        prev_hints = users.QuestionHint.objects.filter(template=template, src=ruser)
+        prev_hints = users.QuestionHint.objects.filter(template=template, src=request.user)
 
         # Check that the problem has been solved and that the user hasn't provided
         # any hints for this question already.
         if user_q.status == 'solved' and len(prev_hints) is 0:
-            users.QuestionHint(template=template, src=ruser, text=request.POST['hinttext']).save()
+            users.QuestionHint(template=template, src=request.user, text=request.POST['hinttext']).save()
             msghub.register_message('Thanks for providing a hint!', template, True)
         # Error: the user has already provided a hint.
         elif len(prev_hints) is 0:
@@ -355,7 +349,6 @@ def submit_hint(request, tid):
 
 def tally_vote(request, hinthash, vote):
     hints = users.QuestionHint.objects.all()
-    ruser = request.user.get_profile()
 
     # Get the specific hint that we want to return.
     chosen = None
@@ -364,7 +357,7 @@ def tally_vote(request, hinthash, vote):
             chosen = hint
     
     # Check to make sure that the user hasn't 
-    prev_ratings = users.QuestionHintRating.objects.filter(hint=chosen, src=request.user.get_profile())
+    prev_ratings = users.QuestionHintRating.objects.filter(hint=chosen, src=request.user)
     if len(prev_ratings) > 0:
         approval = prev_ratings[0].rating
         if approval:
@@ -392,6 +385,6 @@ def tally_vote(request, hinthash, vote):
             downvotes += 1
     
         response = { 'msg' : 'success', 'upvotes' : upvotes, 'downvotes' : downvotes }
-        users.QuestionHintRating(hint=chosen, src=ruser, rating=rating).save()
+        users.QuestionHintRating(hint=chosen, src=request.user, rating=rating).save()
     
     return HttpResponse(json.dumps(response), mimetype='application/json')
