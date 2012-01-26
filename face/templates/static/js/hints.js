@@ -76,7 +76,7 @@ function load_hint() {
                hint_html += "<img title='Upvote this hint' src='/static/img/approve.png' /></a><a onclick='hint_vote(\"" + data.hint_id + "\", false)'>";
                hint_html += '<img title="Downvote this hint" src="/static/img/disapprove.png" /></a></div>';
                hint_html += '<div class="hintscore" id="score_' + data.hint_id + '">' + (data.upvotes - data.downvotes) + '</div></div>';
-               hint_html += '<div style="vertical-align: top; display: inline-block; margin-top: 2px;">';
+               hint_html += '<div style="vertical-align: top; display: inline-block; margin-top: 2px; width: 90%;">';
                hint_html += data.hint_body + '</div>';
                $(elig_hints[i]).html(hint_html);
             }
