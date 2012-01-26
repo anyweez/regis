@@ -57,7 +57,7 @@
       </div>  
       
         {% if next_q %}
-        <p>A new question has been unlocked for you: {{ next_q.template.title }}</p>
+        <p>A new question has been unlocked for you: <a href="/question/view/{{next_q.template.id}}">{{ next_q.template.title }}</a></p>
         {% endif %}
       {% endif %}
       
