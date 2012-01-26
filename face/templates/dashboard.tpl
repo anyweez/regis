@@ -42,11 +42,11 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body"> 
-    
+
 	{% if errors %}
 	<div class="error">
       {% for e in errors %}
-      <p>{{ e }}</p>
+      <p class="message">{{ e }}</p>
       {% endfor %}
     </div>
     {% endif %}
@@ -56,7 +56,13 @@
       <p>We're constantly working on writing new questions...if you think you have an idea for one, feel free to email it to us!</p>
     {% else %}
       <h2 style="margin-bottom: 5px;">Challenge: <span style="font-weight: normal">{{ question.template.title }} (#{{ question.template.id }})</span></h2>
-      <p style="font-size: small; margin-top: 0px; color: #666666;">A new question will be released in {{ ttl.hours }} hours and {{ ttl.minutes }} minutes.</p>
+      <p style="font-size: small; margin-top: 0px; color: #666666;">
+        A new question will be released in 
+        {% if ttl.days %}
+          {{ ttl.days }},
+        {% endif %}
+        {{ ttl.hours }} hours and {{ ttl.minutes }} minutes.
+      </p>
       {% if messages %}
         {% for m in messages %}
           {% if m.2 == True %}

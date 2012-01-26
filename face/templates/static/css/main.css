@@ -461,3 +461,9 @@ div.error {
 	font-weight: bold;
 	color: white;
 }
+
+.message {
+	border-radius: 3px; 
+	background-color: #E1F7E4; 
+	border-color: #B8E3BE;
+}

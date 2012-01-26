@@ -122,6 +122,8 @@ def dash(request):
         next_release_s = question_m.time_until_next(request.user).seconds
     
         next_release = {}
+        next_release['days'] = int(math.floor(next_release_s / 86400))
+        next_release_s -= (next_release['days'] * 86400)
         next_release['hours'] = int(math.floor(next_release_s / 3600))
         next_release_s -= (next_release['hours'] * 3600)
         next_release['minutes'] = int(math.floor(next_release_s / 60))

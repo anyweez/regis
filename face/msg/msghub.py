@@ -35,7 +35,7 @@ def get_messages(clear=True):
     if clear:
         active_messages = []
     return msgs
-    
+
 def get_printable_messages(clear=True):
-    return [get_messages(x[0]) for x in get_messages(clear)]
+    return [x[0] for x in get_messages(clear)]
     
