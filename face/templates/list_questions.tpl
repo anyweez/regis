@@ -5,6 +5,13 @@
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
   <title>Regis: Available Questions</title>
+  
+  <style type="text/css">
+    #right_col {
+      border-bottom: 3px solid black;
+      border-radius: 0px 0px 0px 5px; 
+    }
+  </style>
 </head>
 <body>
   <!-- The heading, which contains the title and appears above everything else. -->
