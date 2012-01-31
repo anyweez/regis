@@ -25,7 +25,7 @@
     <div id="question_body">     
       <h2>Question List</h2>
       <p>The following questions are available in the system.  Additional questions will be released to you once
-      you either solve a problem or work on it for 24 hours without solving it.</p>     
+      you either solve a problem or work on it for 48 hours without solving it.</p>     
       {% for q in questions %}
         {% if q.status != 'pending' %}
         <div class="qbox">

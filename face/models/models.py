@@ -113,7 +113,7 @@ class QuestionSet(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     # Keeps track of the actual user that has reserved the question set.
     reserved_by = models.ForeignKey(User, null=True)
-    questions = models.ManyToManyField(Question)
+    questions = models.ManyToManyField(Question, related_name="questionset")
 
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)
