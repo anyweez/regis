@@ -6,6 +6,8 @@
 
   <title>Regis: Available Questions</title>
   
+  
+  {% include 'include/common_header.tpl' %}
   <style type="text/css">
     #right_col {
       border-bottom: 3px solid black;
@@ -27,7 +29,6 @@
       {% for q in questions %}
         {% if q.status != 'pending' %}
         <div class="qbox">
-		  
 		  {% if q.status == 'ready' %}
 		  <div class="q_decoration q_unavailable">
 		    <p class="q_status">locked</p>

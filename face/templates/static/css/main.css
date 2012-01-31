@@ -393,8 +393,13 @@ div.error {
 
 .hintbox img {
 	vertical-align: middle;
-	margin-right: 3px;
+	margin-right: 7px;
 	margin-bottom: 3px;
+
+	background-color: white;
+	padding: 3px;
+	border-radius: 8px;
+	border: 1px solid #E0D01B;
 }
 
 .hintbox a {
@@ -467,4 +472,27 @@ div.error {
 	background-color: #E1F7E4; 
 	border: 1px solid #B8E3BE;
 	padding: 2px;
+}
+
+.statbox {
+
+}
+
+.statbox h2 {
+	font-size: 14px;
+	font-weight: bold;
+	margin-bottom: 13px;
+	margin-top: 6px;
+	padding: 0px;
+}
+
+.statbox p {
+	font-size: 14px;
+	margin-left: 20px;
+}
+
+.progress_bar {
+	height: 14px;
+	margin-top: 5px;
+	margin-bottom: 2px;
 }
