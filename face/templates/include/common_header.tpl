@@ -7,7 +7,7 @@
 <script type="text/javascript">
     $(document).ready(function() {
       if ($("#qc_pb")) {
-        $("#qc_pb").progressbar( { value : 73 } );
+        $("#qc_pb").progressbar( { value : {{ stats.percent_answered }} } );
       }
     });
 </script>

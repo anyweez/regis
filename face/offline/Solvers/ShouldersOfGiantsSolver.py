@@ -1,11 +1,9 @@
 import offline.Solvers.Solver as Solver
-import offline.ParserTools.SolverTools as SolverTools
 
 class ShouldersOfGiantsSolver(Solver.BaseSolver):
 	# This is going to be REALLY inefficient for now.  I'll come back
 	# when time allows.
-	def correct(self, params):
-		st = SolverTools.SolverTools()
+	def correct(self, st, params):
 		maxnum = int(st.prepare_params(params)['max'])
 
 		start_at = maxnum

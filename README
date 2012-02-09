@@ -1,3 +1,7 @@
 
-Dependencies:
-	pip install django-social-auth
+DEPENDENCIES
+	* pip 
+		django-social-auth
+		
+INSTALLATION INSTRUCTIONS
+The installation process for 

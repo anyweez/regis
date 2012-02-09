@@ -7,6 +7,7 @@ from django.http import HttpResponse
 import math, datetime
 import models.models as users
 import util
+import util.UserStats as UserStats
 import util.QuestionManager as qm
 import util.Concierge as question_link
 import msg.msghub as msghub
@@ -116,28 +117,43 @@ def dash(request):
     question_m = qm.QuestionManager()
     current_q = None
     
+    # First try to get the current question if it's already been activated.
     try:
         current_q = question_m.get_current_question(request.user)
         # Get the time until next release in seconds
-        next_release_s = question_m.time_until_next(request.user).seconds
-    
         next_release = {}
+        next_release_s = question_m.time_until_next(request.user).seconds
+    # If that doesn't work, try to activate a new question.  This should work
+    # unless there are no questions left to activate.
+    except exception.NoQuestionReadyException:
+        print 'activating next'
+        try:
+            question_m.activate_next(request.user)
+            
+            next_release = {}
+            next_release_s = question_m.time_until_next(request.user).seconds
+        # If there are no more questions to activate, let them know that.  There's
+        # nothing more we can do!
+        except exception.NoQuestionReadyException:
+            print 'no question ready'
+            next_release = None
+    
+    if next_release is not None:
         next_release['days'] = int(math.floor(next_release_s / 86400))
         next_release_s -= (next_release['days'] * 86400)
         next_release['hours'] = int(math.floor(next_release_s / 3600))
         next_release_s -= (next_release['hours'] * 3600)
         next_release['minutes'] = int(math.floor(next_release_s / 60))
         next_release_s -= (next_release['minutes'] * 60)
-    
-    except exception.NoQuestionReadyException:
-        next_release = None
         
     return render_to_response('dashboard.tpl', 
         { 'user': request.user, 
           'question': current_q, 
           'ttl' : next_release,
           'messages' : msghub.get_messages(),
-          'errors' : msghub.get_printable_errors() },
+          'errors' : msghub.get_printable_errors(),
+          'stats' : UserStats.UserStats(request.user),
+        },
         context_instance=RequestContext(request)
     )
 
@@ -186,10 +202,12 @@ def check_q(request):
 
 @login_required
 def list_questions(request):
-    all_questions = users.Question.objects.filter(user=request.user).order_by('template')
+    qs = users.QuestionSet.objects.get(reserved_by=request.user)
+    all_questions = qs.questions.all().order_by('template')
     
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,
+          'stats' : UserStats.UserStats(request.user),
           'user' : request.user }
     )
 
@@ -204,7 +222,9 @@ def view_question(request, tid):
         if len(question) > 0:
             question = question[0]
             return render_to_response('view_question.tpl', 
-                { 'question' : question, 'user': request.user },
+                { 'question' : question, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
                 context_instance=RequestContext(request))
         # There is no question matching the requested data.
         else:
@@ -238,6 +258,7 @@ def question_status(request, gid):
               'question' : question, 
               'next_q' : next_q,
               'user': request.user,
+              'stats' : UserStats.UserStats(request.user),
               'answer': answer },
             context_instance=RequestContext(request))
     except users.Guess.DoesNotExist:

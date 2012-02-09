@@ -1,9 +1,7 @@
 import offline.Solvers.Solver as Solver
-import offline.ParserTools.SolverTools as SolverTools
 
 class NumbersInNumbersSolver(Solver.BaseSolver):
-	def correct(self, params):
-		st = SolverTools.SolverTools()
+	def correct(self, st, params):
 		digits = st.prepare_params(params)['digits']
 
 		highest = 0

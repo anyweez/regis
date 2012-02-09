@@ -26,7 +26,14 @@ class Concierge(object):
                 target_set.save()
         
                 try:
-                    regis.QuestionSet.objects.get(reserved_by=user)
+                    qs = regis.QuestionSet.objects.get(reserved_by=user)
+                    questions = qs.questions.all()
+                    
+                    # Record the user as the owner of each question.
+                    for question in questions:
+                        question.user = user
+                        question.save()
+                        
                     # Found a keeper
                     searching = False
                 except regis.QuestionSet.DoesNotExist:

@@ -1,9 +1,7 @@
 import offline.Solvers.Solver as Solver
-import offline.ParserTools.SolverTools as SolverTools
 
 class FindingFactorsSolver(Solver.BaseSolver):
-	def correct(self, params):
-		st = SolverTools.SolverTools()
+	def correct(self, st, params):
 		params = st.prepare_params(params)
 
 		first = int(params['first'])

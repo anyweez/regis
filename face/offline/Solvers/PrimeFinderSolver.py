@@ -1,9 +1,7 @@
 import offline.Solvers.Solver as Solver
-import offline.ParserTools.SolverTools as SolverTools
 
 class PrimeFinderSolver(Solver.BaseSolver):
-	def correct(self, params):
-		st = SolverTools.SolverTools()
+	def correct(self, st, params):
 		maxcap = int(st.prepare_params(params)['ht']) * 10000
 
 		primes = self.sieve(maxcap)
