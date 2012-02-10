@@ -114,6 +114,12 @@ class QuestionSet(models.Model):
     # Keeps track of the actual user that has reserved the question set.
     reserved_by = models.ForeignKey(User, null=True)
     questions = models.ManyToManyField(Question)
+    
+class Suggestion(models.Model):
+    user = models.ForeignKey(User)
+    question = models.TextField()
+    answer = models.TextField()    
+    time_submitted = models.DateTimeField()
 
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)
@@ -123,6 +129,7 @@ admin.site.register(Question)
 admin.site.register(QuestionHint)
 admin.site.register(Answer)
 admin.site.register(Guess)
+admin.site.register(Suggestion)
 
 # Social auth handlers.
 from social_auth.signals import socialauth_registered
