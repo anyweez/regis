@@ -122,7 +122,13 @@ def dash(request):
         current_q = question_m.get_current_question(request.user)
         # Get the time until next release in seconds
         next_release = {}
-        next_release_s = question_m.time_until_next(request.user).seconds
+        next_release_s = question_m.time_until_next(request.user).total_seconds()
+        
+        print next_release_s
+        # Release a question if they've passed their deadline.
+        if next_release_s < 0:
+            question_m.activate_next(request.user)
+            next_release_s = question_m.time_until_next(request.user).seconds
     # If that doesn't work, try to activate a new question.  This should work
     # unless there are no questions left to activate.
     except exception.NoQuestionReadyException:
@@ -135,7 +141,6 @@ def dash(request):
         # If there are no more questions to activate, let them know that.  There's
         # nothing more we can do!
         except exception.NoQuestionReadyException:
-            print 'no question ready'
             next_release = None
     
     if next_release is not None:
