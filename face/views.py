@@ -414,13 +414,23 @@ def tally_vote(request, hinthash, vote):
 
 @login_required
 def api_questions_get(request, question_id):
+    response = None
     tid = question_id # hack! TODO: Clean up variable names so that question ids match questions, and template ids match templates
-    template = users.QuestionTemplate.objects.get(id=tid)
-    if template is not None:
-        question = users.Question.objects.filter(user=request.user, template=template)
-        if len(question) > 0:
-            question = question[0]
-    if question.status == 'pending' or question.status == 'ready':
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        if template is not None:
+            question = users.Question.objects.filter(user=request.user, template=template)
+            if len(question) > 0:
+                question = question[0]
+            else:
+                response = "Not found"
+        else:
+            response = "Not found"
+    except users.QuestionTemplate.DoesNotExist as error:
+        response = { "kind" : "question#notfound" }
+    if response is not None:
+        pass # already decided the result
+    elif question.status == 'pending' or question.status == 'ready':
         response = { "kind" : "question#" + question.status,
                      "status" : question.status,
                      "id" : question.id,
@@ -428,7 +438,7 @@ def api_questions_get(request, question_id):
     else:
       question_id = question.id
       title = template.title
-      content = question.text
+      content = question.decoded_text()
       scope = "Not yet implemented"
       list_of_hints = ["Not yet implemented"]
       published = str(question.time_released)
@@ -460,6 +470,17 @@ def view_question_with_api(request, tid):
                 context_instance=RequestContext(request))
 
 
+
+@login_required
+def api_questions_list(request):
+    qs = users.QuestionSet.objects.get(reserved_by=request.user)
+    all_questions = qs.questions.all().order_by('template')
+    
+    return render_to_response('list_questions.tpl', 
+        { 'questions' : all_questions,
+          'stats' : UserStats.UserStats(request.user),
+          'user' : request.user }
+    )
 
 
 

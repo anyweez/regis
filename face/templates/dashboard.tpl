@@ -8,6 +8,10 @@
 
   <script type="text/javascript" src="/static/js/hints.js">
   </script>
+  <script type="text/javascript" src="/static/js/api.js">
+  </script>
+  <script type="text/javascript" src="/static/js/questions.js">
+  </script>
 
   {% if question %}
   <script type="text/javascript">
@@ -16,6 +20,7 @@
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
       get_hints(question_id);
+//      questions.get(question_id, view_question_handler);
     });
   </script>
   {% endif %}

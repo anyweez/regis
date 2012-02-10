@@ -5,7 +5,7 @@ function view_question_handler(data) {
    if (data.kind == "question#pending" || data.kind == 'question#ready') {
        question_html = '<h2 style="margin-bottom: 5px;">Sorry!</h2>' +
        "<p>You haven't unlocked this question yet.  Keep working and you'll get it in no time!</p>";
-   } else {
+   } else if (data.kind == "question") {
        question_html = '<h2 style="margin-bottom: 5px;">';
        question_html += 'Question #' + data.template + ': ';
        question_html += '<span style="font-weight: normal">';
@@ -26,6 +26,10 @@ function view_question_handler(data) {
 '</form>' +
 '</div>';
        question_html += '<div id="hintzone" class="hintbox"><img src="/static/img/hint.png"><span id="hintdrop">No hints are currently available for this question.</span><div id="hintdisplay" style="display: none;"></div></div>';
+   } else {
+       question_html = '<h2 style="margin-bottom: 5px;">Sorry!</h2>' +
+       "<p>Question not found.</p>";
    }
    $('#question_body').html(question_html);
 }
+
