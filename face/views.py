@@ -434,6 +434,7 @@ def api_questions_get(request, question_id):
         response = { "kind" : "question#" + question.status,
                      "status" : question.status,
                      "id" : question.id,
+		     "title" : template.title,
                      "template" : template.id }
     else:
       question_id = question.id
@@ -443,7 +444,7 @@ def api_questions_get(request, question_id):
       list_of_hints = ["Not yet implemented"]
       published = str(question.time_released)
       updated = "Not yet implemented"
-      actor = str(question.user.id)
+      actor = question.user.id
       response = {"kind" : "question",
   		"status" : question.status,
   		"id" : question_id,
@@ -459,8 +460,6 @@ def api_questions_get(request, question_id):
   		"actor" : actor}
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
-
-
 @login_required
 def view_question_with_api(request, tid):
     return render_to_response('view_question_with_api.tpl', 
@@ -469,18 +468,41 @@ def view_question_with_api(request, tid):
                   'user': request.user },
                 context_instance=RequestContext(request))
 
-
-
 @login_required
 def api_questions_list(request):
+    def json_question(question):
+        rep = { "kind" : "question",
+        	"status" : question.status,
+        	"id" : question.id,
+        	"template" : question.template.id,
+        	"title" : question.template.title,
+        	"content" : "Not yet available",
+        	"scope" : "Not yet implemented",
+        	"hints" : "Not yet implemented",
+        	"url" : "http://localhost:8080/questions/%d" % question.template.id,
+        	"attempts" : "Not yet implemented",
+        	"published" : str(question.time_released),
+        	"updated" : "Not yet implemented",
+        	"actor" : question.user.id }
+        if 'released' == question.status:
+            rep['content'] = question.decoded_text()
+        return rep
+	
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
     all_questions = qs.questions.all().order_by('template')
-    
-    return render_to_response('list_questions.tpl', 
-        { 'questions' : all_questions,
-          'stats' : UserStats.UserStats(request.user),
-          'user' : request.user }
-    )
+    items = []
+    for question in all_questions:
+        items.append(json_question(question))
+    response = { "kind" : "questionFeed",
+		"items" : items }
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def list_questions_with_api(request):
+    return render_to_response('list_questions_with_api.tpl', 
+          { 'stats' : UserStats.UserStats(request.user),
+          'user': request.user },
+           context_instance=RequestContext(request))
 
 
 

@@ -33,3 +33,51 @@ function view_question_handler(data) {
    $('#question_body').html(question_html);
 }
 
+function list_questions_handler(data) {
+	var html = '';
+	if ('questionFeed' == data.kind) {
+		for (var i = 0; i < data.items.length; i++) {
+
+			var q = data.items[i];
+			if ('pending' != q.status) {
+				html += '<div class="qbox">';
+				if ('ready' == q.status) {
+					html += '<div class="q_decoration q_unavailable">' +
+		    			'<p class="q_status">locked</p>';
+				}
+				if ('released' == q.status) {
+					html += '<div class="q_decoration q_unanswered">' +
+		    			'<p class="q_status">unsolved</p>';
+				}	
+				if ('solved' == q.status) {
+					html += '<div class="q_decoration q_answered">' +
+		    			'<p class="q_status">solved</p>';
+				}	
+		 		html += '<p>solved by 2 of 8</p>' +
+		    			'<p>( 25% )</p>' +
+		  			'</div>';
+				if ('ready' == q.status) {
+					html += '<h2 class="qbox_head">Question #' + q.template + ': ' + q.title + '</h2>';
+					html += '<p class="qbox_preview" style="font-style: italic">This question isn\'t available yet.</p>';
+				} else {
+					html += '<h2 class="qbox_head">Question #' + q.template + ': <a href="' + q.url + '">' + q.title + '</a></h2>';
+					if (q.content.length > 60) {
+						html += '<p class="qbox_preview">' + q.content.substring(0,200) + '...</p>';
+					} else {
+						html += '<p class="qbox_preview">' + q.content + '</p>';
+					}
+				} 
+				html += '</div>';
+			}
+		}
+	} else {
+		html = 'Sorry, could not find question data.';
+	}
+	$('#question_body').append(html);
+
+}
+
+
+
+
+
