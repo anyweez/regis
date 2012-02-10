@@ -33,6 +33,9 @@ function view_question_handler(data) {
    $('#question_body').html(question_html);
 }
 
+
+
+
 function list_questions_handler(data) {
 	var html = '';
 	if ('questionFeed' == data.kind) {
