@@ -411,3 +411,55 @@ def tally_vote(request, hinthash, vote):
         users.QuestionHintRating(hint=chosen, src=request.user, rating=rating).save()
     
     return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_questions_get(request, question_id):
+    tid = question_id # hack! TODO: Clean up variable names so that question ids match questions, and template ids match templates
+    template = users.QuestionTemplate.objects.get(id=tid)
+    if template is not None:
+        question = users.Question.objects.filter(user=request.user, template=template)
+        if len(question) > 0:
+            question = question[0]
+    if question.status == 'pending' or question.status == 'ready':
+        response = { "kind" : "question#" + question.status,
+                     "status" : question.status,
+                     "id" : question.id,
+                     "template" : template.id }
+    else:
+      question_id = question.id
+      title = template.title
+      content = question.text
+      scope = "Not yet implemented"
+      list_of_hints = ["Not yet implemented"]
+      published = str(question.time_released)
+      updated = "Not yet implemented"
+      actor = str(question.user.id)
+      response = {"kind" : "question",
+  		"status" : question.status,
+  		"id" : question_id,
+  		"template" : template.id,
+  		"title" : title,
+  		"content" : content,
+  		"scope" : scope,
+  		"hints" : list_of_hints,
+  		"url" : "http://localhost:8080/questions/%d" % question_id,
+  		"attempts" : ["Not yet implemented"],
+  		"published" : published,
+  		"updated" : updated,
+  		"actor" : actor}
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+
+
+@login_required
+def view_question_with_api(request, tid):
+    return render_to_response('view_question_with_api.tpl', 
+                { 'tid' : tid, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
+
+
+
+
+
