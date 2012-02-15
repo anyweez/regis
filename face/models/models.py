@@ -115,6 +115,21 @@ class QuestionSet(models.Model):
     reserved_by = models.ForeignKey(User, null=True)
     questions = models.ManyToManyField(Question, related_name="questionset")
 
+FEEDBACK_TYPES = (
+    ('like', 'like'),
+    ('challenge', 'challenge')
+)
+
+class QuestionFeedback(models.Model):
+    # The template that the feedback is provided for.
+    template = models.ForeignKey(QuestionTemplate)
+    user = models.ForeignKey(User)
+    
+    # The type of feedback: either 'like' or 'challenge'
+    category = models.CharField(max_length=10, choices=FEEDBACK_TYPES)
+    # The actual feedback value as an integer.
+    value = models.IntegerField()
+
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)
 admin.site.register(RegisUser)

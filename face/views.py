@@ -383,6 +383,44 @@ def submit_hint(request, tid):
         
     return redirect('/dash')
 
+@login_required
+def feedback_like(request, tid, value):
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        preexisting = users.QuestionFeedback.objects.get(user=request.user, template=template, category='like')
+    
+        if value != preexisting.value:
+            preexisting.value = value
+            preexisting.save()
+    # This is an error resulting from a malformed URL.
+    except users.QuestionTemplate.DoesNotExist:
+        print "Template doesn't exist."
+        pass
+    except users.QuestionFeedback.DoesNotExist:
+        fb = users.QuestionFeedback(user=request.user, template=template, category='like', value=value)
+        fb.save()
+        
+    return render_to_response('empty.tpl')
+
+def feedback_challenge(request, tid, value):
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        preexisting = users.QuestionFeedback.objects.get(user=request.user, template=template, category='challenge')
+    
+        if value != preexisting.value:
+            preexisting.value = value
+            preexisting.save()
+    # This is an error resulting from a malformed URL.
+    except users.QuestionTemplate.DoesNotExist:
+        print "Template doesn't exist."
+        pass
+    except users.QuestionFeedback.DoesNotExist:
+        fb = users.QuestionFeedback(user=request.user, template=template, category='challenge', value=value)
+        fb.save()
+        
+    return render_to_response('empty.tpl')
+
+@login_required
 def tally_vote(request, hinthash, vote):
     hints = users.QuestionHint.objects.all()
 

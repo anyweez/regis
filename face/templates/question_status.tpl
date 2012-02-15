@@ -13,7 +13,7 @@
   var like_feedback = null;
   var challenge_feedback = null;
 
-  //   
+  // Submit this user's answer to the "did you like this question?" question
   function like_swap(btn) {
 	if (like_feedback != null) {
 		like_feedback.css("background-color", "#CAE3FC");
@@ -21,6 +21,9 @@
     
     like_feedback = btn;
   	like_feedback.css("background-color", "#4BE846");
+  	
+  	$.getJSON('/ajax/feedback/like/{{ question.template.id }}/' + like_feedback.attr('value'),
+            function(data) {});
   }
   
   function challenge_swap(btn) {
@@ -30,6 +33,9 @@
   	
   	challenge_feedback = btn;
   	challenge_feedback.css("background-color", "#4BE846");
+  	
+  	$.getJSON('/ajax/feedback/challenge/{{ question.template.id }}/' + challenge_feedback.attr('value'),
+            function(data) {});
   }
   
   $(document).ready(function() {
@@ -107,31 +113,31 @@
 		</div>
       	<div>&nbsp;</div>
       	<div style="margin-left: 10px; display: inline-block; width: 150px;">How challenging did you find it to be?</div>
-      	<div type="challenge" value="1" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px solid black; border-radius: 3px; width: 140px; height: 75px;">
+      	<div type="challenge" value="1" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
       		<div style="text-align: center; display: inline-block;">
       			<p style="margin: 0; padding: 0; font-weight: bold">Simple</p>
 				<p style="margin: 2px; padding: 0; font-size: small;">I knew how to solve it right away.</p>
 			</div>
 		</div>
-		<div type="challenge" value="2" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px solid black; border-radius: 3px; width: 140px; height: 75px;">
+		<div type="challenge" value="2" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
       		<div style="text-align: center; display: inline-block;">
       			<p style="margin: 0; padding: 0; font-weight: bold">Pretty easy</p>
 				<p style="margin: 2px; padding: 0; font-size: small;">It took me a minute but was fine once I thought about it.</p>
 			</div>
 		</div>
-		<div type="challenge" value="3" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px solid black; border-radius: 3px; width: 140px; height: 75px;">
+		<div type="challenge" value="3" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
       		<div style="text-align: center; display: inline-block;">
       			<p style="margin: 0; padding: 0; font-weight: bold">Manageable</p>
 				<p style="margin: 2px; padding: 0; font-size: small;">I had to experiment around a bit to find the answer.</p>
 			</div>
 		</div>
-		<div type="challenge" value="4" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px solid black; border-radius: 3px; width: 140px; height: 75px;">
+		<div type="challenge" value="4" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
       		<div style="text-align: center; display: inline-block;">
       			<p style="margin: 0; padding: 0; font-weight: bold">Challenging</p>
 				<p style="margin: 2px; padding: 0; font-size: small;">I had to fight but now feel like I understand the solution.</p>
 			</div>
 		</div>
-		<div type="challenge" value="5" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px solid black; border-radius: 3px; width: 140px; height: 75px;">
+		<div type="challenge" value="5" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
       		<div style="text-align: center; display: inline-block;">
       			<p style="margin: 0; padding: 0; font-weight: bold">Impossible</p>
 				<p style="margin: 2px; padding: 0; font-size: small;">I don't know how I got it right.</p>
