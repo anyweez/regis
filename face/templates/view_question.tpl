@@ -50,7 +50,7 @@
     <div id="question_body">  
       {% if question.status != 'pending' and question.status != 'ready' %}         
       <h2 style="margin-bottom: 5px;">Question #{{question.template.id}}: <span style="font-weight: normal">{{ question.template.title }}</span></h2>
-      <p style="color: #555; margin: 0px 0px 10px 3px; padding: 0;">released on {{ question.time_released }}</p>
+      <p style="font-size: small; margin-top: 0px; color: #666666;">released on {{ question.time_released }}</p>
       <p id="main_q">{{ question.decoded_text|safe }}</p>
       {% include 'include/qbox.tpl' %}
       
