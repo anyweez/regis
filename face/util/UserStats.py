@@ -30,7 +30,10 @@ class UserStats(object):
     def percent_answered(self):
         num_answered, num_available = self.questions_answered()
         
-        return int(round(((num_answered * 1.0) / num_available) * 100))
+        if num_available > 0:
+            return int(round(((num_answered * 1.0) / num_available) * 100))
+        else:
+            return 0
     
     def guesses_per_question(self):
         guesses = regis.Guess.objects.filter(user=self.user)
