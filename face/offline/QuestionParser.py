@@ -63,14 +63,3 @@ class QuestionParser(object):
 			question[i] = line
 
 		return ('\n'.join(question), variables)
-			
-
-if __name__ == '__main__':
-	qp = QuestionParser()
-	
-	question = 'A wood chuck chucks [pounds] pounds of wood in [days] days.\n\n; pounds: num 1 20\n; days: num 3 5'
-	newq, params = qp.parse(question)
-	
-	print 'Input: %s' % question
-	print 'Output: %s' % newq
-	print 'Params: %s' % str(params)

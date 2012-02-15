@@ -42,13 +42,7 @@ class RomanSumsSolver(Solver.BaseSolver):
 		if len(current_segment) > 0:
 			segments.append(''.join(current_segment))
 		
-#		print roman
-#		for i, segment in enumerate(segments):
-#			print '  %s' % segment
-		
 		segvals = [self._segment2value(seg) for seg in segments]
-#		print '%s = %d' % (roman, sum(segvals))
-#		print ''
 
 		return sum(segvals)
 	
