@@ -26,6 +26,10 @@ def index(request):
             { 'errors' : msghub.get_printable_errors() }, 
             context_instance=RequestContext(request))
 
+@login_required
+def about(request):
+    return render_to_response('about.tpl', { 'user' : request.user })
+
 # This is the major login method.  After the social-auth module
 # has processed the user's login, we do a couple of things.
 #
