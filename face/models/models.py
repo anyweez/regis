@@ -49,6 +49,10 @@ QUESTION_STATUS = (
 class QuestionTag(models.Model):
     name = models.CharField(max_length=100)
 
+class QuestionManager(models.Manager):
+    def get_query_set(self):
+        return super(QuestionManager, self).get_query_set()
+
 class Question(models.Model):
     template = models.ForeignKey(QuestionTemplate)
     user = models.ForeignKey(User, null=True)

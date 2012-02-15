@@ -90,7 +90,7 @@ class UserStats(object):
         questions = regis.Question.objects.filter(user=self.user, status='solved')
         
         hardest_q = None
-        hardest_percentage = 101
+        hardest_percentage = 1.1
         # Check to determine the number of released vs solved.
         for question in questions:
             other_qs = regis.Question.objects.filter(template=question.template)
@@ -113,7 +113,7 @@ class UserStats(object):
                     
         # If the percentage hasn't changed it means the user hasn't solved
         # any questions yet.
-        if hardest_percentage == 101:
+        if hardest_percentage > 1.0:
             return (hardest_q, None)
         else:
-            return (hardest_q, None)#hardest_percentage * 100)
+            return (hardest_q, hardest_percentage * 100)

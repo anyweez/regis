@@ -218,6 +218,18 @@ def list_questions(request):
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
     all_questions = qs.questions.all().order_by('template')
     
+    # Compute statistics for # solved vs. # available on the fly.  We
+    # may want to batch this later if performance becomes an issue.  It
+    # won't scale particularly well as the user load increases.
+    for question in all_questions:
+        available = users.Question.objects.filter(template=question.template)
+        question.num_available = sum([1 for q in available if q.status in ('released', 'solved')])
+        question.num_solved = sum([1 for q in available if q.status == 'solved'])
+        if question.num_available > 0:
+            question.solved_percent = (question.num_solved * 1.0 / question.num_available) * 100
+        else:
+            question.solved_percent = 0.0
+    
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,
           'stats' : UserStats.UserStats(request.user),
