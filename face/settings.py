@@ -154,7 +154,7 @@ LOGGING = {
 AUTH_PROFILE_MODULE = 'models.regisuser'
 
 ## Set some social auth settings
-LOGIN_URL = '/'
+LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/build-acct'
 SOCIAL_AUTH_NEW_USER_REDIRECT_URL = '/build-acct'
 SOCIAL_AUTH_LOGIN_REDIRECT_URL = LOGIN_REDIRECT_URL
@@ -166,7 +166,6 @@ SOCIAL_AUTH_FORCE_RANDOM_USERNAME = False
 
 AUTHENTICATION_BACKENDS = (
     'social_auth.backends.google.GoogleBackend',
-    'social_auth.backends.twitter.TwitterBackend',
     'social_auth.backends.facebook.FacebookBackend',
     'django.contrib.auth.backends.ModelBackend',
 )

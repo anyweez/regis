@@ -45,9 +45,9 @@ def build_acct(request):
         # Update the user's username.
         u = request.user
         u.username = '%s %s' % (u.first_name, u.last_name)
-        u.save()
 
-        # Create their RegisUser record.        
+        # Create their RegisUser record.  
+        # TODO: id=1 shouldn't be hard-coded here.      
         league = users.RegisLeague.objects.get(id=1)
         
         ruser = users.RegisUser(user=u, league=league)
@@ -63,6 +63,7 @@ def build_acct(request):
             msghub.register_error(10, u)
             return render_to_response('error.tpl', { 'errors' : msghub.get_printable_errors() })
                 
+        u.save()
     # Save an event recording that the user just logged in. 
     users.RegisEvent(who=request.user, event_type="login").save()
                 
