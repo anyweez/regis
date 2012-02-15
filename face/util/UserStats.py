@@ -110,5 +110,10 @@ class UserStats(object):
                 if percentage < hardest_percentage:
                     hardest_q = question
                     hardest_percentage = percentage
-        
-        return (hardest_q, hardest_percentage * 100)
+                    
+        # If the percentage hasn't changed it means the user hasn't solved
+        # any questions yet.
+        if hardest_percentage == 101:
+            return (hardest_q, None)
+        else:
+            return (hardest_q, None)#hardest_percentage * 100)
