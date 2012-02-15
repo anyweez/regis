@@ -8,6 +8,7 @@
         <li><a href="/dash">current question</a></li>
         <li><a href="/question/view/all">question list</a></li>
         <!--<li><a href="/team/challenge">team challenge</a></li>-->
+        <li><a href="/how">how it works</a></li>
         <li><a href="/about">about</a></li>
         <li><a href="/account/logout">log out</a></li>
       </ul>

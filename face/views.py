@@ -30,6 +30,9 @@ def index(request):
 def about(request):
     return render_to_response('about.tpl', { 'user' : request.user })
 
+def howitworks(request):
+    return render_to_response('howitworks.tpl')
+
 # This is the major login method.  After the social-auth module
 # has processed the user's login, we do a couple of things.
 #
