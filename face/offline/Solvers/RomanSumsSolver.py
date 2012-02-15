@@ -22,7 +22,6 @@ class RomanSumsSolver(Solver.BaseSolver):
 		
 		return total
 		
-	# TODO: Check that this is converting valid Roman numerals correctly.
 	def r2d(self, roman):
 		symbols = ['M', 'D', 'C', 'L', 'X', 'V', 'I']
 		
