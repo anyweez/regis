@@ -15,7 +15,6 @@
  
   <script type="text/javascript">
     var question_id = {{ tid }};
-
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
        questions.get(question_id, view_question_handler);
