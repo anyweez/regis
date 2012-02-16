@@ -391,7 +391,7 @@ def tally_vote(request, hinthash, vote):
     
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
-#Suggestion stuff
+
 @login_required
 def suggest_q(request):
     return render_to_response('suggest_q.tpl', { 'user': request.user },
@@ -400,11 +400,11 @@ def suggest_q(request):
 @login_required
 def submit_suggestion(request):
     sugg_q = str(request.POST['question'])
-    ans = str(request.POST['solution'])
-        
+    ans = str(request.POST['answer'])
+
     # Record the suggestion.
     s = users.Suggestion(user=request.user, question=sugg_q, answer=ans, time_submitted=datetime.datetime.now())
     s.save()
-    #msghub.register_message('Thanks for submitting a question!')
+    msghub.register_message('Thanks for submitting a question!')
         
     return redirect('/dash')
