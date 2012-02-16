@@ -7,6 +7,7 @@ from django.http import HttpResponse
 import math, datetime
 import models.models as users
 import util
+import util.UserStats as UserStats
 import util.QuestionManager as qm
 import util.Concierge as question_link
 import msg.msghub as msghub
@@ -24,6 +25,13 @@ def index(request):
         return render_to_response('index.tpl', 
             { 'errors' : msghub.get_printable_errors() }, 
             context_instance=RequestContext(request))
+
+@login_required
+def about(request):
+    return render_to_response('about.tpl', { 'user' : request.user })
+
+def howitworks(request):
+    return render_to_response('howitworks.tpl')
 
 # This is the major login method.  After the social-auth module
 # has processed the user's login, we do a couple of things.
@@ -44,9 +52,9 @@ def build_acct(request):
         # Update the user's username.
         u = request.user
         u.username = '%s %s' % (u.first_name, u.last_name)
-        u.save()
 
-        # Create their RegisUser record.        
+        # Create their RegisUser record.  
+        # TODO: id=1 shouldn't be hard-coded here.      
         league = users.RegisLeague.objects.get(id=1)
         
         ruser = users.RegisUser(user=u, league=league)
@@ -62,6 +70,7 @@ def build_acct(request):
             msghub.register_error(10, u)
             return render_to_response('error.tpl', { 'errors' : msghub.get_printable_errors() })
                 
+        u.save()
     # Save an event recording that the user just logged in. 
     users.RegisEvent(who=request.user, event_type="login").save()
                 
@@ -116,28 +125,48 @@ def dash(request):
     question_m = qm.QuestionManager()
     current_q = None
     
+    # First try to get the current question if it's already been activated.
     try:
         current_q = question_m.get_current_question(request.user)
         # Get the time until next release in seconds
-        next_release_s = question_m.time_until_next(request.user).seconds
-    
         next_release = {}
+        next_release_s = question_m.time_until_next(request.user).total_seconds()
+        
+        print next_release_s
+        # Release a question if they've passed their deadline.
+        if next_release_s < 0:
+            question_m.activate_next(request.user)
+            next_release_s = question_m.time_until_next(request.user).seconds
+    # If that doesn't work, try to activate a new question.  This should work
+    # unless there are no questions left to activate.
+    except exception.NoQuestionReadyException:
+        print 'activating next'
+        try:
+            question_m.activate_next(request.user)
+            
+            next_release = {}
+            next_release_s = question_m.time_until_next(request.user).seconds
+        # If there are no more questions to activate, let them know that.  There's
+        # nothing more we can do!
+        except exception.NoQuestionReadyException:
+            next_release = None
+    
+    if next_release is not None:
         next_release['days'] = int(math.floor(next_release_s / 86400))
         next_release_s -= (next_release['days'] * 86400)
         next_release['hours'] = int(math.floor(next_release_s / 3600))
         next_release_s -= (next_release['hours'] * 3600)
         next_release['minutes'] = int(math.floor(next_release_s / 60))
         next_release_s -= (next_release['minutes'] * 60)
-    
-    except exception.NoQuestionReadyException:
-        next_release = None
         
     return render_to_response('dashboard.tpl', 
         { 'user': request.user, 
           'question': current_q, 
           'ttl' : next_release,
           'messages' : msghub.get_messages(),
-          'errors' : msghub.get_printable_errors() },
+          'errors' : msghub.get_printable_errors(),
+          'stats' : UserStats.UserStats(request.user),
+        },
         context_instance=RequestContext(request)
     )
 
@@ -186,10 +215,24 @@ def check_q(request):
 
 @login_required
 def list_questions(request):
-    all_questions = users.Question.objects.filter(user=request.user).order_by('template')
+    qs = users.QuestionSet.objects.get(reserved_by=request.user)
+    all_questions = qs.questions.all().order_by('template')
+    
+    # Compute statistics for # solved vs. # available on the fly.  We
+    # may want to batch this later if performance becomes an issue.  It
+    # won't scale particularly well as the user load increases.
+    for question in all_questions:
+        available = users.Question.objects.filter(template=question.template)
+        question.num_available = sum([1 for q in available if q.status in ('released', 'solved')])
+        question.num_solved = sum([1 for q in available if q.status == 'solved'])
+        if question.num_available > 0:
+            question.solved_percent = (question.num_solved * 1.0 / question.num_available) * 100
+        else:
+            question.solved_percent = 0.0
     
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,
+          'stats' : UserStats.UserStats(request.user),
           'user' : request.user }
     )
 
@@ -204,7 +247,9 @@ def view_question(request, tid):
         if len(question) > 0:
             question = question[0]
             return render_to_response('view_question.tpl', 
-                { 'question' : question, 'user': request.user },
+                { 'question' : question, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
                 context_instance=RequestContext(request))
         # There is no question matching the requested data.
         else:
@@ -238,6 +283,7 @@ def question_status(request, gid):
               'question' : question, 
               'next_q' : next_q,
               'user': request.user,
+              'stats' : UserStats.UserStats(request.user),
               'answer': answer },
             context_instance=RequestContext(request))
     except users.Guess.DoesNotExist:
@@ -349,6 +395,44 @@ def submit_hint(request, tid):
         
     return redirect('/dash')
 
+@login_required
+def feedback_like(request, tid, value):
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        preexisting = users.QuestionFeedback.objects.get(user=request.user, template=template, category='like')
+    
+        if value != preexisting.value:
+            preexisting.value = value
+            preexisting.save()
+    # This is an error resulting from a malformed URL.
+    except users.QuestionTemplate.DoesNotExist:
+        print "Template doesn't exist."
+        pass
+    except users.QuestionFeedback.DoesNotExist:
+        fb = users.QuestionFeedback(user=request.user, template=template, category='like', value=value)
+        fb.save()
+        
+    return render_to_response('empty.tpl')
+
+def feedback_challenge(request, tid, value):
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        preexisting = users.QuestionFeedback.objects.get(user=request.user, template=template, category='challenge')
+    
+        if value != preexisting.value:
+            preexisting.value = value
+            preexisting.save()
+    # This is an error resulting from a malformed URL.
+    except users.QuestionTemplate.DoesNotExist:
+        print "Template doesn't exist."
+        pass
+    except users.QuestionFeedback.DoesNotExist:
+        fb = users.QuestionFeedback(user=request.user, template=template, category='challenge', value=value)
+        fb.save()
+        
+    return render_to_response('empty.tpl')
+
+@login_required
 def tally_vote(request, hinthash, vote):
     hints = users.QuestionHint.objects.all()
 
@@ -408,3 +492,100 @@ def submit_suggestion(request):
     msghub.register_message('Thanks for submitting a question!')
         
     return redirect('/dash')
+
+def list_questions_with_api(request):
+    return render_to_response('list_questions_with_api.tpl', 
+          { 'stats' : UserStats.UserStats(request.user),
+          'user': request.user },
+           context_instance=RequestContext(request))
+
+@login_required
+def view_question_with_api(request, tid):
+    return render_to_response('view_question_with_api.tpl', 
+                { 'tid' : tid, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
+
+
+@login_required
+def api_questions_list(request):
+    def json_question(question):
+        rep = { "kind" : "question",
+        	"status" : question.status,
+        	"id" : question.id,
+        	"template" : question.template.id,
+        	"title" : question.template.title,
+        	"content" : "Not yet available",
+        	"scope" : "Not yet implemented",
+        	"hints" : "Not yet implemented",
+        	"url" : "http://localhost:8080/questions/%d" % question.template.id,
+        	"attempts" : "Not yet implemented",
+        	"published" : str(question.time_released),
+        	"updated" : "Not yet implemented",
+        	"actor" : question.user.id }
+        if 'released' == question.status:
+            rep['content'] = question.decoded_text()
+        return rep
+	
+    qs = users.QuestionSet.objects.get(reserved_by=request.user)
+    all_questions = qs.questions.all().order_by('template')
+    items = []
+    for question in all_questions:
+        items.append(json_question(question))
+    response = { "kind" : "questionFeed",
+		"items" : items }
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_questions_get(request, question_id):
+    response = None
+    tid = question_id # hack! TODO: Clean up variable names so that question ids match questions, and template ids match templates
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        if template is not None:
+            question = users.Question.objects.filter(user=request.user, template=template)
+            if len(question) > 0:
+                question = question[0]
+            else:
+                response = "Not found"
+        else:
+            response = "Not found"
+    except users.QuestionTemplate.DoesNotExist as error:
+        response = { "kind" : "question#notfound" }
+    if response is not None:
+        pass # already decided the result
+    elif question.status == 'pending' or question.status == 'ready':
+        response = { "kind" : "question#" + question.status,
+                     "status" : question.status,
+                     "id" : question.id,
+		     "title" : template.title,
+                     "template" : template.id }
+    else:
+      question_id = question.id
+      title = template.title
+      content = question.decoded_text()
+      scope = "Not yet implemented"
+      list_of_hints = ["Not yet implemented"]
+      published = str(question.time_released)
+      updated = "Not yet implemented"
+      actor = question.user.id
+      response = {"kind" : "question",
+  		"status" : question.status,
+  		"id" : question_id,
+  		"template" : template.id,
+  		"title" : title,
+  		"content" : content,
+  		"scope" : scope,
+  		"hints" : list_of_hints,
+  		"url" : "http://localhost:8080/questions/%d" % question_id,
+  		"attempts" : ["Not yet implemented"],
+  		"published" : published,
+  		"updated" : updated,
+  		"actor" : actor}
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+
+
+
+

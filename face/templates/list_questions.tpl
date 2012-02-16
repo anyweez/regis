@@ -5,6 +5,15 @@
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
   <title>Regis: Available Questions</title>
+  
+  
+  {% include 'include/common_header.tpl' %}
+  <style type="text/css">
+    #right_col {
+      border-bottom: 3px solid black;
+      border-radius: 0px 0px 0px 5px; 
+    }
+  </style>
 </head>
 <body>
   <!-- The heading, which contains the title and appears above everything else. -->
@@ -16,11 +25,10 @@
     <div id="question_body">     
       <h2>Question List</h2>
       <p>The following questions are available in the system.  Additional questions will be released to you once
-      you either solve a problem or work on it for 24 hours without solving it.</p>     
+      you either solve a problem or work on it for 48 hours without solving it.</p>     
       {% for q in questions %}
         {% if q.status != 'pending' %}
         <div class="qbox">
-		  
 		  {% if q.status == 'ready' %}
 		  <div class="q_decoration q_unavailable">
 		    <p class="q_status">locked</p>
@@ -34,8 +42,8 @@
 		    <p class="q_status">solved</p>
 		  {% endif %} 
 		  
-		    <p>solved by 2 of 8</p>
-		    <p>( 25% )</p>
+		    <p>solved by {{ q.num_solved }} of {{ q.num_available }}</p>
+		    <p>( {{ q.solved_percent }}% )</p>
 		  </div>
           <div>
             {% if q.status == 'ready' %}

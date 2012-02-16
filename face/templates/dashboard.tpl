@@ -4,9 +4,13 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
-  </script>
+  {% include 'include/common_header.tpl' %}
+
   <script type="text/javascript" src="/static/js/hints.js">
+  </script>
+  <script type="text/javascript" src="/static/js/api.js">
+  </script>
+  <script type="text/javascript" src="/static/js/questions.js">
   </script>
 
   {% if question %}
@@ -16,6 +20,7 @@
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
       get_hints(question_id);
+//      questions.get(question_id, view_question_handler);
     });
   </script>
   {% endif %}
@@ -59,7 +64,7 @@
       <p style="font-size: small; margin-top: 0px; color: #666666;">
         A new question will be released in 
         {% if ttl.days %}
-          {{ ttl.days }},
+          {{ ttl.days }} day,
         {% endif %}
         {{ ttl.hours }} hours and {{ ttl.minutes }} minutes.
       </p>

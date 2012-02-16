@@ -1,9 +1,7 @@
 import offline.Solvers.Solver as Solver
-import offline.ParserTools.SolverTools as SolverTools
 
 class NumberConversionSolver(Solver.BaseSolver):
-	def correct(self, params):
-		st = SolverTools.SolverTools()
+	def correct(self, st, params):
 		number = int(st.prepare_params(params)['number'])
 		bin_digits = []
 		

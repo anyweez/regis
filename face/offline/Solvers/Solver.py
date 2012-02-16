@@ -1,7 +1,9 @@
+import face.offline.ParserTools.SolverTools as SolverTools
 
 class BaseSolver(object):
-	def __init__(self):
-		pass 
+	def __init__(self, qset, template):
+		self.qset = qset
+		self.template = template 
 		
 	# Returns a list of values that are correct answers for the provided
 	# parameters.  Messages (or None) should be provided as well.
@@ -20,3 +22,6 @@ class BaseSolver(object):
 	# false for incorrect).
 	def validate(self, answer, valids):
 		raise NotImplementedError
+	
+	def load_userfile(self):
+		return SolverTools.load_userfile(self.qset, self.template)

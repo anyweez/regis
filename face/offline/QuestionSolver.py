@@ -1,5 +1,7 @@
-import imp, json
+import imp, json, sys
 import face.models.models as regis
+
+import ParserTools.SolverTools as SolverTools
 
 class QuestionSolver(object):
 	def __init__(self):
@@ -11,14 +13,24 @@ class QuestionSolver(object):
 		# The values of the variables are also stored in the DB.
 		params = json.loads(question.variables)
 		
+		try:
+			qset = question.questionset.all()[0]
+		except regis.QuestionSet.DoesNotExist:
+			print "The question set for this question does not exist.  Fix that before continuing."
+			sys.exit(1)
+		except IndexError:
+			print "The question set for this question has been deleted.  Please run manage.py qpurge."
+			print "Note: this will delete this question from the database."
+			sys.exit(1)
+		
 		f, pn, dsc = imp.find_module(solver_name, ['offline/Solvers'])
 		mod = imp.load_module(solver_name, f, pn, dsc)
 		
-		solver = mod.__dict__[solver_name]()
+		solver = mod.__dict__[solver_name](qset, question.template)
 		answers = {}
 		
 		# Compute all correct answers.
-		answers['correct'] = solver.correct(params)
+		answers['correct'] = solver.correct(SolverTools, params)
 		
 		# Compute all common mistakes.
 		answers['mistakes'] = solver.mistakes(params)

@@ -49,6 +49,10 @@ QUESTION_STATUS = (
 class QuestionTag(models.Model):
     name = models.CharField(max_length=100)
 
+class QuestionManager(models.Manager):
+    def get_query_set(self):
+        return super(QuestionManager, self).get_query_set()
+
 class Question(models.Model):
     template = models.ForeignKey(QuestionTemplate)
     user = models.ForeignKey(User, null=True)
@@ -113,13 +117,30 @@ class QuestionSet(models.Model):
     created_on = models.DateTimeField(auto_now_add=True)
     # Keeps track of the actual user that has reserved the question set.
     reserved_by = models.ForeignKey(User, null=True)
-    questions = models.ManyToManyField(Question)
+    questions = models.ManyToManyField(Question, related_name="questionset")
     
 class Suggestion(models.Model):
     user = models.ForeignKey(User)
     question = models.TextField()
     answer = models.TextField()    
     time_submitted = models.DateTimeField()
+
+
+FEEDBACK_TYPES = (
+    ('like', 'like'),
+    ('challenge', 'challenge')
+)
+
+class QuestionFeedback(models.Model):
+    # The template that the feedback is provided for.
+    template = models.ForeignKey(QuestionTemplate)
+    user = models.ForeignKey(User)
+    
+    # The type of feedback: either 'like' or 'challenge'
+    category = models.CharField(max_length=10, choices=FEEDBACK_TYPES)
+    # The actual feedback value as an integer.
+    value = models.IntegerField()
+>>>>>>> 138390a4207ae73e21ff6be313c1fb552517e76a
 
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)

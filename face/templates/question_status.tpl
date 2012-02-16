@@ -4,9 +4,50 @@
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
   
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
-  </script>
+  {% include 'include/common_header.tpl' %}
+  
   <script type="text/javascript" src="/static/js/hints.js">
+  </script>
+  
+  <script type="text/javascript">
+  var like_feedback = null;
+  var challenge_feedback = null;
+
+  // Submit this user's answer to the "did you like this question?" question
+  function like_swap(btn) {
+	if (like_feedback != null) {
+		like_feedback.css("background-color", "#CAE3FC");
+	}
+    
+    like_feedback = btn;
+  	like_feedback.css("background-color", "#4BE846");
+  	
+  	$.getJSON('/ajax/feedback/like/{{ question.template.id }}/' + like_feedback.attr('value'),
+            function(data) {});
+  }
+  
+  function challenge_swap(btn) {
+  	if (challenge_feedback != null) {
+  		challenge_feedback.css("background-color", "#CAE3FC");
+  	}
+  	
+  	challenge_feedback = btn;
+  	challenge_feedback.css("background-color", "#4BE846");
+  	
+  	$.getJSON('/ajax/feedback/challenge/{{ question.template.id }}/' + challenge_feedback.attr('value'),
+            function(data) {});
+  }
+  
+  $(document).ready(function() {
+    $(".feedback_btn").click(function(e) {
+    	if ($(this).attr('type') == 'like') {
+    		like_swap($(this));
+    	}
+    	if ($(this).attr('type') == 'challenge') {
+    		challenge_swap($(this));
+    	}
+    });
+  });
   </script>
 
   <style type="text/css">
@@ -18,6 +59,11 @@
 
       border: 3px solid black;
       border-radius: 3px;
+    }
+
+    #right_col {
+      border-bottom: 3px solid black;
+      border-radius: 0px 0px 0px 5px; 
     }
   </style>
 
@@ -47,7 +93,58 @@
       {% if question.status == 'solved' %}
       <h2 style="margin-bottom: 5px; font-weight: normal"><b>Correct!</b></h2>
       <p><b>{{ guess.value }}</b> was the correct answer to this puzzle.  Nice work!</p>
-      <div class="hintbox">
+      <div id="feedback">
+      	<h3>Reflection</h3>
+      	<p>If you provide us with some feedback then we'll try to choose questions that may be more appropriate for you.</p>
+      	<div style="margin-left: 10px; display: inline-block; width: 150px;">Did you like this question?</div>
+      	<div type="like" value="1" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 160px;">
+      		<img style="display: inline-block; width: 30px; height: 30px; margin: 0px 2px 0px 2px;" src="/static/img/buttons_ok_xl.png" />
+      		<div style="text-align: left; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">Yes!</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">I enjoyed solving it.</p>
+			</div>
+      	</div>
+      	<div type="like" value="0" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 160px;">
+      		<img style="display: inline-block; width: 30px; height: 30px; margin: 0px 2px 0px 2px;" src="/static/img/buttons_cancel_xl.png" />
+      		<div style="text-align: left; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">No!</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">I'm not a fan.</p>
+			</div>
+		</div>
+      	<div>&nbsp;</div>
+      	<div style="margin-left: 10px; display: inline-block; width: 150px;">How challenging did you find it to be?</div>
+      	<div type="challenge" value="1" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
+      		<div style="text-align: center; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">Simple</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">I knew how to solve it right away.</p>
+			</div>
+		</div>
+		<div type="challenge" value="2" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
+      		<div style="text-align: center; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">Pretty easy</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">It took me a minute but was fine once I thought about it.</p>
+			</div>
+		</div>
+		<div type="challenge" value="3" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
+      		<div style="text-align: center; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">Manageable</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">I had to experiment around a bit to find the answer.</p>
+			</div>
+		</div>
+		<div type="challenge" value="4" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
+      		<div style="text-align: center; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">Challenging</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">I had to fight but now feel like I understand the solution.</p>
+			</div>
+		</div>
+		<div type="challenge" value="5" class="feedback_btn" style="padding: 3px; vertical-align: top; display: inline-block; cursor: pointer; background-color: #CAE3FC; border: 2px outset black; border-radius: 3px; width: 140px; height: 75px;">
+      		<div style="text-align: center; display: inline-block;">
+      			<p style="margin: 0; padding: 0; font-weight: bold">Impossible</p>
+				<p style="margin: 2px; padding: 0; font-size: small;">I don't know how I got it right.</p>
+			</div>
+		</div>
+      </div>
+      <div class="hintbox" style="margin-top: 20px;">
         <p style="font-weight: bold; margin: 2px;">Before you go, would you like to leave a hint for others who
       try this question?</p>
       <p style="margin: 2px;">A good hint will not give away the answer, but will provide some guidance about the 
@@ -56,9 +153,13 @@
 	  {% include 'include/hintsubmit.tpl' %}
       </div>  
       
+      <h3>Next Steps</h3>
         {% if next_q %}
         <p>A new question has been unlocked for you: <a href="/question/view/{{next_q.template.id}}">{{ next_q.template.title }}</a></p>
+        {% else %}
+        <p>We're actually all out of questions.  Tell your TA to get on it!</p>
         {% endif %}
+      
       {% endif %}
       
       {% comment %}

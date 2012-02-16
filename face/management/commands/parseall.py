@@ -38,7 +38,7 @@ class Command(BaseCommand):
     for qset in all_qsets:
         questions = qset.questions.all()
         
-        target_tids = list(set(all_tids) - set([q.tid.id for q in questions]))
+        target_tids = list(set(all_tids) - set([q.template.id for q in questions]))
         parser.qset = qset
         
         # The default position of this question will be LAST until the
@@ -61,9 +61,17 @@ class Command(BaseCommand):
             
             # Save the information as a processed question.  The solver processor
             # will pick it up once it's been inserted.
-            q = regis.Question(template=template, user=qset.reserved_by, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
-            q.save()
-            
+            try:
+                q = regis.Question(template=template, user=qset.reserved_by, text=text, variables=json.dumps(values), time_released=datetime.datetime.now(), status='pending', order=next_order)
+                q.save()
+            # If we get this exception then we're got some cruft that needs to be cleared away.
+            # TODO: Catch exception for when qset.reserved_by doesn't exist.  Delete the question set and all corresponding questions in this case.
+            except regis.RegisUser.DoesNotExist:
+                pass
+                # Delete the questions owned by the user.
+                # Delete the answers.
+                # Delete the question set.
+                
             # TODO: Test this.
             # Add this question to the question set.  THIS LINE MAY NOT WORK.
             qset.questions.add(q)

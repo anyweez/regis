@@ -8,13 +8,17 @@
   
   <script type="text/javascript" src="/static/js/hints.js">
   </script>
-  
+  <script type="text/javascript" src="/static/js/api.js">
+  </script>
+  <script type="text/javascript" src="/static/js/questions.js">
+  </script>
+ 
   <script type="text/javascript">
-    var question_id = {{ question.template.id }};
+    var question_id = {{ tid }};
 
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
-      get_hints(question_id);
+       questions.get(question_id, view_question_handler);
     });
   </script>
   
@@ -30,7 +34,7 @@
     }
   </style>
 
-  <title>Regis: Viewing question {{ question.title }}</title>
+  <title>Regis: View question</title>
 </head>
 <body>
 	{% if errors %}
@@ -48,18 +52,7 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body">  
-      {% if question.status != 'pending' and question.status != 'ready' %}         
-      <h2 style="margin-bottom: 5px;">Question #{{question.template.id}}: <span style="font-weight: normal">{{ question.template.title }}</span></h2>
-      <p style="font-size: small; margin-top: 0px; color: #666666;">released on {{ question.time_released }}</p>
-      <p id="main_q">{{ question.decoded_text|safe }}</p>
-      {% include 'include/qbox.tpl' %}
-      
-      {% else %}
-      <h2 style="margin-bottom: 5px;">Sorry!</h2>
-      <p>You haven't unlocked this question yet.  Keep working and you'll get it in no time!</p>
-      {% endif %}
-      
-      {% include 'include/hintzone.tpl' %}
+      {% include 'include/question_stub.tpl' %}
     </div>  
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>
