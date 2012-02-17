@@ -4,7 +4,7 @@ import face.models.models as regis
 
 class Command(BaseCommand):
     args = 'none'
-    help = 'Parses all of the questions that havent been parsed for all users.'
+    help = 'Solves all of the questions that havent been solved for all users.'
 
     def handle(self, *args, **options):
         solver = qs.QuestionSolver()

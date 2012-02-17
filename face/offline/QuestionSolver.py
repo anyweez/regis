@@ -1,4 +1,4 @@
-import imp, json
+import imp, json, sys
 import face.models.models as regis
 
 import ParserTools.SolverTools as SolverTools
@@ -17,7 +17,11 @@ class QuestionSolver(object):
 			qset = question.questionset.all()[0]
 		except regis.QuestionSet.DoesNotExist:
 			print "The question set for this question does not exist.  Fix that before continuing."
-			return
+			sys.exit(1)
+		except IndexError:
+			print "The question set for this question has been deleted.  Please run manage.py qpurge."
+			print "Note: this will delete this question from the database."
+			sys.exit(1)
 		
 		f, pn, dsc = imp.find_module(solver_name, ['offline/Solvers'])
 		mod = imp.load_module(solver_name, f, pn, dsc)

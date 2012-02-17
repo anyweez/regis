@@ -42,8 +42,8 @@
 		    <p class="q_status">solved</p>
 		  {% endif %} 
 		  
-		    <p>solved by 2 of 8</p>
-		    <p>( 25% )</p>
+		    <p>solved by {{ q.num_solved }} of {{ q.num_available }}</p>
+		    <p>( {{ q.solved_percent }}% )</p>
 		  </div>
           <div>
             {% if q.status == 'ready' %}
