@@ -515,7 +515,7 @@ def api_questions_list(request):
     items = []
     options = { 'html' : 'thumbnail' }
     for question in all_questions:
-        if question.status == 'released' or question.status == 'ready':
+        if question.status in ['released', 'ready', 'solved']:
             items.append(get_question_json(request, question.template.id, options=options))
     response = { "kind" : "questionFeed",
 		"items" : items }
@@ -569,7 +569,7 @@ def get_question_json(request, question_id, options=None):
         return response
             
     def create_locked_package(question, options):
-        response = { "kind" : "question#" + question.status,
+        response = { "kind" : "question",
                      "status" : question.status,
                      "key" : question.id,
 		     "title" : question.template.title,
@@ -599,7 +599,7 @@ def get_question_json(request, question_id, options=None):
             pass
         return response
     def create_question_package(question, options):
-        response = { "kind" : "question#" + question.status,
+        response = { "kind" : "question",
                      "status" : question.status,
                      "key" : question.id,
 		     "title" : question.template.title,
@@ -677,10 +677,10 @@ def get_question_json(request, question_id, options=None):
     except users.QuestionHint.DoesNotExist as error:
         errors.append("Error when looking for hints")
     # If pending or ready, return a locked package.
-    if question.status == 'pending' or question.status == 'ready':
+    if question.status in ['pending', 'ready']:
         return create_locked_package(question, options)
     # This must be a released questions
-    elif question.status == 'released':
+    elif question.status in ['released', 'solved']:
         return create_question_package(question, options)
     errors.append("Question status unknown")
     return create_question_package(question, options)
