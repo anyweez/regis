@@ -43,7 +43,8 @@ QUESTION_STATUS = (
     ('solved', 'Solved'),       # question has been released and answered
     ('released', 'Released'),   # question has been released but not answered
     ('ready', 'Ready'),         # question parsed and answers available, not released
-    ('pending', 'Pending')      # question parsed but answers not available
+    ('pending', 'Pending'),      # question parsed but answers not available
+    ('retired', 'Retired')      # deactivated but not deleted (often through manage.py refresh)
 )
     
 class QuestionTag(models.Model):

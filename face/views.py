@@ -221,13 +221,13 @@ def check_q(request):
 @login_required
 def list_questions(request):
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
-    all_questions = qs.questions.all().order_by('template')
+    all_questions = qs.questions.exclude(status='retired').order_by('template')
     
     # Compute statistics for # solved vs. # available on the fly.  We
     # may want to batch this later if performance becomes an issue.  It
     # won't scale particularly well as the user load increases.
     for question in all_questions:
-        available = users.Question.objects.filter(template=question.template)
+        available = users.Question.objects.filter(template=question.template).exclude(status='retired')
         question.num_available = sum([1 for q in available if q.status in ('released', 'solved')])
         question.num_solved = sum([1 for q in available if q.status == 'solved'])
         if question.num_available > 0:
@@ -243,25 +243,20 @@ def list_questions(request):
 
 @login_required
 def view_question(request, tid):
-    template = users.QuestionTemplate.objects.get(id=tid)
-    
-    if template is not None:
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
         question = users.Question.objects.filter(user=request.user, template=template)
-    
-        # If there is a question that matches their request, display it.
-        if len(question) > 0:
-            question = question[0]
-            return render_to_response('view_question.tpl', 
-                { 'question' : question, 
-                  'stats' : UserStats.UserStats(request.user),
-                  'user': request.user },
-                context_instance=RequestContext(request))
+
+        return render_to_response('view_question.tpl', 
+            { 'question' : question, 
+              'stats' : UserStats.UserStats(request.user),
+              'user': request.user },
+              context_instance=RequestContext(request))
+    except users.QuestionTemplate.DoesNotExist:
+        # TODO: Need to return some error responses here.
+        pass
+    except users.Question.DoesNotExist:
         # There is no question matching the requested data.
-        else:
-            # TODO: Need to return some error responses here.
-            pass
-    else:
-        # TODO: Error response needed here as well.
         pass
 
 @login_required
@@ -298,15 +293,14 @@ def question_status(request, gid):
 
 @login_required
 def get_question_file(request, tid):
-    templates = users.QuestionTemplate.objects.filter(id=tid)
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
     
-    data = None
-    field = []
-    
-    if len(templates) > 0:
-        questions = users.Question.objects.filter(user=request.user, templates=templates[0])
-        
-        if len(questions) > 0:
+        data = None
+        field = []
+
+        try:
+            questions = users.Question.objects.filter(user=request.user, templates=template).exclude(status='retired')
             data = json.loads(questions[0].variables)
             for actual, visible in data.values():
                 try:
@@ -314,6 +308,10 @@ def get_question_file(request, tid):
                         field = actual
                 except TypeError:
                     continue
+        except users.Question.DoesNotExist:
+            pass
+    except users.QuestionTemplate.DoesNotExist:
+        pass
     
     return render_to_response('show_file.tpl', { 'data' : field }, mimetype='text/plain')
 
@@ -381,7 +379,7 @@ def submit_hint(request, tid):
     template = users.QuestionTemplate.objects.get(id=tid)
     # Save the hint!
     try:
-        user_q = users.Question.objects.get(template=template, user=request.user)
+        user_q = users.Question.objects.get(template=template, user=request.user).exclude(status='retired')
         prev_hints = users.QuestionHint.objects.filter(template=template, src=request.user)
 
         # Check that the problem has been solved and that the user hasn't provided
