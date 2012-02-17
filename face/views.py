@@ -516,18 +516,18 @@ def api_questions_list(request):
     options = { 'html' : 'thumbnail' }
     for question in all_questions:
         if question.status in ['released', 'ready', 'solved']:
-            items.append(get_question_json(request, question.template.id, options=options))
+            items.append(questions_get_json(request, question.template.id, options=options))
     response = { "kind" : "questionFeed",
 		"items" : items }
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @login_required
 def api_questions_get(request, question_id):
-    return HttpResponse(json.dumps(get_question_json(request, question_id)),
+    return HttpResponse(json.dumps(questions_get_json(request, question_id)),
                         mimetype='application/json')
 
 '''
-get_question_json is used by the API call get and list.
+questions_get_json is used by the API call get and list.
 This function handles all permissions and formats the JSON
 response with the appropriate fields.
 If the question does not exist, return a "question#notfound" package.
@@ -538,7 +538,7 @@ for embedding in a web page.
 Options can be passed in, like { 'html' : 'thumbnail' } which
 requests only the small view to be embeded in list form.
 '''
-def get_question_json(request, question_id, options=None):
+def questions_get_json(request, question_id, options=None):
     user = request.user
     errors = []
     hintids = []
@@ -685,6 +685,52 @@ def get_question_json(request, question_id, options=None):
     errors.append("Question status unknown")
     return create_question_package(question, options)
 
+@login_required
+def api_hints_list(request, question_id):
+    try:
+        hints = users.QuestionHint.objects.filter(template__id=question_id)
+        items = []
+        options = { "fields" : "kind,id" }
+        for hint in hints:
+            items.append(hints_get_json(request, hint.id, hint=hint, options=options))
+        response = { "kind" : "hintFeed",
+                     "question" : question_id,
+                     "items" : items }
+        return HttpResponse(json.dumps(response),
+                            mimetype='application/json')
+    except users.QuestionHint.DoesNotExist as error:
+        return HttpResponse(json.dumps(create_not_found_package()),
+                            mimetype='application/json')
 
+@login_required
+def api_hints_get(request, hint_id):
+    return HttpResponse(json.dumps(hints_get_json(request, hint_id)),
+                        mimetype='application/json')
+
+def hints_get_json(request, hint_id, hint=None, options=None):
+    if hint is None:
+        try:
+            hint = users.QuestionHint.objects.get(id=hint_id)
+            if hint is None:
+                return create_not_found_package()
+        except users.QuestionHint.DoesNotExist as error:
+            return create_not_found_package() 
+    response = { "kind" : "hint",
+                 "id" : hint.id,
+                 "content" : hint.text,
+                 "question" : hint.template.id,
+                 "actor" : hint.src.id } 
+    parameters = ['fields']
+    if options is None:
+        options = {}
+    for p in parameters:
+        if p in request.GET and p not in options:
+            options[p] = request.GET[p]
+    if 'fields' in options:
+        fields = options['fields'].split(',')
+        for k in response.keys():
+            if k not in fields:
+                del response[k]
+    return response
 
 
