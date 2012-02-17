@@ -30,7 +30,10 @@ class UserStats(object):
     def percent_answered(self):
         num_answered, num_available = self.questions_answered()
         
-        return int(round(((num_answered * 1.0) / num_available) * 100))
+        if num_available > 0:
+            return int(round(((num_answered * 1.0) / num_available) * 100))
+        else:
+            return 0
     
     def guesses_per_question(self):
         guesses = regis.Guess.objects.filter(user=self.user)
@@ -87,7 +90,7 @@ class UserStats(object):
         questions = regis.Question.objects.filter(user=self.user, status='solved')
         
         hardest_q = None
-        hardest_percentage = 101
+        hardest_percentage = 1.1
         # Check to determine the number of released vs solved.
         for question in questions:
             other_qs = regis.Question.objects.filter(template=question.template)
@@ -107,5 +110,10 @@ class UserStats(object):
                 if percentage < hardest_percentage:
                     hardest_q = question
                     hardest_percentage = percentage
-        
-        return (hardest_q, hardest_percentage * 100)
+                    
+        # If the percentage hasn't changed it means the user hasn't solved
+        # any questions yet.
+        if hardest_percentage > 1.0:
+            return (hardest_q, None)
+        else:
+            return (hardest_q, hardest_percentage * 100)

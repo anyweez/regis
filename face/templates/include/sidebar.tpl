@@ -21,8 +21,13 @@
 		</div>
 		<div class="statbox">
 		  <h2>Hardest Question Answered</h2>
+		  {% if stats.hardest_question_answered.1 != None %}
 		  <p style="margin-bottom: 0px; padding-bottom: 0px; font-style: italic;">{{ stats.hardest_question_answered.0.template.title }}</p>
 		  <p style="color: #444; font-size: small; margin-top: 2px;">answered by {{ stats.hardest_question_answered.1 }}%</p>
+		  {% else %}
+		  <p style="margin-bottom: 0px; padding-bottom: 0px;">none yet!</p>
+		  {% endif %}
+		  
 		</div>
       </div>
     </div> 

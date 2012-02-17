@@ -31,9 +31,12 @@ class QuestionManager(object):
     def time_until_next(self, user):
         nextq = self.get_current_question(user)
         time_expires = nextq.time_released + datetime.timedelta(days=2)
-        
+
         return (time_expires - datetime.datetime.now())
-        
+    
+    def current_expired(self):
+        return (self.time_until_next().total_seconds() < 0)
+    
     # Returns a tuple (bool, str) that states whether the answer
     # is correct and an accompanying message.
     def check_question(self, question, answer):

@@ -64,7 +64,7 @@
       <p style="font-size: small; margin-top: 0px; color: #666666;">
         A new question will be released in 
         {% if ttl.days %}
-          {{ ttl.days }},
+          {{ ttl.days }} day,
         {% endif %}
         {{ ttl.hours }} hours and {{ ttl.minutes }} minutes.
       </p>

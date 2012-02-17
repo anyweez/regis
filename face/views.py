@@ -26,6 +26,13 @@ def index(request):
             { 'errors' : msghub.get_printable_errors() }, 
             context_instance=RequestContext(request))
 
+@login_required
+def about(request):
+    return render_to_response('about.tpl', { 'user' : request.user })
+
+def howitworks(request):
+    return render_to_response('howitworks.tpl')
+
 # This is the major login method.  After the social-auth module
 # has processed the user's login, we do a couple of things.
 #
@@ -45,9 +52,9 @@ def build_acct(request):
         # Update the user's username.
         u = request.user
         u.username = '%s %s' % (u.first_name, u.last_name)
-        u.save()
 
-        # Create their RegisUser record.        
+        # Create their RegisUser record.  
+        # TODO: id=1 shouldn't be hard-coded here.      
         league = users.RegisLeague.objects.get(id=1)
         
         ruser = users.RegisUser(user=u, league=league)
@@ -63,6 +70,7 @@ def build_acct(request):
             msghub.register_error(10, u)
             return render_to_response('error.tpl', { 'errors' : msghub.get_printable_errors() })
                 
+        u.save()
     # Save an event recording that the user just logged in. 
     users.RegisEvent(who=request.user, event_type="login").save()
                 
@@ -122,7 +130,13 @@ def dash(request):
         current_q = question_m.get_current_question(request.user)
         # Get the time until next release in seconds
         next_release = {}
-        next_release_s = question_m.time_until_next(request.user).seconds
+        next_release_s = question_m.time_until_next(request.user).total_seconds()
+        
+        print next_release_s
+        # Release a question if they've passed their deadline.
+        if next_release_s < 0:
+            question_m.activate_next(request.user)
+            next_release_s = question_m.time_until_next(request.user).seconds
     # If that doesn't work, try to activate a new question.  This should work
     # unless there are no questions left to activate.
     except exception.NoQuestionReadyException:
@@ -135,7 +149,6 @@ def dash(request):
         # If there are no more questions to activate, let them know that.  There's
         # nothing more we can do!
         except exception.NoQuestionReadyException:
-            print 'no question ready'
             next_release = None
     
     if next_release is not None:
@@ -204,6 +217,18 @@ def check_q(request):
 def list_questions(request):
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
     all_questions = qs.questions.all().order_by('template')
+    
+    # Compute statistics for # solved vs. # available on the fly.  We
+    # may want to batch this later if performance becomes an issue.  It
+    # won't scale particularly well as the user load increases.
+    for question in all_questions:
+        available = users.Question.objects.filter(template=question.template)
+        question.num_available = sum([1 for q in available if q.status in ('released', 'solved')])
+        question.num_solved = sum([1 for q in available if q.status == 'solved'])
+        if question.num_available > 0:
+            question.solved_percent = (question.num_solved * 1.0 / question.num_available) * 100
+        else:
+            question.solved_percent = 0.0
     
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,
@@ -370,6 +395,44 @@ def submit_hint(request, tid):
         
     return redirect('/dash')
 
+@login_required
+def feedback_like(request, tid, value):
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        preexisting = users.QuestionFeedback.objects.get(user=request.user, template=template, category='like')
+    
+        if value != preexisting.value:
+            preexisting.value = value
+            preexisting.save()
+    # This is an error resulting from a malformed URL.
+    except users.QuestionTemplate.DoesNotExist:
+        print "Template doesn't exist."
+        pass
+    except users.QuestionFeedback.DoesNotExist:
+        fb = users.QuestionFeedback(user=request.user, template=template, category='like', value=value)
+        fb.save()
+        
+    return render_to_response('empty.tpl')
+
+def feedback_challenge(request, tid, value):
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        preexisting = users.QuestionFeedback.objects.get(user=request.user, template=template, category='challenge')
+    
+        if value != preexisting.value:
+            preexisting.value = value
+            preexisting.save()
+    # This is an error resulting from a malformed URL.
+    except users.QuestionTemplate.DoesNotExist:
+        print "Template doesn't exist."
+        pass
+    except users.QuestionFeedback.DoesNotExist:
+        fb = users.QuestionFeedback(user=request.user, template=template, category='challenge', value=value)
+        fb.save()
+        
+    return render_to_response('empty.tpl')
+
+@login_required
 def tally_vote(request, hinthash, vote):
     hints = users.QuestionHint.objects.all()
 
@@ -414,6 +477,22 @@ def tally_vote(request, hinthash, vote):
 
 
 @login_required
+def suggest_q(request):
+    return render_to_response('suggest_q.tpl', { 'user': request.user },
+                              context_instance=RequestContext(request))
+    
+@login_required
+def submit_suggestion(request):
+    sugg_q = str(request.POST['question'])
+    ans = str(request.POST['answer'])
+
+    # Record the suggestion.
+    s = users.Suggestion(user=request.user, question=sugg_q, answer=ans, time_submitted=datetime.datetime.now())
+    s.save()
+    msghub.register_message('Thanks for submitting a question!')
+        
+    return redirect('/dash')
+
 def list_questions_with_api(request):
     return render_to_response('list_questions_with_api.tpl', 
           { 'stats' : UserStats.UserStats(request.user),
@@ -505,6 +584,7 @@ def api_questions_get(request, question_id):
   		"updated" : updated,
   		"actor" : actor}
     return HttpResponse(json.dumps(response), mimetype='application/json')
+
 
 
 
