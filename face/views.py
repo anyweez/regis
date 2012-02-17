@@ -539,52 +539,126 @@ def api_questions_list(request):
 
 @login_required
 def api_questions_get(request, question_id):
-    response = None
-    tid = question_id # hack! TODO: Clean up variable names so that question ids match questions, and template ids match templates
-    try:
-        template = users.QuestionTemplate.objects.get(id=tid)
-        if template is not None:
-            question = users.Question.objects.filter(user=request.user, template=template)
-            if len(question) > 0:
-                question = question[0]
-            else:
-                response = "Not found"
-        else:
-            response = "Not found"
-    except users.QuestionTemplate.DoesNotExist as error:
-        response = { "kind" : "question#notfound" }
-    if response is not None:
-        pass # already decided the result
-    elif question.status == 'pending' or question.status == 'ready':
+    return HttpResponse(json.dumps(get_question_json(request, question_id)),
+                        mimetype='application/json')
+
+'''
+get_question_json is used by the API call get and list.
+This function handles all permissions and formats the JSON
+response with the appropriate fields.
+If the question does not exist, return a "question#notfound" package.
+If the question is "locked", return some fields.
+If the questions is "released", return everything.
+By default, send the HTML snippet in the 'html' attribute
+for embedding in a web page. 
+Options can be passed in, like { 'html' : 'thumbnail' } which
+requests only the small view to be embeded in list form.
+'''
+def get_question_json(request, question_id, options=None):
+    user = request.user
+    errors = []
+    def create_not_found_package():
+        return { "kind" : "question#notfound" }
+    def create_locked_package(question, options):
         response = { "kind" : "question#" + question.status,
                      "status" : question.status,
-                     "id" : question.id,
-		     "title" : template.title,
-                     "template" : template.id }
+                     "key" : question.id,
+		     "title" : question.template.title,
+                     "id" : question.template.id,
+                     "errors" : errors }
+        if options['html'] in ['thumbnail', 'full']:
+            response['html'] = render_to_response('question_thumbnail.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
+                                  'questionpublished' : str(question.time_released),
+                                  'numberhints' : 0 },
+                                context_instance=RequestContext(request)
+                              ).content
+        else:
+            pass
+        return response
+    def create_question_package(question, options):
+        response = { "kind" : "question#" + question.status,
+                     "status" : question.status,
+                     "key" : question.id,
+		     "title" : question.template.title,
+                     "id" : question.template.id,
+  		     "content" : question.decoded_text(),
+  		     #"scope" : scope,
+  		     "hints" : [], 
+  		     "url" : "http://%s/questions/%d" % (request.get_host(), question.template.id),
+  		     "published" : str(question.time_released),
+  		     "actor" : question.user.id,
+                     "errors" : errors }
+        if options['html'] == 'thumbnail':
+            response['html'] = render_to_response('question_thumbnail.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : question.decoded_text(),
+                                  'questionpublished' : str(question.time_released),
+                                  'numberhints' : 0 },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'full':
+            response['html'] = render_to_response('question_body.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : question.decoded_text(),
+                                  'questionpublished' : str(question.time_released),
+                                  'numberhints' : 0 },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'hide':
+            if 'html' in response:
+                del response['html']
+        else:  
+            if 'html' in response:
+                del response['html']
+        return response
+    # First try to find the question.
+    # If the question does not exist, return a does not exist package.
+    try:
+        template = users.QuestionTemplate.objects.get(id=question_id)
+        if template is not None:
+            question = users.Question.objects.filter(user=user, template=template)
+            if len(question) > 0:
+                if len(question) > 1:
+                    errors.append("Redundant questions found.")
+                question = question[0]
+            else:
+                return create_not_found_package()
+        else:
+            return create_not_found_package()
+    except users.QuestionTemplate.DoesNotExist as error:
+        return create_not_found_package()
+    except users.Question.DoesNotExist as error:
+        return create_not_found_package()
+    
+    # Figure out options
+    # html=full [default] or html=thumbnail or html=hide
+    html_options = ['full', 'thumbnail', 'hide']
+    if options is None:
+        options = {}
+    if 'html' in options \
+       and options['html'] in html_options:
+        pass
+    elif 'html' in request.GET \
+         and request.GET['html'] in html_options:
+        options['html'] = request.GET['html']
     else:
-      question_id = question.id
-      title = template.title
-      content = question.decoded_text()
-      scope = "Not yet implemented"
-      list_of_hints = ["Not yet implemented"]
-      published = str(question.time_released)
-      updated = "Not yet implemented"
-      actor = question.user.id
-      response = {"kind" : "question",
-  		"status" : question.status,
-  		"id" : question_id,
-  		"template" : template.id,
-  		"title" : title,
-  		"content" : content,
-  		"scope" : scope,
-  		"hints" : list_of_hints,
-  		"url" : "http://localhost:8080/questions/%d" % question_id,
-  		"attempts" : ["Not yet implemented"],
-  		"published" : published,
-  		"updated" : updated,
-  		"actor" : actor}
-    return HttpResponse(json.dumps(response), mimetype='application/json')
-
+        options['html'] = 'full'
+    # If pending or ready, return a locked package.
+    if question.status == 'pending' or question.status == 'ready':
+        return create_locked_package(question, options)
+    # This must be a released questions
+    elif question.status == 'released':
+        return create_question_package(question, options)
+    errors.append("Question status unknown")
+    return create_question_package(question, options)
 
 
 
