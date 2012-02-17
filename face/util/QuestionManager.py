@@ -45,6 +45,7 @@ class QuestionManager(object):
         correct = False
         msg = 'Sorry, try again.' # Default incorrect message.
         for ans in answers:
+            # TODO: This should use the solver script's validate() method instead of a simple text comparison.
             if ans.value.strip() == answer.strip():
                 msg = ans.message
                 if ans.correct:
