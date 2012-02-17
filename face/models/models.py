@@ -140,7 +140,6 @@ class QuestionFeedback(models.Model):
     category = models.CharField(max_length=10, choices=FEEDBACK_TYPES)
     # The actual feedback value as an integer.
     value = models.IntegerField()
->>>>>>> 138390a4207ae73e21ff6be313c1fb552517e76a
 
 # Add some stuff to the admin interface.
 admin.site.register(RegisLeague)
