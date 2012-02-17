@@ -7,7 +7,7 @@ questiontitle
 questionnumber (actually template.id)
 questioncontent
 questionpublished
-numberhints
+hintids
 
 {% endcomment %}
 <div class="qbox">

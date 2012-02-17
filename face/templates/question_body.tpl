@@ -7,7 +7,7 @@ questiontitle
 questionnumber (actually template.id)
 questioncontent
 questionpublished
-numberhints
+hintids
 
 {% endcomment %}
 {% if questionstatus == "released" %}
@@ -21,6 +21,7 @@ numberhints
   <p id="main_q">{{ questioncontent }}</p>
   <div id="answerbox" style="height: 40px;">
     <form accept-charset="utf-8" method="post" action="/question/check">
+      {% csrf_token %}
       <div style="display:none">
         <input type="hidden" value="f4d76ce04b9550de5aee68dc690efb5c" name="csrfmiddlewaretoken">
       </div>
@@ -35,12 +36,12 @@ numberhints
   <div id="hintzone" class="hintbox">
     <img src="/static/img/hint.png">
     <span id="hintdrop">
-      {% if numhints == 0 %}
+      {% if hintids|length == 0 %}
         No hints are currently available.
-      {% else %}{% if numhints == 1 %}
+      {% else %}{% if hintids|length == 1 %}
         1 hint is currently available for this question.
-      {% else %}{% if numhints > 1 %}
-        {{ numhints }} hints are currently available for this question.
+      {% else %}{% if hintids|length > 1 %}
+        {{ hintids|length }} hints are currently available for this question.
       {% endif %}{% endif %}{% endif %}
     </span>
     <div id="hintdisplay" style="display: none;"></div>
@@ -67,12 +68,12 @@ numberhints
   <div id="hintzone" class="hintbox">
     <img src="/static/img/hint.png">
     <span id="hintdrop">
-      {% if numhints == 0 %}
+      {% if hintids|length == 0 %}
         No hints are currently available.
-      {% else %}{% if numhints == 1 %}
+      {% else %}{% if hintids|length == 1 %}
         1 hint is currently available for this question.
-      {% else %}{% if numhints > 1 %}
-        {{ numhints }} hints are currently available for this question.
+      {% else %}{% if hintids|length > 1 %}
+        {{ hintids|length }} hints are currently available for this question.
       {% endif %}{% endif %}{% endif %}
     </span>
     <div id="hintdisplay" style="display: none;"></div>
@@ -101,12 +102,12 @@ numberhints
   <div id="hintzone" class="hintbox">
     <img src="/static/img/hint.png">
     <span id="hintdrop">
-      {% if numhints == 0 %}
+      {% if hintids|length == 0 %}
         No hints are currently available.
-      {% else %}{% if numhints == 1 %}
+      {% else %}{% if hintids|length == 1 %}
         1 hint is currently available for this question.
-      {% else %}{% if numhints > 1 %}
-        {{ numhints }} hints are currently available for this question.
+      {% else %}{% if hintids|length > 1 %}
+        {{ hintids|length }} hints are currently available for this question.
       {% endif %}{% endif %}{% endif %}
     </span>
     <div id="hintdisplay" style="display: none;"></div>

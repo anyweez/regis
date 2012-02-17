@@ -51,7 +51,6 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body">  
-      {% include 'include/question_stub.tpl' %}
     </div>  
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>
