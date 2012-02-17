@@ -24,7 +24,7 @@ class QuestionManager(object):
     def get_current_question(self, user):
         try:
             target_order = regis.Question.objects.filter(user=user, status='released').aggregate(Max('order'))
-            return regis.Question.objects.get(user=user, order=target_order['order__max'])
+            return regis.Question.objects.get(user=user, status='released', order=target_order['order__max'])
         except regis.Question.DoesNotExist:
             raise exception.NoQuestionReadyException(user)
     

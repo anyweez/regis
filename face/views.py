@@ -140,7 +140,6 @@ def dash(request):
     # If that doesn't work, try to activate a new question.  This should work
     # unless there are no questions left to activate.
     except exception.NoQuestionReadyException:
-        print 'activating next'
         try:
             question_m.activate_next(request.user)
             
@@ -245,7 +244,9 @@ def list_questions(request):
 def view_question(request, tid):
     try:
         template = users.QuestionTemplate.objects.get(id=tid)
-        question = users.Question.objects.filter(user=request.user, template=template)
+        question = users.Question.objects.exclude(status='retired').get(user=request.user, template=template)
+
+        print question.id
 
         return render_to_response('view_question.tpl', 
             { 'question' : question, 

@@ -13,7 +13,7 @@ class Command(BaseCommand):
             ancestors = regis.Question.objects.filter(
                     status='retired',
                     template=question.template,
-                    user=question.user).order_by('-time_computed')
+                    user=question.user).order_by('-id')
             return ancestors[0]
         except regis.Question.DoesNotExist:
             return None
@@ -41,6 +41,7 @@ class Command(BaseCommand):
                     q.order = ancestor.order
                     if ancestor.time_released is not None:
                         q.status = 'released'
+                        q.time_released = ancestor.time_released
                     else:
                         q.status = 'ready'
                     q.save()
@@ -58,7 +59,7 @@ class Command(BaseCommand):
         
         print 'Solved %d new problems.' % solved_count
         print 'Missing solvers for %d templates.' % len(list(set(missing_solvers)))
-      
+
     def get_question_list(self):
         all_q = regis.Question.objects.exclude(status='retired')
         keepers = []

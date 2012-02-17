@@ -12,7 +12,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         template = regis.QuestionTemplate.objects.get(id=args[0])
-        questions = regis.Question.objects.filter(template=template).exclude(status='solved')
+        questions = regis.Question.objects.filter(template=template).exclude(status='solved').exclude(status='retired')
         
         print 'Purging all unsolved instances of %s...' % template.title
         print '  %d target instances found.' % len(questions)
