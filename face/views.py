@@ -687,6 +687,8 @@ def questions_get_json(request, question_id, options=None):
 
 @login_required
 def api_hints_list(request, question_id):
+    def create_not_found_package():
+        return { "kind" : "hint#notfound" }
     try:
         hints = users.QuestionHint.objects.filter(template__id=question_id)
         items = []
@@ -708,6 +710,8 @@ def api_hints_get(request, hint_id):
                         mimetype='application/json')
 
 def hints_get_json(request, hint_id, hint=None, options=None):
+    def create_not_found_package():
+        return { "kind" : "hint#notfound" }
     if hint is None:
         try:
             hint = users.QuestionHint.objects.get(id=hint_id)

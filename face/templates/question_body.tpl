@@ -45,6 +45,10 @@ hintids
           {{ hintids|length }} hints are currently available for this question.
         {% endif %}{% endif %}{% endif %}
       </span>
+      {% for hint in hintids %}
+        <div id="hint{{hint}}" class="hintContent">
+        </div>
+      {% endfor %}
       <div id="hintdisplay" style="display: none;"></div>
     </div>
   {% else %}{% if questionstatus == "doesnotexist" %}

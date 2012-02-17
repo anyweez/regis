@@ -10,6 +10,14 @@ var questions = new function() {
        $.getJSON('/api/questions/list', callback);};
 }
 
+var hints = new function() {
+   this.get = function(hid, callback) {
+       $.getJSON('/api/hints/' + hid, callback);};
+   this.list = function(qid, callback) {
+       $.getJSON('/api/hints/list/' + qid, callback);
+   };
+}
+
 function view_question_handler(data) {
   $('#question_body').html(data.html);
 }
@@ -18,6 +26,23 @@ function list_questions_handler(data) {
   for (var i = 0; i < data.items.length; i++) {
     $('#question_body').append(data.items[i].html);
   }
+}
+
+function hints_list_handler(data) {
+  for (var i = 0; i < data.items.length; i++) {
+    var hint = data.items[i];
+    $('#hint' + hint.id).html('<a href="#">Hint ' + (i + 1) +'</a>');
+    $('#hint' + hint.id).click(hint_click_handler);
+  }
+}
+
+function hint_click_handler(event) {
+  event.preventDefault();
+  hints.get($(this).attr("id").slice(4), hint_get_handler);
+}
+
+function hint_get_handler(data) {
+  $('#hint' + data.id).html(data.content);
 }
 
 // Send CSRF tokens when we make AJAX requests

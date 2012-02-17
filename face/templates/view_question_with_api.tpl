@@ -10,14 +10,13 @@
   </script>
   <script type="text/javascript" src="/static/js/api.js">
   </script>
-  <script type="text/javascript" src="/static/js/questions.js">
-  </script>
  
   <script type="text/javascript">
     var question_id = {{ tid }};
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
        questions.get(question_id, view_question_handler);
+       hints.list(question_id, hints_list_handler);
     });
   </script>
   
