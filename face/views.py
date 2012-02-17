@@ -182,24 +182,29 @@ def check_q(request):
         answer = str(request.POST['answer'])
         
         # Check to make sure the current user is allowed to answer this question.
-        qset = users.Question.objects.filter(id=qid, user=request.user)
-        if len(qset) is 0:
+        try:
+            question = users.Question.objects.get(id=qid, user=request.user)
+        except users.Question.DoesNotExist:
             raise exception.UnauthorizedAttemptException(request.user, qid)
-        q = qset[0]
         
         question_m = qm.QuestionManager()
-        correct, msg = question_m.check_question(q, answer)
+        correct, msg = question_m.check_question(question, answer)
         
         msghub.register_message(msg, target=qid, status=correct)
         
         # Record the guess.
-        g = users.Guess(user=request.user, question=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
+        g = users.Guess(user=request.user, 
+                        question=question, 
+                        value=answer, 
+                        correct=correct, 
+                        time_guessed=datetime.datetime.now())
         g.save()
         
         # If correct, change the status of the question and select a next candidate.
-        if correct:
-            q.status = 'solved'
-            q.save()
+        # Make sure that the question hasn't been solved already!
+        if correct and question.status != 'solved':
+            question.status = 'solved'
+            question.save()
             
             question_m = qm.QuestionManager()
             # Activate the next question.
