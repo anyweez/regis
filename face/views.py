@@ -140,7 +140,6 @@ def dash(request):
     # If that doesn't work, try to activate a new question.  This should work
     # unless there are no questions left to activate.
     except exception.NoQuestionReadyException:
-        print 'activating next'
         try:
             question_m.activate_next(request.user)
             
@@ -182,24 +181,29 @@ def check_q(request):
         answer = str(request.POST['answer'])
         
         # Check to make sure the current user is allowed to answer this question.
-        qset = users.Question.objects.filter(id=qid, user=request.user)
-        if len(qset) is 0:
+        try:
+            question = users.Question.objects.get(id=qid, user=request.user)
+        except users.Question.DoesNotExist:
             raise exception.UnauthorizedAttemptException(request.user, qid)
-        q = qset[0]
         
         question_m = qm.QuestionManager()
-        correct, msg = question_m.check_question(q, answer)
+        correct, msg = question_m.check_question(question, answer)
         
         msghub.register_message(msg, target=qid, status=correct)
         
         # Record the guess.
-        g = users.Guess(user=request.user, question=q, value=answer, correct=correct, time_guessed=datetime.datetime.now())
+        g = users.Guess(user=request.user, 
+                        question=question, 
+                        value=answer, 
+                        correct=correct, 
+                        time_guessed=datetime.datetime.now())
         g.save()
         
         # If correct, change the status of the question and select a next candidate.
-        if correct:
-            q.status = 'solved'
-            q.save()
+        # Make sure that the question hasn't been solved already!
+        if correct and question.status != 'solved':
+            question.status = 'solved'
+            question.save()
             try:
                 question_m = qm.QuestionManager()
                 # Activate the next question.
@@ -218,13 +222,13 @@ def check_q(request):
 @login_required
 def list_questions(request):
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
-    all_questions = qs.questions.all().order_by('template')
+    all_questions = qs.questions.exclude(status='retired').order_by('template')
     
     # Compute statistics for # solved vs. # available on the fly.  We
     # may want to batch this later if performance becomes an issue.  It
     # won't scale particularly well as the user load increases.
     for question in all_questions:
-        available = users.Question.objects.filter(template=question.template)
+        available = users.Question.objects.filter(template=question.template).exclude(status='retired')
         question.num_available = sum([1 for q in available if q.status in ('released', 'solved')])
         question.num_solved = sum([1 for q in available if q.status == 'solved'])
         if question.num_available > 0:
@@ -240,25 +244,22 @@ def list_questions(request):
 
 @login_required
 def view_question(request, tid):
-    template = users.QuestionTemplate.objects.get(id=tid)
-    
-    if template is not None:
-        question = users.Question.objects.filter(user=request.user, template=template)
-    
-        # If there is a question that matches their request, display it.
-        if len(question) > 0:
-            question = question[0]
-            return render_to_response('view_question.tpl', 
-                { 'question' : question, 
-                  'stats' : UserStats.UserStats(request.user),
-                  'user': request.user },
-                context_instance=RequestContext(request))
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
+        question = users.Question.objects.exclude(status='retired').get(user=request.user, template=template)
+
+        print question.id
+
+        return render_to_response('view_question.tpl', 
+            { 'question' : question, 
+              'stats' : UserStats.UserStats(request.user),
+              'user': request.user },
+              context_instance=RequestContext(request))
+    except users.QuestionTemplate.DoesNotExist:
+        # TODO: Need to return some error responses here.
+        pass
+    except users.Question.DoesNotExist:
         # There is no question matching the requested data.
-        else:
-            # TODO: Need to return some error responses here.
-            pass
-    else:
-        # TODO: Error response needed here as well.
         pass
 
 @login_required
@@ -295,15 +296,14 @@ def question_status(request, gid):
 
 @login_required
 def get_question_file(request, tid):
-    templates = users.QuestionTemplate.objects.filter(id=tid)
+    try:
+        template = users.QuestionTemplate.objects.get(id=tid)
     
-    data = None
-    field = []
-    
-    if len(templates) > 0:
-        questions = users.Question.objects.filter(user=request.user, templates=templates[0])
-        
-        if len(questions) > 0:
+        data = None
+        field = []
+
+        try:
+            questions = users.Question.objects.filter(user=request.user, templates=template).exclude(status='retired')
             data = json.loads(questions[0].variables)
             for actual, visible in data.values():
                 try:
@@ -311,6 +311,10 @@ def get_question_file(request, tid):
                         field = actual
                 except TypeError:
                     continue
+        except users.Question.DoesNotExist:
+            pass
+    except users.QuestionTemplate.DoesNotExist:
+        pass
     
     return render_to_response('show_file.tpl', { 'data' : field }, mimetype='text/plain')
 
@@ -378,7 +382,7 @@ def submit_hint(request, tid):
     template = users.QuestionTemplate.objects.get(id=tid)
     # Save the hint!
     try:
-        user_q = users.Question.objects.get(template=template, user=request.user)
+        user_q = users.Question.objects.get(template=template, user=request.user).exclude(status='retired')
         prev_hints = users.QuestionHint.objects.filter(template=template, src=request.user)
 
         # Check that the problem has been solved and that the user hasn't provided

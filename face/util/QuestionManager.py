@@ -24,7 +24,7 @@ class QuestionManager(object):
     def get_current_question(self, user):
         try:
             target_order = regis.Question.objects.filter(user=user, status='released').aggregate(Max('order'))
-            return regis.Question.objects.get(user=user, order=target_order['order__max'])
+            return regis.Question.objects.get(user=user, status='released', order=target_order['order__max'])
         except regis.Question.DoesNotExist:
             raise exception.NoQuestionReadyException(user)
     
@@ -45,6 +45,7 @@ class QuestionManager(object):
         correct = False
         msg = 'Sorry, try again.' # Default incorrect message.
         for ans in answers:
+            # TODO: This should use the solver script's validate() method instead of a simple text comparison.
             if ans.value.strip() == answer.strip():
                 msg = ans.message
                 if ans.correct:

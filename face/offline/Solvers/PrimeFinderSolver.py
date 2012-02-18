@@ -2,7 +2,7 @@ import offline.Solvers.Solver as Solver
 
 class PrimeFinderSolver(Solver.BaseSolver):
 	def correct(self, st, params):
-		maxcap = int(st.prepare_params(params)['ht']) * 10000
+		maxcap = int(st.prepare_params(params)['ht']) * 1000
 
 		primes = self.sieve(maxcap)
 		avg = int(round(sum(primes) / len(primes)))
