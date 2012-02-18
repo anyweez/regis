@@ -522,7 +522,7 @@ def api_questions_list(request):
     options = { 'html' : 'thumbnail' }
     for question in all_questions:
         if question.status in ['released', 'ready', 'solved']:
-            items.append(questions_get_json(request, question.template.id, options=options))
+            items.append(questions_get_json(request, question.template.id, question=question, options=options))
     response = { "kind" : "questionFeed",
 		"items" : items }
     return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -544,7 +544,7 @@ for embedding in a web page.
 Options can be passed in, like { 'html' : 'thumbnail' } which
 requests only the small view to be embeded in list form.
 '''
-def questions_get_json(request, question_id, options=None):
+def questions_get_json(request, question_id, question=None, options=None):
     user = request.user
     errors = []
     hintids = []
@@ -657,24 +657,25 @@ def questions_get_json(request, question_id, options=None):
         options['html'] = request.GET['html']
     else:
         options['html'] = 'full'
-    # First try to find the question.
-    # If the question does not exist, return a does not exist package.
-    try:
-        template = users.QuestionTemplate.objects.get(id=question_id)
-        if template is not None:
-            question = users.Question.objects.filter(user=user, template=template)
-            if len(question) > 0:
-                if len(question) > 1:
-                    errors.append("Redundant questions found.")
-                question = question[0]
+    if question is None:
+        # First try to find the question.
+        # If the question does not exist, return a does not exist package.
+        try:
+            template = users.QuestionTemplate.objects.get(id=question_id)
+            if template is not None:
+                question = users.Question.objects.filter(user=user, template=template)
+                if len(question) > 0:
+                    if len(question) > 1:
+                        errors.append("Redundant questions found.")
+                    question = question[0]
+                else:
+                    return create_not_found_package()
             else:
                 return create_not_found_package()
-        else:
+        except users.QuestionTemplate.DoesNotExist as error:
             return create_not_found_package()
-    except users.QuestionTemplate.DoesNotExist as error:
-        return create_not_found_package()
-    except users.Question.DoesNotExist as error:
-        return create_not_found_package()
+        except users.Question.DoesNotExist as error:
+            return create_not_found_package()
     # Get all hints
     try:
         hints = users.QuestionHint.objects.filter(template=question.template.id)
@@ -711,13 +712,42 @@ def api_hints_list(request, question_id):
                             mimetype='application/json')
 
 @login_required
-def api_hints_vote(request, hint_id, approve):
-    hint_id = request.POST['hint_id']
-    approve = request.POST['approve']
-    return HttpResponse(json.dumps({ "kind" : "hintvotesample", 
-                        "id" : hint_id,
-                        "approve":  approve}),
-                        mimetype='application/json')
+def api_hints_vote(request, hint_id):
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+                            mimetype='application/json')
+    hint_id = int(request.POST['id'])
+    rating = request.POST['rating']
+    if rating == 'yes':
+        rating = True
+    elif rating == 'no':
+        rating = False
+    else:
+        return HttpResponse(json.dumps({ "kind" : "Bad hint vote", 
+                                   }),
+                            mimetype='application/json')
+ 
+    hint = users.QuestionHint.objects.get(id=hint_id)
+    if hint is None:
+        return HttpResponse(json.dumps({ "kind" : "hint#notfound", 
+                                   }),
+                            mimetype='application/json')
+    
+
+    # Check to make sure that the user hasn't voted 
+    prev_ratings = users.QuestionHintRating.objects.filter(hint=hint, src=request.user)
+    if len(prev_ratings) > 0:
+        approval = prev_ratings[0].rating
+        response = { "kind" : "message" }
+        if approval:
+            response['message'] = "You've already upvoted this hint."
+        else:
+            response['message'] = "You've already downvoted this hint."
+    else:
+        users.QuestionHintRating(hint=hint, src=request.user, rating=rating).save()
+        response = hints_get_json(request, hint_id, hint=hint)
+    
+    return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @login_required
 def api_hints_get(request, hint_id):
@@ -734,16 +764,17 @@ def hints_get_json(request, hint_id, hint=None, options=None):
                 return create_not_found_package()
         except users.QuestionHint.DoesNotExist as error:
             return create_not_found_package() 
+    # Get rating
+    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
+    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
+    votetotal = len(hintsup) - len(hintsdown)
     response = { "kind" : "hint",
                  "id" : hint.id,
                  "content" : hint.text,
                  "question" : hint.template.id,
+                 "rating" : votetotal,
                  "actor" : hint.src.id } 
     # Add HTML
-#    response['html'] = '<b>%s</b>' % hint.text
-    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
-    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
-    votetotal = len(hintsup) - len(hintsdown)
     response['html'] = render_to_response('hint_vote_body.tpl',
                       { 'hintid' : hint.id,
                         'hintcontent' : hint.text,

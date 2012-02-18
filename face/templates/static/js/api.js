@@ -16,7 +16,11 @@ var hints = new function() {
    this.list = function(qid, callback) {
        $.getJSON('/api/hints/list/' + qid, callback);};
    this.vote = function(hid, approve, callback) {
-       $.getJSON('/api/hints/vote/' + hid + '/' + approve);};
+       $.post('/api/hints/' + hid + '/vote',
+              { 'id' : hid,
+                'rating' : approve },
+              callback,
+              'json');};
 }
 
 function view_question_handler(data) {
@@ -47,13 +51,18 @@ function hint_get_handler(data) {
 }
 
 function hint_vote_up(hint_id) {
-   hints.vote(hint_id, 'yes', function(data) { alert('yes'); } );
+   hints.vote(hint_id, 'yes', alert_messages );
 }
 
 function hint_vote_down(hint_id) {
-   hints.vote(hint_id, 'no', function(data) { alert('now'); } );
+   hints.vote(hint_id, 'no', alert_messages);
 }
 
+function alert_messages(data) {
+   if (data.kind == 'message') {
+      alert(data.message);
+   }
+}
 
 
 // Send CSRF tokens when we make AJAX requests
@@ -94,67 +103,4 @@ $(document).ajaxSend(function(event, xhr, settings) {
     }
 });
 
-//////////////////////
-/// Hint functions ///
-//////////////////////
 
-function get_hints(qid) {
-   $.getJSON('/ajax/hints/basic/' + qid,
-     function(data) {
-       // Update the hint status to state whether hints are available.
-       if (data.length > 0) {
-         if (data.length == 1) {
-            $('#hintdrop').html('<a onclick="load_hint();" href="#">Want a hint</a>?  There is 1 available.');  
-         }
-         else {
-            $('#hintdrop').html('<a onclick="load_hint();" href="#">Want a hint</a>?  There are ' + data.length + ' available.');
-         }
-         // Add the hint codes to the array.
-         $('#hintdisplay').append('<ul>');
-         for (i = 0; i < data.length; i++) {
-           $('#hintdisplay').append('<li id="' + data[i] + '"></li>');
-         }
-         $('#hintdisplay').append('</ul>');
-       }
-       else {
-         $('#hintdrop').html('No hints are currently available for this question.');
-       }       
-     }
-   );
-}
-
-function load_hint() {
-   $('#hintdisplay').css('display', 'block');
-   elig_hints = $('#hintdisplay').children('li');
-   for (i = 0; i < elig_hints.length; i++) {
-      if ($(elig_hints[i]).html().length == 0) {
-         $.getJSON('/ajax/hints/get/' + question_id + '/' + $(elig_hints[i]).attr('id'),
-            function(data) {
-               var hint_html = "<div class='votepane'><div class='hintvoter'><a onclick=\"hint_vote('" + data.hint_id + "', true)\">";
-               hint_html += "<img title='Upvote this hint' src='/static/img/approve.png' /></a><a onclick='hint_vote(\"" + data.hint_id + "\", false)'>";
-               hint_html += '<img title="Downvote this hint" src="/static/img/disapprove.png" /></a></div>';
-               hint_html += '<div class="hintscore" id="score_' + data.hint_id + '">' + (data.upvotes - data.downvotes) + '</div></div>';
-               hint_html += '<div style="vertical-align: top; display: inline-block; margin-top: 2px; width: 90%;">';
-               hint_html += data.hint_body + '</div>';
-               $(elig_hints[i]).html(hint_html);
-            }
-         );
-         // We've fetched a hint so our work here is done.
-         return;
-     }
-   }
-   alert('Sorry, no more hints are available for this question.');
-}
-
-function hint_vote(hint_id, approve_flag) {
-   url = approve_flag ? '/ajax/hints/vote/yes/' : '/ajax/hints/vote/no/';
-
-   $.post(url + hint_id, { 'hinthash' : hint_id }, function(data) {
-      if (data.msg == 'success') {
-         $('#score_' + hint_id).html(data.upvotes - data.downvotes);
-      }
-      else {
-         alert(data.msg);
-      }
-   });
-}
