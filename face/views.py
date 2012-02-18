@@ -200,11 +200,13 @@ def check_q(request):
         if correct:
             q.status = 'solved'
             q.save()
-            
-            question_m = qm.QuestionManager()
-            # Activate the next question.
-            question_m.activate_next(request.user)
-
+            try:
+                question_m = qm.QuestionManager()
+                # Activate the next question.
+                question_m.activate_next(request.user)
+            except exception.NoQuestionReadyException:
+                # TODO cartland: Should we record this?
+                pass
         return redirect('/question/status/%d' % g.id)
         
     # Either the qid, the answer, or one of the redirects wasn't set.
@@ -381,7 +383,7 @@ def submit_hint(request, tid):
 
         # Check that the problem has been solved and that the user hasn't provided
         # any hints for this question already.
-        if user_q.status == 'solved' and len(prev_hints) is 0:
+        if user_q.status == 'solved':# and len(prev_hints) is 0:
             users.QuestionHint(template=template, src=request.user, text=request.POST['hinttext']).save()
             msghub.register_message('Thanks for providing a hint!', template, True)
         # Error: the user has already provided a hint.
@@ -705,6 +707,15 @@ def api_hints_list(request, question_id):
                             mimetype='application/json')
 
 @login_required
+def api_hints_vote(request, hint_id, approve):
+    hint_id = request.POST['hint_id']
+    approve = request.POST['approve']
+    return HttpResponse(json.dumps({ "kind" : "hintvotesample", 
+                        "id" : hint_id,
+                        "approve":  approve}),
+                        mimetype='application/json')
+
+@login_required
 def api_hints_get(request, hint_id):
     return HttpResponse(json.dumps(hints_get_json(request, hint_id)),
                         mimetype='application/json')
@@ -724,6 +735,18 @@ def hints_get_json(request, hint_id, hint=None, options=None):
                  "content" : hint.text,
                  "question" : hint.template.id,
                  "actor" : hint.src.id } 
+    # Add HTML
+#    response['html'] = '<b>%s</b>' % hint.text
+    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
+    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
+    votetotal = len(hintsup) - len(hintsdown)
+    response['html'] = render_to_response('hint_vote_body.tpl',
+                      { 'hintid' : hint.id,
+                        'hintcontent' : hint.text,
+                        'votetotal' : votetotal },
+                      context_instance=RequestContext(request)
+                      ).content
+    # Handle masking of certain fields based on the fields parameter
     parameters = ['fields']
     if options is None:
         options = {}

@@ -42,6 +42,7 @@ urlpatterns = patterns('',
     ('^api/questions/list$', views.api_questions_list),
     ('^api/questions/([0-9]+$)', views.api_questions_get),
     ('^api/hints/list/([0-9]+$)', views.api_hints_list),
+    ('^api/hints/([0-9]+)/vote/(yes|no)$', views.api_hints_vote),
     ('^api/hints/([0-9]+$)', views.api_hints_get),
     url(r'', include('social_auth.urls')),
 )

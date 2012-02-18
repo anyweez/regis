@@ -14,8 +14,9 @@ var hints = new function() {
    this.get = function(hid, callback) {
        $.getJSON('/api/hints/' + hid, callback);};
    this.list = function(qid, callback) {
-       $.getJSON('/api/hints/list/' + qid, callback);
-   };
+       $.getJSON('/api/hints/list/' + qid, callback);};
+   this.vote = function(hid, approve, callback) {
+       $.getJSON('/api/hints/vote/' + hid + '/' + approve);};
 }
 
 function view_question_handler(data) {
@@ -42,8 +43,18 @@ function hint_click_handler(event) {
 }
 
 function hint_get_handler(data) {
-  $('#hint' + data.id).html(data.content);
+  $('#hint' + data.id).html(data.html);
 }
+
+function hint_vote_up(hint_id) {
+   hints.vote(hint_id, 'yes', function(data) { alert('yes'); } );
+}
+
+function hint_vote_down(hint_id) {
+   hints.vote(hint_id, 'no', function(data) { alert('now'); } );
+}
+
+
 
 // Send CSRF tokens when we make AJAX requests
 $(document).ajaxSend(function(event, xhr, settings) {

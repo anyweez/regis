@@ -6,9 +6,9 @@
   
   {% include 'include/common_header.tpl' %}
   
-  <script type="text/javascript" src="/static/js/hints.js">
-  </script>
   <script type="text/javascript" src="/static/js/api.js">
+  </script>
+  <script type="text/javascript" src="/static/js/hints.js">
   </script>
  
   <script type="text/javascript">
