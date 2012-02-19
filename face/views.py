@@ -3,6 +3,7 @@ from django.template import RequestContext
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.utils.html import strip_tags
 
 import math, datetime
 import models.models as users
@@ -232,9 +233,12 @@ def list_questions(request):
         question.num_available = sum([1 for q in available if q.status in ('released', 'solved')])
         question.num_solved = sum([1 for q in available if q.status == 'solved'])
         if question.num_available > 0:
-            question.solved_percent = (question.num_solved * 1.0 / question.num_available) * 100
+            question.solved_percent = round((question.num_solved * 1.0 / question.num_available) * 100, 1)
         else:
             question.solved_percent = 0.0
+    
+        # Temporary modification -- doesn't affect what's stored in the database.
+        question.text = strip_tags(question.text)
     
     return render_to_response('list_questions.tpl', 
         { 'questions' : all_questions,
