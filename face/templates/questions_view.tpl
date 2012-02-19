@@ -15,9 +15,39 @@
     var question_id = {{ tid }};
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
-       questions.get(question_id, view_question_handler);
+       questions.get(question_id, questions_get_handler);
        hints.list(question_id, hints_list_handler);
     });
+
+    function questions_get_handler(data) {
+      $('#question_body').html(data.html);
+    }
+    
+    function hints_list_handler(data) {
+      for (var i = 0; i < data.items.length; i++) {
+        var hint = data.items[i];
+        $('#hint' + hint.id).html('<a href="#">Hint ' + (i + 1) +'</a>');
+        $('#hint' + hint.id).click(hint_click_handler);
+      }
+    }
+
+    function hint_click_handler(event) {
+      event.preventDefault();
+      hints.get($(this).attr("id").slice(4), hint_get_handler);
+    }
+    
+    function hint_get_handler(data) {
+      $('#hint' + data.id).html(data.html);
+    }
+    
+    function hint_vote_up(hint_id) {
+       hints.vote(hint_id, 'yes', alert_messages );
+    }
+    
+    function hint_vote_down(hint_id) {
+       hints.vote(hint_id, 'no', alert_messages);
+    }
+
   </script>
   
   <style type="text/css">

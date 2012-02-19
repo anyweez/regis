@@ -10,13 +10,16 @@
   </script>
   <script type="text/javascript" src="/static/js/api.js">
   </script>
-  <script type="text/javascript" src="/static/js/questions.js">
-  </script>
 
   <script type="text/javascript">
     $(document).ready(function() {
        questions.list(list_questions_handler);
     });
+    function list_questions_handler(data) {
+      for (var i = 0; i < data.items.length; i++) {
+        $('#question_body').append(data.items[i].html);
+      }
+    }
   </script>
   <title>Regis: Available Questions</title>
   
