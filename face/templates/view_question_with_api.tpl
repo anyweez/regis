@@ -6,11 +6,9 @@
   
   {% include 'include/common_header.tpl' %}
   
-  <script type="text/javascript" src="/static/js/hints.js">
-  </script>
   <script type="text/javascript" src="/static/js/api.js">
   </script>
-  <script type="text/javascript" src="/static/js/questions.js">
+  <script type="text/javascript" src="/static/js/hints.js">
   </script>
  
   <script type="text/javascript">
@@ -18,6 +16,7 @@
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
        questions.get(question_id, view_question_handler);
+       hints.list(question_id, hints_list_handler);
     });
   </script>
   
@@ -51,7 +50,6 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body">  
-      {% include 'include/question_stub.tpl' %}
     </div>  
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>

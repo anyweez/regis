@@ -204,11 +204,13 @@ def check_q(request):
         if correct and question.status != 'solved':
             question.status = 'solved'
             question.save()
-            
-            question_m = qm.QuestionManager()
-            # Activate the next question.
-            question_m.activate_next(request.user)
-
+            try:
+                question_m = qm.QuestionManager()
+                # Activate the next question.
+                question_m.activate_next(request.user)
+            except exception.NoQuestionReadyException:
+                # TODO cartland: Should we record this?
+                pass
         return redirect('/question/status/%d' % g.id)
         
     # Either the qid, the answer, or one of the redirects wasn't set.
@@ -385,7 +387,7 @@ def submit_hint(request, tid):
 
         # Check that the problem has been solved and that the user hasn't provided
         # any hints for this question already.
-        if user_q.status == 'solved' and len(prev_hints) is 0:
+        if user_q.status == 'solved':# and len(prev_hints) is 0:
             users.QuestionHint(template=template, src=request.user, text=request.POST['hinttext']).save()
             msghub.register_message('Thanks for providing a hint!', template, True)
         # Error: the user has already provided a hint.
@@ -514,82 +516,252 @@ def view_question_with_api(request, tid):
 
 @login_required
 def api_questions_list(request):
-    def json_question(question):
-        rep = { "kind" : "question",
-        	"status" : question.status,
-        	"id" : question.id,
-        	"template" : question.template.id,
-        	"title" : question.template.title,
-        	"content" : "Not yet available",
-        	"scope" : "Not yet implemented",
-        	"hints" : "Not yet implemented",
-        	"url" : "http://localhost:8080/questions/%d" % question.template.id,
-        	"attempts" : "Not yet implemented",
-        	"published" : str(question.time_released),
-        	"updated" : "Not yet implemented",
-        	"actor" : question.user.id }
-        if 'released' == question.status:
-            rep['content'] = question.decoded_text()
-        return rep
-	
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
     all_questions = qs.questions.all().order_by('template')
     items = []
+    options = { 'html' : 'thumbnail' }
     for question in all_questions:
-        items.append(json_question(question))
+        if question.status in ['released', 'ready', 'solved']:
+            items.append(questions_get_json(request, question.template.id, options=options))
     response = { "kind" : "questionFeed",
 		"items" : items }
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @login_required
 def api_questions_get(request, question_id):
-    response = None
-    tid = question_id # hack! TODO: Clean up variable names so that question ids match questions, and template ids match templates
+    return HttpResponse(json.dumps(questions_get_json(request, question_id)),
+                        mimetype='application/json')
+
+'''
+questions_get_json is used by the API call get and list.
+This function handles all permissions and formats the JSON
+response with the appropriate fields.
+If the question does not exist, return a "question#notfound" package.
+If the question is "locked", return some fields.
+If the questions is "released", return everything.
+By default, send the HTML snippet in the 'html' attribute
+for embedding in a web page. 
+Options can be passed in, like { 'html' : 'thumbnail' } which
+requests only the small view to be embeded in list form.
+'''
+def questions_get_json(request, question_id, options=None):
+    user = request.user
+    errors = []
+    hintids = []
+    def create_not_found_package():
+        response = { "kind" : "question#notfound" }
+        if options['html'] == 'full':
+            response['html'] = render_to_response('question_body.tpl',
+                                { 'questionstatus' : "doesnotexist",
+                                  'questiontitle' : "Question not found",
+                                  'questionnumber' : question_id,
+                                  'questioncontent' : "This question does not exist. Contact us if you think this is a mistake.",
+                                  'questionpublished' : "",
+                                  'hintsids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'thumbnail':
+            response['html'] = render_to_response('question_thumbnail.tpl',
+                                { 'questionstatus' : "doesnotexist",
+                                  'questiontitle' : "Question not found",
+                                  'questionnumber' : question_id,
+                                  'questioncontent' : "This question does not exist. Contact us if you think this is a mistake.",
+                                  'questionpublished' : "",
+                                  'hintids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        else:
+            pass
+        return response
+            
+    def create_locked_package(question, options):
+        response = { "kind" : "question",
+                     "status" : question.status,
+                     "key" : question.id,
+		     "title" : question.template.title,
+                     "id" : question.template.id,
+                     "errors" : errors }
+        if options['html'] == 'full':
+            response['html'] = render_to_response('question_body.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
+                                  'questionpublished' : str(question.time_released),
+                                  'hintids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'thumbnail':
+            response['html'] = render_to_response('question_thumbnail.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
+                                  'questionpublished' : str(question.time_released),
+                                  'hintids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        else:
+            pass
+        return response
+    def create_question_package(question, options):
+        response = { "kind" : "question",
+                     "status" : question.status,
+                     "key" : question.id,
+		     "title" : question.template.title,
+                     "id" : question.template.id,
+  		     "content" : question.decoded_text(),
+  		     #"scope" : scope,
+  		     "hints" : hintids, 
+  		     "url" : "http://%s/questions/%d" % (request.get_host(), question.template.id),
+  		     "published" : str(question.time_released),
+  		     "actor" : question.user.id,
+                     "errors" : errors }
+        if options['html'] == 'thumbnail':
+            response['html'] = render_to_response('question_thumbnail.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : question.decoded_text(),
+                                  'questionpublished' : str(question.time_released),
+                                  'hintids' : hintids },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'full':
+            response['html'] = render_to_response('question_body.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : question.decoded_text(),
+                                  'questionpublished' : str(question.time_released),
+                                  'hintids' : hintids },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'hide':
+            if 'html' in response:
+                del response['html']
+        else:  
+            if 'html' in response:
+                del response['html']
+        return response
+    # Figure out options
+    # html=full [default] or html=thumbnail or html=hide
+    html_options = ['full', 'thumbnail', 'hide']
+    if options is None:
+        options = {}
+    if 'html' in options \
+       and options['html'] in html_options:
+        pass
+    elif 'html' in request.GET \
+         and request.GET['html'] in html_options:
+        options['html'] = request.GET['html']
+    else:
+        options['html'] = 'full'
+    # First try to find the question.
+    # If the question does not exist, return a does not exist package.
     try:
-        template = users.QuestionTemplate.objects.get(id=tid)
+        template = users.QuestionTemplate.objects.get(id=question_id)
         if template is not None:
-            question = users.Question.objects.filter(user=request.user, template=template)
+            question = users.Question.objects.filter(user=user, template=template)
             if len(question) > 0:
+                if len(question) > 1:
+                    errors.append("Redundant questions found.")
                 question = question[0]
             else:
-                response = "Not found"
+                return create_not_found_package()
         else:
-            response = "Not found"
+            return create_not_found_package()
     except users.QuestionTemplate.DoesNotExist as error:
-        response = { "kind" : "question#notfound" }
-    if response is not None:
-        pass # already decided the result
-    elif question.status == 'pending' or question.status == 'ready':
-        response = { "kind" : "question#" + question.status,
-                     "status" : question.status,
-                     "id" : question.id,
-		     "title" : template.title,
-                     "template" : template.id }
-    else:
-      question_id = question.id
-      title = template.title
-      content = question.decoded_text()
-      scope = "Not yet implemented"
-      list_of_hints = ["Not yet implemented"]
-      published = str(question.time_released)
-      updated = "Not yet implemented"
-      actor = question.user.id
-      response = {"kind" : "question",
-  		"status" : question.status,
-  		"id" : question_id,
-  		"template" : template.id,
-  		"title" : title,
-  		"content" : content,
-  		"scope" : scope,
-  		"hints" : list_of_hints,
-  		"url" : "http://localhost:8080/questions/%d" % question_id,
-  		"attempts" : ["Not yet implemented"],
-  		"published" : published,
-  		"updated" : updated,
-  		"actor" : actor}
-    return HttpResponse(json.dumps(response), mimetype='application/json')
+        return create_not_found_package()
+    except users.Question.DoesNotExist as error:
+        return create_not_found_package()
+    # Get all hints
+    try:
+        hints = users.QuestionHint.objects.filter(template=question.template.id)
+        if hints is not None:
+            hintids = [h.id for h in hints]
+    except users.QuestionHint.DoesNotExist as error:
+        errors.append("Error when looking for hints")
+    # If pending or ready, return a locked package.
+    if question.status in ['pending', 'ready']:
+        return create_locked_package(question, options)
+    # This must be a released questions
+    elif question.status in ['released', 'solved']:
+        return create_question_package(question, options)
+    errors.append("Question status unknown")
+    return create_question_package(question, options)
 
+@login_required
+def api_hints_list(request, question_id):
+    def create_not_found_package():
+        return { "kind" : "hint#notfound" }
+    try:
+        hints = users.QuestionHint.objects.filter(template__id=question_id)
+        items = []
+        options = { "fields" : "kind,id" }
+        for hint in hints:
+            items.append(hints_get_json(request, hint.id, hint=hint, options=options))
+        response = { "kind" : "hintFeed",
+                     "question" : question_id,
+                     "items" : items }
+        return HttpResponse(json.dumps(response),
+                            mimetype='application/json')
+    except users.QuestionHint.DoesNotExist as error:
+        return HttpResponse(json.dumps(create_not_found_package()),
+                            mimetype='application/json')
 
+@login_required
+def api_hints_vote(request, hint_id, approve):
+    hint_id = request.POST['hint_id']
+    approve = request.POST['approve']
+    return HttpResponse(json.dumps({ "kind" : "hintvotesample", 
+                        "id" : hint_id,
+                        "approve":  approve}),
+                        mimetype='application/json')
 
+@login_required
+def api_hints_get(request, hint_id):
+    return HttpResponse(json.dumps(hints_get_json(request, hint_id)),
+                        mimetype='application/json')
+
+def hints_get_json(request, hint_id, hint=None, options=None):
+    def create_not_found_package():
+        return { "kind" : "hint#notfound" }
+    if hint is None:
+        try:
+            hint = users.QuestionHint.objects.get(id=hint_id)
+            if hint is None:
+                return create_not_found_package()
+        except users.QuestionHint.DoesNotExist as error:
+            return create_not_found_package() 
+    response = { "kind" : "hint",
+                 "id" : hint.id,
+                 "content" : hint.text,
+                 "question" : hint.template.id,
+                 "actor" : hint.src.id } 
+    # Add HTML
+#    response['html'] = '<b>%s</b>' % hint.text
+    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
+    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
+    votetotal = len(hintsup) - len(hintsdown)
+    response['html'] = render_to_response('hint_vote_body.tpl',
+                      { 'hintid' : hint.id,
+                        'hintcontent' : hint.text,
+                        'votetotal' : votetotal },
+                      context_instance=RequestContext(request)
+                      ).content
+    # Handle masking of certain fields based on the fields parameter
+    parameters = ['fields']
+    if options is None:
+        options = {}
+    for p in parameters:
+        if p in request.GET and p not in options:
+            options[p] = request.GET[p]
+    if 'fields' in options:
+        fields = options['fields'].split(',')
+        for k in response.keys():
+            if k not in fields:
+                del response[k]
+    return response
 
 
