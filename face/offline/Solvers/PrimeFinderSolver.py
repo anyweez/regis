@@ -5,7 +5,7 @@ class PrimeFinderSolver(Solver.BaseSolver):
 		maxcap = int(st.prepare_params(params)['ht']) * 1000
 
 		primes = self.sieve(maxcap)
-		avg = int(round(sum(primes) / len(primes)))
+		avg = int(round(sum(primes) * 1.0 / len(primes)))
 
 		return [(avg, None),]
 	
