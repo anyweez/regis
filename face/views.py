@@ -386,7 +386,7 @@ def submit_hint(request, tid):
     template = users.QuestionTemplate.objects.get(id=tid)
     # Save the hint!
     try:
-        user_q = users.Question.objects.get(template=template, user=request.user).exclude(status='retired')
+        user_q = users.Question.objects.exclude(status='retired').get(template=template, user=request.user)
         prev_hints = users.QuestionHint.objects.filter(template=template, src=request.user)
 
         # Check that the problem has been solved and that the user hasn't provided
