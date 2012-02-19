@@ -499,6 +499,9 @@ def submit_suggestion(request):
         
     return redirect('/dash')
 
+def questions_unknown(request):
+    return redirect('/questions/list')
+
 def list_questions_with_api(request):
     return render_to_response('list_questions_with_api.tpl', 
           { 'stats' : UserStats.UserStats(request.user),
