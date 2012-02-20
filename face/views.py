@@ -805,12 +805,12 @@ def system_tests_run(request):
     if not is_system_authorized():
         return HttpResponse(json.dumps({'kind' : 'unauthorized'}), mimetype='application/json')
     tests = [
-        ['enumerate_get',
+        ['questions_get', 'generic_api_test', 
          {
          'api_method' : 'questions.get',
          'num_args' : '1',
          'args_list' : [1],
-         'no_more_fields' : 'false',
+         'no_more_fields' : 'true',
          'expected_response' : json.dumps({
              'kind' : 'question',
              'key' : 181,
@@ -823,18 +823,35 @@ def system_tests_run(request):
              'content' : None,
              'html' : None,
              'published' : None,
+             'status' : None,
            })
          }],
-        ['finish_list',
+        ['questions_list', 'generic_api_test',
          {
          'api_method' : 'questions.list',
          'num_args' : '0',
          'args_list' : [],
-         'no_more_fields' : 'false',
+         'no_more_fields' : 'true',
          'expected_response' : json.dumps({
              'kind' : 'questionFeed',
              'items' : None,
            })
+         }],
+        ['test_hints_get', 'generic_api_test',
+         {
+         'api_method' : 'hints.get',
+         'num_args' : '1',
+         'args_list' : [1],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "rating": 5,
+           "kind": "hint",
+           "question": 1,
+           "actor": 2,
+           "content": "How would you find the sum of the first five? And then the next five?",
+           "html": None,
+           "id": 1,
+           }),
          }],
     ]
     return render_to_response('system_tests_run.tpl',

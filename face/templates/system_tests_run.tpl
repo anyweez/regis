@@ -20,12 +20,12 @@
   <div id="main_body">
     <div id="test_body">
       {% for testinfo in tests %}
-      {% with test=testinfo.0 jsinfo=testinfo.1 %}
+      {% with testname=testinfo.0 test=testinfo.1 jsinfo=testinfo.2 %}
         <div class="testresult">
           <b>
-            {{ test }}
+            {{ testname }}
           </b>
-          {% with "generic_test"|add:".tpl" as test_template %}
+          {% with "tests/"|add:test|add:".tpl" as test_template %}
           {% include test_template %}
           {% endwith %}
         </div>

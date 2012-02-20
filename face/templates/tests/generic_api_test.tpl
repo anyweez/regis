@@ -1,37 +1,26 @@
 {% comment %}
 Expected variables:
 
+testname
 wait_for_click
 test
 {% endcomment %}
 <script type="text/javascript">
-function test_{{test}}(event) {
+function test_{{testname}}(event) {
 ////////////////////////////////////
 ///    MODIFY VARIABLES BELOW    ///
 ////////////////////////////////////
-   var api_method = questions.get;
-   var num_args = 1;
-   var args_list = [1];
-   var no_more_fields = false;
-   var expected_response = {
-          'kind' : 'question',
-          'key' : 181,
-          'id' : 1,
-          'hints' : null,
-          'errors' : null,
-          'title' : "Numbers in Numbers",
-          'url' : "http://localhost:8080/questions/1",
-          'actor' : 2,
-          'content' : null,
-          'html' : null,
-          'published' : null,
-       };
+   var api_method = {{jsinfo.api_method}};
+   var num_args = {{jsinfo.num_args}};
+   var args_list = {{jsinfo.args_list|safe}};
+   var no_more_fields = {{jsinfo.no_more_fields}};
+   var expected_response = {{jsinfo.expected_response|safe}};
 ////////////////////////////////////
 ///    MODIFY VARIABLES ABOVE    ///
 ////////////////////////////////////
 
-   var outputdiv = $('#{{test}}');  
-   outputdiv.html("Running test {{test}}");
+   var outputdiv = $('#{{testname}}');  
+   outputdiv.html("Running test {{testname}}.");
    var callback = function (data) {
          if (data.success == true) {
             outputdiv.html("Success!");
@@ -50,13 +39,14 @@ function test_{{test}}(event) {
 
    $(document).ready(function() {
    {% if wait_for_click == "yes" %}
-      $('#{{test}}').click(test_{{test}});
+      $('#{{testname}}').click(test_{{testname}});
    {% else %}
-      test_{{test}}();
+      test_{{testname}}();
    {% endif %}
    });
 </script>
 
-<span id="{{test}}">
-  <a href="#">{{test}}</a>
+<span id="{{testname}}">
+  <a href="#">{{testname}}</a>
 </span>
+
