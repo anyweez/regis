@@ -20,12 +20,11 @@ function test_{{test}}(event) {
    var outputdiv = $('#{{test}}');  
    outputdiv.html("Running test ");
          
-   var api_method = questions.list;
-   var num_args = 0;
-   var args_list = Array();
+   var api_method = questions.get;
+   var num_args = 1;
+   var args_list = [1];
    var expected_response = {
-          'kind' : 'questionFeed',
-          'items' : null,
+          'kind' : 'question',
        };
    var no_more_fields = false;
    var callback = function (data) {

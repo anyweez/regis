@@ -31,7 +31,6 @@ function alert_messages(data) {
 }
 
 function test_api(api_method, num_args, args_list, expected_json, no_more_fields_allowed, callback) {
-alert('test_api');
    if (!no_more_fields_allowed) {
       no_more_fields_allowed = false;
    }
@@ -62,7 +61,6 @@ alert('test_api');
          response.errors = errors;
          callback(response);
       };
-   return false;
    if (num_args == 0) {
       api_method(data_handler);
    } else if (num_args == 1) {

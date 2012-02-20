@@ -21,12 +21,11 @@
     <div id="test_body">
       {% for test in tests %}
         <div class="testresult">
-          <h2>
+          <b>
             {{ test }}
-          </h2>
+          </b>
           {% with "tests/"|add:test|add:".tpl" as test_template %}
           {% include test_template %}
-{{test_template}}
           {% endwith %}
         </div>
       {% endfor %}

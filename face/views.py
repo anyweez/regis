@@ -807,6 +807,9 @@ def system_tests_run(request):
     tests = [
         'api_questions_list_structure',
         'basic_test',
+        'changing_test',
+        'do_list',
+        'enumerate_get',
     ]
     return render_to_response('system_tests_run.tpl',
         { 'tests' : tests,
