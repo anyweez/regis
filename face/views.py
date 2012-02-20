@@ -888,6 +888,8 @@ def api_attempts_get(request, attempt_id):
 def attempts_get_json(request, attempt_id, attempt=None, options=None):
     def create_not_found_package():
         return { "kind" : "attempt#notfound" }
+    def get_attempt_html(attempt):
+        return "%s, '%s', %s" % (str(attempt.time_guessed), attempt.value, "Correct" if attempt.correct else "Incorrect")
     if attempt is None:
         try:
             attempt = users.Guess.objects.get(id=attempt_id)
@@ -899,7 +901,7 @@ def attempts_get_json(request, attempt_id, attempt=None, options=None):
                  "id" : attempt.id,
                  "content" : attempt.value,
 #                 "attempt_index" : attempt.index,
-                 "html" : attempt.value,
+                 "html" : get_attempt_html(attempt),
                  "question" : attempt.question.template.id,
                  "correct" : attempt.correct,
   		 "url" : "http://%s/questions/%d" % (request.get_host(), attempt.question.template.id),

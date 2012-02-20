@@ -118,5 +118,7 @@ hintids
       <div id="hintdisplay" style="display: none;"></div>
     </div>
   {% endif %}{% endif %}
+  <div id="attempts{{questionnumber}}">
+  </div>
 </div>
 

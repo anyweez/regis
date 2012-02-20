@@ -51,13 +51,15 @@
     }
 
     function attempts_list_handler(data) {
-       var div = $('#attempts_body');
+       var question_id = data.question;
+       var div = $('#attempts' + question_id);
        var ul = $('<ul></ul>');
        for (var i = 0; i < data.items.length; i++) {
           ul.append($('<li></li>').html(data.items[i].html));
           attempts_get_handler(data);
        }
-       div.html(ul);
+       div.html("Previous attempts:");
+       div.append(ul);
     }
 
     function attempts_get_handler(data) {
