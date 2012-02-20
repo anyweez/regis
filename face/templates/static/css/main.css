@@ -496,3 +496,15 @@ div.error {
 	margin-top: 5px;
 	margin-bottom: 2px;
 }
+
+#main_body #test_body {
+	float: left;
+	width: 72%;
+	
+	margin: 1%;
+	margin-bottom: 0;
+}
+
+html body div#display_body div#main_body div#test_body div#testtest.testresult div.testname {
+    font-weight: bold;
+}

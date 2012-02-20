@@ -798,4 +798,20 @@ def hints_get_json(request, hint_id, hint=None, options=None):
                 del response[k]
     return response
 
+@login_required
+def system_tests_run(request):
+    def is_system_authorized():
+        return request.user.id == 2
+    if not is_system_authorized():
+        return HttpResponse(json.dumps({'kind' : 'unauthorized'}), mimetype='application/json')
+    tests = [
+        'tests/api_questions_list_structure.tpl',
+    ]
+    return render_to_response('tests.tpl',
+        { 'tests' : tests }, 
+          context_instance=RequestContext(request)
+        )
+
+
+
 
