@@ -73,14 +73,18 @@ function attempt_submit_handler(event) {
    values.each(function() {
       if (this.name == 'answer') {
          answer = $(this).val();
+         $(this).val('');
       } else if (this.name == 'qid') {
          qid = $(this).val();
       }
    });
    if (answer && qid) {
-      api.attempts.insert(qid, answer, function(data) { alert(JSON.stringify(data)) });
-////////////////      alert(answer + qid);
+      api.attempts.insert(qid, answer, attempts_submit_response_handler);
    }
+}
+
+function attempts_submit_response_handler(data) {
+   api.attempts.list(question_id, attempts_list_handler);
 }
   </script>
   
