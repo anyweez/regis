@@ -19,15 +19,17 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="test_body">
-      {% for test in tests %}
+      {% for testinfo in tests %}
+      {% with test=testinfo.0 jsinfo=testinfo.1 %}
         <div class="testresult">
           <b>
             {{ test }}
           </b>
-          {% with "tests/"|add:test|add:".tpl" as test_template %}
+          {% with "generic_test"|add:".tpl" as test_template %}
           {% include test_template %}
           {% endwith %}
         </div>
+      {% endwith %}
       {% endfor %}
     </div>
     {% include 'include/sidebar.tpl' %}

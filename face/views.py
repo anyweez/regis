@@ -805,8 +805,37 @@ def system_tests_run(request):
     if not is_system_authorized():
         return HttpResponse(json.dumps({'kind' : 'unauthorized'}), mimetype='application/json')
     tests = [
-        'do_list',
-        'enumerate_get',
+        ['enumerate_get',
+         {
+         'api_method' : 'questions.get',
+         'num_args' : '1',
+         'args_list' : [1],
+         'no_more_fields' : 'false',
+         'expected_response' : json.dumps({
+             'kind' : 'question',
+             'key' : 181,
+             'id' : 1,
+             'hints' : None,
+             'errors' : None,
+             'title' : 'Numbers in Numbers',
+             'url' : 'http://localhost:8080/questions/1',
+             'actor' : 2,
+             'content' : None,
+             'html' : None,
+             'published' : None,
+           })
+         }],
+        ['finish_list',
+         {
+         'api_method' : 'questions.list',
+         'num_args' : '0',
+         'args_list' : [],
+         'no_more_fields' : 'false',
+         'expected_response' : json.dumps({
+             'kind' : 'questionFeed',
+             'items' : None,
+           })
+         }],
     ]
     return render_to_response('system_tests_run.tpl',
         { 'tests' : tests,
