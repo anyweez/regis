@@ -30,6 +30,51 @@ function alert_messages(data) {
    }
 }
 
+function test_api(api_method, num_args, args_list, expected_json, no_more_fields_allowed, callback) {
+alert('test_api');
+   if (!no_more_fields_allowed) {
+      no_more_fields_allowed = false;
+   }
+   var data_handler = function (data) {
+         var errors = Array();
+         for (var key in expected_json) {
+            if (!(key in data)) {
+               errors.push(key + ' not in response');
+            } else if (expected_json[key] == null) {
+               // null indicates that the real data can be any value
+            } else if (expected_json[key] != data[key]) {
+               errors.push(key + ' values do not match');
+            }
+         }
+         if (no_more_fields_allowed) {
+            for (var key in data) {
+               if (!(key in expected_json)) {
+                  errors.push(key + ' not allowed in response');
+               }
+            }
+         }
+         var response = {};
+         if (errors.length == 0) { 
+            response.success = true;
+         } else { 
+            response.success = false;
+         }
+         response.errors = errors;
+         callback(response);
+      };
+   return false;
+   if (num_args == 0) {
+      api_method(data_handler);
+   } else if (num_args == 1) {
+      api_method(args_list[0], data_handler);
+   } else if (num_args == 2) {
+      api_method(args_list[0], args_list[1], data_handler);
+   } else if (num_args == 3) {
+      api_method(args_list[0], args_list[1], args_list[2], data_handler);
+   } else if (num_args == 4) {
+      api_method(args_list[0], args_list[1], args_list[2], args_list[3], data_handler);
+   }
+}
 
 // Send CSRF tokens when we make AJAX requests
 $(document).ajaxSend(function(event, xhr, settings) {

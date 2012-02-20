@@ -24,7 +24,10 @@
           <h2>
             {{ test }}
           </h2>
-          {% include test %}
+          {% with "tests/"|add:test|add:".tpl" as test_template %}
+          {% include test_template %}
+{{test_template}}
+          {% endwith %}
         </div>
       {% endfor %}
     </div>

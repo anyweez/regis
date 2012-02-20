@@ -1,8 +1,12 @@
 
 <script type="text/javascript">
    $(document).ready(function() {
-//      $('#api_questions_list_structure').click(do_test1);
+   {% if wait_for_click == "yes" %}
+      $('#api_questions_list_structure').click(do_test1);
+      alert(test_api);
+   {% else %}
       do_test1();
+   {% endif %}
    });
 function do_test1(event) {
    if (event) {
@@ -10,6 +14,14 @@ function do_test1(event) {
    }
    var outputdiv = $('#api_questions_list_structure');  
    outputdiv.html("Running test ");
+         
+   var api_method = questions.list;
+   var num_args = 0;
+   var args_list = Array();
+   var expected_response = {
+          'kind' : 'questionFeed',
+          'items' : null,
+       };
    var callback = function (data) {
          if (data.success == true) {
             outputdiv.html("Success!");
@@ -20,14 +32,6 @@ function do_test1(event) {
             outputdiv.append($('<li></li>').html(data['errors'][i]));
          }
       };
-         
-   var api_method = questions.list;
-   var num_args = 0;
-   var args_list = Array();
-   var expected_response = {
-          'kind' : 'questionFeed',
-          'items' : null,
-       };
    test_api(api_method, num_args, args_list, expected_response, callback);
 }
 

@@ -2,32 +2,34 @@
 Expected variables:
 
 wait_for_click
+test
 {% endcomment %}
 <script type="text/javascript">
    $(document).ready(function() {
    {% if wait_for_click == "yes" %}
-      $('#api_questions_list_structure').click(do_test1);
+      $('#{{test}}').click(test_{{test}});
    {% else %}
-      do_test1();
+      test_{{test}}();
    {% endif %}
    });
 
-function do_test1(event) {
+function test_{{test}}(event) {
    if (event) {
       event.preventDefault();
    }
-   var outputdiv = $('#api_questions_list_structure');  
+   var outputdiv = $('#{{test}}');  
    outputdiv.html("Running test ");
          
-   var api_method = questions.list;
-   var num_args = 0;
-   var args_list = Array();
+   var api_method = questions.get;
+   var num_args = 1;
+   var args_list = Array("1");
    var expected_response = {
           'kind' : 'questionFeed',
           'items' : null,
        };
    var no_more_fields = false;
    var callback = function (data) {
+         alert('callback');
          if (data.success == true) {
             outputdiv.html("Success!");
          } else {
@@ -42,7 +44,7 @@ function do_test1(event) {
 
 
 </script>
-<div id="api_questions_list_structure">
+<div id="{{test}}">
   <a href="#">{{test}}</a>
 </div>
 

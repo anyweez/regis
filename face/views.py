@@ -805,10 +805,12 @@ def system_tests_run(request):
     if not is_system_authorized():
         return HttpResponse(json.dumps({'kind' : 'unauthorized'}), mimetype='application/json')
     tests = [
-        'tests/api_questions_list_structure.tpl',
+        'api_questions_list_structure',
+        'basic_test',
     ]
-    return render_to_response('tests.tpl',
-        { 'tests' : tests }, 
+    return render_to_response('system_tests_run.tpl',
+        { 'tests' : tests,
+          'wait_for_click' : 'yes' }, 
           context_instance=RequestContext(request)
         )
 
