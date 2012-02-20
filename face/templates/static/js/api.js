@@ -54,8 +54,7 @@ var api = new function() {
           $.getJSON('/api/attempts/list/' + qid, callback);};
       this.insert = function(qid, content, callback) {
           $.post('/api/attempts/insert/' + qid,
-                 { 'question' : qid,
-                   'content' : content },
+                 { 'content' : content },
                  callback,
                  'json');};
    }

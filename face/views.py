@@ -801,26 +801,18 @@ def hints_get_json(request, hint_id, hint=None, options=None):
 
 #Example: 'api/attempts/insert', views.api_attempts_insert
 @login_required
-def api_attempts_insert(request, qid):
+def api_attempts_insert(request, question_id):
     errors = []
-    question_id = qid
-    content = "sample"
-    if False: # DEBUG
-        if request.method != 'POST':
-            return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
-                                mimetype='application/json')
-        if 'question' in request.POST:
-            question_id = int(request.POST['question'])
-            if question_id != qid:
-                errors.append("Question id does not match");
-        else:
-            errors.append("No question given")
-        if 'content' in request.POST:
-            content = request.POST['content']
-            if len(content) == 0:
-                errors.append("No content given")
-        else:
-            errors.append("No content given")
+    question_id = int(question_id)
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+                            mimetype='application/json')
+    if 'content' in request.POST:
+        content = request.POST['content']
+        if len(content) == 0:
+            errors.append("Length of content is 0")
+    else:
+        errors.append("No content given")
     
     if len(errors) > 0:
         return HttpResponse(json.dumps({ "kind" : "error", 
@@ -830,7 +822,7 @@ def api_attempts_insert(request, qid):
     try: 
         question = users.Question.objects.get(template__id=question_id, user=request.user)
     except users.Question.DoesNotExist:
-        raise exception.UnauthorizedAttemptException(request.user, qid)
+        raise exception.UnauthorizedAttemptException(request.user, question_id)
     if question is None:
         return HttpResponse(json.dumps({ "kind" : "question#notfound", 
                                    }),
@@ -846,7 +838,7 @@ def api_attempts_insert(request, qid):
     question_m = qm.QuestionManager()
     correct, msg = question_m.check_question(question, content)
     
-    msghub.register_message(msg, target=qid, status=correct)
+    msghub.register_message(msg, target=question_id, status=correct)
     
     # Record the guess.
     g = users.Guess(user=request.user, 

@@ -22,6 +22,7 @@
 
     function questions_get_handler(data) {
       $('#question_body').html(data.html);
+      $('#attempt_form').submit(attempt_submit_handler);
     }
     
     function hints_list_handler(data) {
@@ -54,9 +55,31 @@
        var ul = $('<ul></ul>');
        for (var i = 0; i < data.items.length; i++) {
           ul.append($('<li></li>').html(data.items[i].html));
+          attempts_get_handler(data);
        }
        div.html(ul);
     }
+
+    function attempts_get_handler(data) {
+       var ul = $("#previous_attempts");
+       ul.append($('<li></li>').html('hi'));
+    }
+    
+function attempt_submit_handler(event) {
+   event.preventDefault();
+   var values = $('#attempt_form :input');
+   values.each(function() {
+      if (this.name == 'answer') {
+         answer = $(this).val();
+      } else if (this.name == 'qid') {
+         qid = $(this).val();
+      }
+   });
+   if (answer && qid) {
+      api.attempts.insert(qid, answer, function(data) { alert(JSON.stringify(data)) });
+////////////////      alert(answer + qid);
+   }
+}
   </script>
   
   <style type="text/css">
