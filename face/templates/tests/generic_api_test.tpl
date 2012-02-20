@@ -7,6 +7,8 @@ test
 {% endcomment %}
 <script type="text/javascript">
 function test_{{testname}}(event) {
+   var outputdiv = $('#{{testname}}');  
+   outputdiv.html("Running test {{testname}}");
 ////////////////////////////////////
 ///    MODIFY VARIABLES BELOW    ///
 ////////////////////////////////////
@@ -18,9 +20,6 @@ function test_{{testname}}(event) {
 ////////////////////////////////////
 ///    MODIFY VARIABLES ABOVE    ///
 ////////////////////////////////////
-
-   var outputdiv = $('#{{testname}}');  
-   outputdiv.html("Running test {{testname}}.");
    var callback = function (data) {
          if (data.success == true) {
             outputdiv.html("Success!");
@@ -46,7 +45,7 @@ function test_{{testname}}(event) {
    });
 </script>
 
-<span id="{{testname}}">
+<span id="{{testname}}" class="api_test_span">
   <a href="#">{{testname}}</a>
 </span>
 

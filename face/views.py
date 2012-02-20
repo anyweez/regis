@@ -798,6 +798,135 @@ def hints_get_json(request, hint_id, hint=None, options=None):
                 del response[k]
     return response
 
+
+#Example: 'api/attempts/insert', views.api_attempts_insert
+@login_required
+def api_attempts_insert(request, qid):
+    errors = []
+    question_id = qid
+    content = "sample"
+    if False: # DEBUG
+        if request.method != 'POST':
+            return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+                                mimetype='application/json')
+        if 'question' in request.POST:
+            question_id = int(request.POST['question'])
+            if question_id != qid:
+                errors.append("Question id does not match");
+        else:
+            errors.append("No question given")
+        if 'content' in request.POST:
+            content = request.POST['content']
+            if len(content) == 0:
+                errors.append("No content given")
+        else:
+            errors.append("No content given")
+    
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({ "kind" : "error", 
+                                         "errors" : errors,
+                                   }),
+                            mimetype='application/json')
+    try: 
+        question = users.Question.objects.get(template__id=question_id, user=request.user)
+    except users.Question.DoesNotExist:
+        raise exception.UnauthorizedAttemptException(request.user, qid)
+    if question is None:
+        return HttpResponse(json.dumps({ "kind" : "question#notfound", 
+                                   }),
+                            mimetype='application/json')
+    if question.status != 'released':
+        errors.append('Cannot attempt question with status "%s"' % question.status)
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({ "kind" : "error", 
+                                         "errors" : errors,
+                                   }),
+                            mimetype='application/json')
+         
+    question_m = qm.QuestionManager()
+    correct, msg = question_m.check_question(question, content)
+    
+    msghub.register_message(msg, target=qid, status=correct)
+    
+    # Record the guess.
+    g = users.Guess(user=request.user, 
+                    question=question, 
+                    value=content, 
+                    correct=correct, 
+                    time_guessed=datetime.datetime.now())
+    g.save()
+    if correct and question.status != 'solved':
+        question.status = 'solved'
+        question.save()
+        try:
+            question_m = qm.QuestionManager()
+            # Activate the next question.
+            question_m.activate_next(request.user)
+        except exception.NoQuestionReadyException:
+            # TODO cartland: Should we record this?
+            pass
+    response = attempts_get_json(request, attempt_id=g.id, attempt=g)
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_attempts_list(request, question_id):
+    question_id = int(question_id)
+    def create_not_found_package():
+        return { "kind" : "attempt#notfound" }
+    try:
+        attempts = users.Guess.objects.filter(question__template__id=question_id)
+        items = []
+        options = { "fields" : "kind,id,content,correct,html",
+                    "html" : "thumbnail" }
+        for attempt in attempts:
+            items.append(attempts_get_json(request, attempt.id, attempt=attempt, options=options))
+        response = { "kind" : "attemptFeed",
+                     "question" : question_id,
+                     "items" : items }
+        return HttpResponse(json.dumps(response),
+                            mimetype='application/json')
+    except users.QuestionHint.DoesNotExist as error:
+        return HttpResponse(json.dumps(create_not_found_package()),
+                            mimetype='application/json')
+
+def api_attempts_get(request, attempt_id):
+    return HttpResponse(json.dumps(attempts_get_json(request, attempt_id)),
+                        mimetype='application/json')
+
+def attempts_get_json(request, attempt_id, attempt=None, options=None):
+    def create_not_found_package():
+        return { "kind" : "attempt#notfound" }
+    if attempt is None:
+        try:
+            attempt = users.Guess.objects.get(id=attempt_id)
+            if attempt is None:
+                return create_not_found_package()
+        except users.Guess.DoesNotExist as error:
+            return create_not_found_package() 
+    response = { "kind" : "attempt",
+                 "id" : attempt.id,
+                 "content" : attempt.value,
+#                 "attempt_index" : attempt.index,
+                 "html" : attempt.value,
+                 "question" : attempt.question.template.id,
+                 "correct" : attempt.correct,
+  		 "url" : "http://%s/questions/%d" % (request.get_host(), attempt.question.template.id),
+                 "published" : str(attempt.time_guessed),
+                 "actor" : attempt.user.id } 
+    # Handle masking of certain fields based on the fields parameter
+    parameters = ['fields']
+    if options is None:
+        options = {}
+    for p in parameters:
+        if p in request.GET and p not in options:
+            options[p] = request.GET[p]
+    if 'fields' in options:
+        fields = options['fields'].split(',')
+        for k in response.keys():
+            if k not in fields:
+                del response[k]
+    return response
+
 @login_required
 def system_tests_run(request):
     def is_system_authorized():
@@ -807,7 +936,7 @@ def system_tests_run(request):
     tests = [
         ['questions_get', 'generic_api_test', 
          {
-         'api_method' : 'questions.get',
+         'api_method' : 'api.questions.get',
          'num_args' : '1',
          'args_list' : [1],
          'no_more_fields' : 'true',
@@ -826,9 +955,10 @@ def system_tests_run(request):
              'status' : None,
            })
          }],
+
         ['questions_list', 'generic_api_test',
          {
-         'api_method' : 'questions.list',
+         'api_method' : 'api.questions.list',
          'num_args' : '0',
          'args_list' : [],
          'no_more_fields' : 'true',
@@ -837,9 +967,10 @@ def system_tests_run(request):
              'items' : None,
            })
          }],
+
         ['test_hints_get', 'generic_api_test',
          {
-         'api_method' : 'hints.get',
+         'api_method' : 'api.hints.get',
          'num_args' : '1',
          'args_list' : [1],
          'no_more_fields' : 'true',
@@ -851,6 +982,59 @@ def system_tests_run(request):
            "content": "How would you find the sum of the first five? And then the next five?",
            "html": None,
            "id": 1,
+           }),
+         }],
+
+        ['fail_guess_get', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.get',
+         'num_args' : '1',
+         'args_list' : [1],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attempt",
+           "id": 1,
+           "content": "Attempt",
+           "attempt_index": None,
+           "question": 1,
+           "correct" : False,
+           "url" : None,
+           "actor": 2,
+           "html": None,
+           "published": None,
+           }),
+         }],
+
+        ['fail_guess_insert', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.insert',
+         'num_args' : '2',
+         'args_list' : [4, "sample"],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attempt",
+           "id": None,
+           "content": "sample",
+           "attempt_index": None,
+           "question": 4,
+           "correct" : False,
+           "url" : None,
+           "actor": 2,
+           "html": None,
+           "published" : None,
+           }),
+         }],
+
+        ['attemps_list_structure', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.list',
+         'num_args' : '1',
+         'args_list' : [4],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attemptFeed",
+           "question": 4,
+           "items" : None,
            }),
          }],
     ]

@@ -13,7 +13,7 @@
 
   <script type="text/javascript">
     $(document).ready(function() {
-       questions.list(list_questions_handler);
+       api.questions.list(list_questions_handler);
     });
     function list_questions_handler(data) {
       for (var i = 0; i < data.items.length; i++) {

@@ -15,8 +15,9 @@
     var question_id = {{ tid }};
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
-       questions.get(question_id, questions_get_handler);
-       hints.list(question_id, hints_list_handler);
+       api.questions.get(question_id, questions_get_handler);
+       api.hints.list(question_id, hints_list_handler);
+       api.attempts.list(question_id, attempts_list_handler);
     });
 
     function questions_get_handler(data) {
@@ -33,7 +34,7 @@
 
     function hint_click_handler(event) {
       event.preventDefault();
-      hints.get($(this).attr("id").slice(4), hint_get_handler);
+      api.hints.get($(this).attr("id").slice(4), hint_get_handler);
     }
     
     function hint_get_handler(data) {
@@ -41,13 +42,21 @@
     }
     
     function hint_vote_up(hint_id) {
-       hints.vote(hint_id, 'yes', alert_messages );
+       api.hints.vote(hint_id, 'yes', alert_messages );
     }
     
     function hint_vote_down(hint_id) {
-       hints.vote(hint_id, 'no', alert_messages);
+       api.hints.vote(hint_id, 'no', alert_messages);
     }
 
+    function attempts_list_handler(data) {
+       var div = $('#attempts_body');
+       var ul = $('<ul></ul>');
+       for (var i = 0; i < data.items.length; i++) {
+          ul.append($('<li></li>').html(data.items[i].html));
+       }
+       div.html(ul);
+    }
   </script>
   
   <style type="text/css">
@@ -81,6 +90,8 @@
   <div id="main_body">
     <div id="question_body">  
     </div>  
+    <div id="attempts_body">
+    </div>
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>
   </div> <!--  end main_body -->

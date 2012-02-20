@@ -2,27 +2,64 @@
 ///      API       ///
 //////////////////////
 
+/* 
+** TO MAKE A NEW API: ** 
 
-var questions = new function() {
-   this.get = function(qid, callback) {
-       $.getJSON('/api/questions/' + qid, callback);};
-   this.list = function(callback) {
-       $.getJSON('/api/questions/list', callback);};
+###      api.js      ###
+Create a new API call for the object being modified.
+Example: create api.attempts.insert
+
+###      urls.py     ###
+Create a rule for the URL that you use in api.js
+Example: ('^api/attempts/insert/([0-9]+)$', views.api_attempts_insert),
+
+###     views.py     ###
+Write the Django handler for the API call.
+This does the meet of the work.
+Make sure it returns a JSON object.
+Example: views.api_attempts_insert(request)
+
+See views.system_tests_run for informaion about testing.
+After testing, the API is ready.
+
+###     templates    ###
+Modify templates as needed to use your API methods.
+*/
+var api = new function() {
+
+   this.questions = new function() {
+      this.get = function(qid, callback) {
+          $.getJSON('/api/questions/' + qid, callback);};
+      this.list = function(callback) {
+          $.getJSON('/api/questions/list', callback);};
+   }
+   
+   this.hints = new function() {
+      this.get = function(hid, callback) {
+          $.getJSON('/api/hints/' + hid, callback);};
+      this.list = function(qid, callback) {
+          $.getJSON('/api/hints/list/' + qid, callback);};
+      this.vote = function(hid, approve, callback) {
+          $.post('/api/hints/' + hid + '/vote',
+                 { 'id' : hid,
+                   'rating' : approve },
+                 callback,
+                 'json');};
+   }
+
+   this.attempts = new function() {
+      this.get = function(id, callback) {
+          $.getJSON('/api/attempts/' + id, callback);};
+      this.list = function(qid, callback) {
+          $.getJSON('/api/attempts/list/' + qid, callback);};
+      this.insert = function(qid, content, callback) {
+          $.post('/api/attempts/insert/' + qid,
+                 { 'question' : qid,
+                   'content' : content },
+                 callback,
+                 'json');};
+   }
 }
-
-var hints = new function() {
-   this.get = function(hid, callback) {
-       $.getJSON('/api/hints/' + hid, callback);};
-   this.list = function(qid, callback) {
-       $.getJSON('/api/hints/list/' + qid, callback);};
-   this.vote = function(hid, approve, callback) {
-       $.post('/api/hints/' + hid + '/vote',
-              { 'id' : hid,
-                'rating' : approve },
-              callback,
-              'json');};
-}
-
 
 function alert_messages(data) {
    if (data.kind == 'message') {
