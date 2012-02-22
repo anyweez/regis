@@ -7,6 +7,6 @@
     <input type="hidden" name="on_correct" value="/dash" />
     <input type="hidden" name="on_incorrect" value="/dash" />
 
-    <input type="submit" name="submit" value="Guess"  />
+    <input style="font-size: 15px; text-shadow: 1px 1px 1px #AAA;" type="submit" name="submit" value="Submit"  />
   </form>
 </div>
