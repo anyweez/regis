@@ -2,60 +2,62 @@
 ///      API       ///
 //////////////////////
 
+/* 
+** TO MAKE A NEW API: ** 
 
-var questions = new function() {
-   this.get = function(qid, callback) {
-       $.getJSON('/api/questions/' + qid, callback);};
-   this.list = function(callback) {
-       $.getJSON('/api/questions/list', callback);};
-}
+###      api.js      ###
+Create a new API call for the object being modified.
+Example: create api.attempts.insert
 
-var hints = new function() {
-   this.get = function(hid, callback) {
-       $.getJSON('/api/hints/' + hid, callback);};
-   this.list = function(qid, callback) {
-       $.getJSON('/api/hints/list/' + qid, callback);};
-   this.vote = function(hid, approve, callback) {
-       $.post('/api/hints/' + hid + '/vote',
-              { 'id' : hid,
-                'rating' : approve },
-              callback,
-              'json');};
-}
+###      urls.py     ###
+Create a rule for the URL that you use in api.js
+Example: ('^api/attempts/insert/([0-9]+)$', views.api_attempts_insert),
 
-function view_question_handler(data) {
-  $('#question_body').html(data.html);
-}
+###     views.py     ###
+Write the Django handler for the API call.
+This does the meet of the work.
+Make sure it returns a JSON object.
+Example: views.api_attempts_insert(request)
 
-function list_questions_handler(data) {
-  for (var i = 0; i < data.items.length; i++) {
-    $('#question_body').append(data.items[i].html);
-  }
-}
+See views.system_tests_run for informaion about testing.
+After testing, the API is ready.
 
-function hints_list_handler(data) {
-  for (var i = 0; i < data.items.length; i++) {
-    var hint = data.items[i];
-    $('#hint' + hint.id).html('<a href="#">Hint ' + (i + 1) +'</a>');
-    $('#hint' + hint.id).click(hint_click_handler);
-  }
-}
+###     templates    ###
+Modify templates as needed to use your API methods.
+*/
+var api = new function() {
 
-function hint_click_handler(event) {
-  event.preventDefault();
-  hints.get($(this).attr("id").slice(4), hint_get_handler);
-}
+   this.questions = new function() {
+      this.get = function(qid, callback) {
+          $.getJSON('/api/questions/' + qid, callback);};
+      this.list = function(callback) {
+          $.getJSON('/api/questions/list', callback);};
+   }
+   
+   this.hints = new function() {
+      this.get = function(hid, callback) {
+          $.getJSON('/api/hints/' + hid, callback);};
+      this.list = function(qid, callback) {
+          $.getJSON('/api/hints/list/' + qid, callback);};
+      this.vote = function(hid, approve, callback) {
+          $.post('/api/hints/' + hid + '/vote',
+                 { 'id' : hid,
+                   'rating' : approve },
+                 callback,
+                 'json');};
+   }
 
-function hint_get_handler(data) {
-  $('#hint' + data.id).html(data.html);
-}
-
-function hint_vote_up(hint_id) {
-   hints.vote(hint_id, 'yes', alert_messages );
-}
-
-function hint_vote_down(hint_id) {
-   hints.vote(hint_id, 'no', alert_messages);
+   this.attempts = new function() {
+      this.get = function(id, callback) {
+          $.getJSON('/api/attempts/' + id, callback);};
+      this.list = function(qid, callback) {
+          $.getJSON('/api/attempts/list/' + qid, callback);};
+      this.insert = function(qid, content, callback) {
+          $.post('/api/attempts/insert/' + qid,
+                 { 'content' : content },
+                 callback,
+                 'json');};
+   }
 }
 
 function alert_messages(data) {
@@ -64,6 +66,49 @@ function alert_messages(data) {
    }
 }
 
+function test_api(api_method, num_args, args_list, expected_json, no_more_fields_allowed, callback) {
+   if (!no_more_fields_allowed) {
+      no_more_fields_allowed = false;
+   }
+   var data_handler = function (data) {
+         var errors = Array();
+         for (var key in expected_json) {
+            if (!(key in data)) {
+               errors.push(key + ' not in response');
+            } else if (expected_json[key] == null) {
+               // null indicates that the real data can be any value
+            } else if (expected_json[key] != data[key]) {
+               errors.push(key + ' values do not match');
+            }
+         }
+         if (no_more_fields_allowed) {
+            for (var key in data) {
+               if (!(key in expected_json)) {
+                  errors.push(key + ' not allowed in response');
+               }
+            }
+         }
+         var response = {};
+         if (errors.length == 0) { 
+            response.success = true;
+         } else { 
+            response.success = false;
+         }
+         response.errors = errors;
+         callback(response);
+      };
+   if (num_args == 0) {
+      api_method(data_handler);
+   } else if (num_args == 1) {
+      api_method(args_list[0], data_handler);
+   } else if (num_args == 2) {
+      api_method(args_list[0], args_list[1], data_handler);
+   } else if (num_args == 3) {
+      api_method(args_list[0], args_list[1], args_list[2], data_handler);
+   } else if (num_args == 4) {
+      api_method(args_list[0], args_list[1], args_list[2], args_list[3], data_handler);
+   }
+}
 
 // Send CSRF tokens when we make AJAX requests
 $(document).ajaxSend(function(event, xhr, settings) {

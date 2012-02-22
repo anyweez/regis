@@ -3,53 +3,45 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
-  
+
   {% include 'include/common_header.tpl' %}
-  
-  <script type="text/javascript" src="/static/js/api.js">
-  </script>
+
   <script type="text/javascript" src="/static/js/hints.js">
   </script>
- 
-  <script type="text/javascript">
-    var question_id = {{ tid }};
-    // Fetch information about hints as soon as the page is loaded.
-    $(document).ready(function() {
-       questions.get(question_id, view_question_handler);
-       hints.list(question_id, hints_list_handler);
-    });
+  <script type="text/javascript" src="/static/js/api.js">
   </script>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+       api.questions.list(list_questions_handler);
+    });
+    function list_questions_handler(data) {
+      for (var i = 0; i < data.items.length; i++) {
+        $('#question_body').append(data.items[i].html);
+      }
+    }
+  </script>
+  <title>Regis: Available Questions</title>
+  
   
   <style type="text/css">
-    #logbox {
-      background-color: white;
-      width: 38em;
-      padding: 1%;
-      margin: 0 auto;
-
-      border: 3px solid black;
-      border-radius: 3px;
+    #right_col {
+      border-bottom: 3px solid black;
+      border-radius: 0px 0px 0px 5px; 
     }
   </style>
-
-  <title>Regis: View question</title>
 </head>
 <body>
-	{% if errors %}
-	<div class="error">
-      {% for e in errors %}
-      <p>{{ e }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-    
   <!-- The heading, which contains the title and appears above everything else. -->
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
     
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
-    <div id="question_body">  
+    <div id="question_body">     
+      <h2>Question List</h2>
+      <p>The following questions are available in the system.  Additional questions will be released to you once
+      you either solve a problem or work on it for 48 hours without solving it.</p>     
     </div>  
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>

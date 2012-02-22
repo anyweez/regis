@@ -21,7 +21,7 @@ hintids
     </p>
     <p id="main_q">{{ questioncontent }}</p>
     <div id="answerbox" style="height: 40px;">
-      <form accept-charset="utf-8" method="post" action="/question/check">
+      <form id="attempt_form" accept-charset="utf-8" method="post" action="/question/check">
         {% csrf_token %}
         <div style="display:none">
           <input type="hidden" value="f4d76ce04b9550de5aee68dc690efb5c" name="csrfmiddlewaretoken">
@@ -118,5 +118,7 @@ hintids
       <div id="hintdisplay" style="display: none;"></div>
     </div>
   {% endif %}{% endif %}
+  <div id="attempts{{questionnumber}}">
+  </div>
 </div>
 
