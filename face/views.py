@@ -932,7 +932,7 @@ def system_tests_run(request):
     if not is_system_authorized():
         return HttpResponse(json.dumps({'kind' : 'unauthorized'}), mimetype='application/json')
     tests = [
-        ['questions_get', 'generic_api_test', 
+        ['questions_get_structure', 'generic_api_test', 
          {
          'api_method' : 'api.questions.get',
          'num_args' : '1',
@@ -954,7 +954,7 @@ def system_tests_run(request):
            })
          }],
 
-        ['questions_list', 'generic_api_test',
+        ['questions_list_structure', 'generic_api_test',
          {
          'api_method' : 'api.questions.list',
          'num_args' : '0',
@@ -966,7 +966,7 @@ def system_tests_run(request):
            })
          }],
 
-        ['test_hints_get', 'generic_api_test',
+        ['hints_get_structure', 'generic_api_test',
          {
          'api_method' : 'api.hints.get',
          'num_args' : '1',
@@ -983,7 +983,7 @@ def system_tests_run(request):
            }),
          }],
 
-        ['fail_guess_get', 'generic_api_test',
+        ['attempts_get_structure', 'generic_api_test',
          {
          'api_method' : 'api.attempts.get',
          'num_args' : '1',
@@ -1003,7 +1003,7 @@ def system_tests_run(request):
            }),
          }],
 
-        ['fail_guess_insert', 'generic_api_test',
+        ['attempts_insert_structure', 'generic_api_test',
          {
          'api_method' : 'api.attempts.insert',
          'num_args' : '2',
@@ -1023,7 +1023,26 @@ def system_tests_run(request):
            }),
          }],
 
-        ['attemps_list_structure', 'generic_api_test',
+        ['attempts_get_structure_correct', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.get',
+         'num_args' : '1',
+         'args_list' : [56],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attempt",
+           "content": "7920",
+           "question": 3,
+           "html": None,
+           "published": None,
+           "url": 'http://localhost:8080/questions/3',
+           "id": 56,
+           "actor": 2,
+           "correct": True,
+           }),
+         }],
+
+        ['attempts_list_structure', 'generic_api_test',
          {
          'api_method' : 'api.attempts.list',
          'num_args' : '1',
