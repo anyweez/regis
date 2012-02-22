@@ -1032,6 +1032,7 @@ def system_tests_run(request):
          'expected_response' : json.dumps({
            "kind": "attempt",
            "content": "7920",
+           "attempt_index": None,
            "question": 3,
            "html": None,
            "published": None,
