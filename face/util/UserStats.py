@@ -116,4 +116,4 @@ class UserStats(object):
         if hardest_percentage > 1.0:
             return (hardest_q, None)
         else:
-            return (hardest_q, hardest_percentage * 100)
+            return (hardest_q, round(hardest_percentage * 100, 1))
