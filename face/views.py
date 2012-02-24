@@ -507,14 +507,14 @@ def questions_unknown(request):
     return redirect('/questions/list')
 
 def list_questions_with_api(request):
-    return render_to_response('questions_list.tpl', 
+    return render_to_response('view_questions_list.tpl', 
           { 'stats' : UserStats.UserStats(request.user),
           'user': request.user },
            context_instance=RequestContext(request))
 
 @login_required
 def view_question_with_api(request, tid):
-    return render_to_response('questions_view.tpl', 
+    return render_to_response('view_questions.tpl', 
                 { 'tid' : tid, 
                   'stats' : UserStats.UserStats(request.user),
                   'user': request.user },
