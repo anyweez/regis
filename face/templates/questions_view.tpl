@@ -1,3 +1,6 @@
+{% comment %}
+
+{% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,8 +10,6 @@
   {% include 'include/common_header.tpl' %}
   
   <script type="text/javascript" src="/static/js/api.js">
-  </script>
-  <script type="text/javascript" src="/static/js/hints.js">
   </script>
  
   <script type="text/javascript">
@@ -57,7 +58,6 @@
        ul.hide();
        for (var i = 0; i < data.items.length; i++) {
           ul.append($('<li></li>').html(data.items[i].html));
-          attempts_get_handler(data);
        }
        div.html('<a href="#">Previous attempts</a>');
        div.click(previous_attempts_handler);
@@ -74,43 +74,27 @@
        }
     }
 
-    function attempts_get_handler(data) {
-       var ul = $("#previous_attempts");
-       ul.append($('<li></li>').html('hi'));
+    function attempt_submit_handler(event) {
+       event.preventDefault();
+       var values = $('#attempt_form :input');
+       values.each(function() {
+          if (this.name == 'answer') {
+             answer = $(this).val();
+             $(this).val('');
+          } else if (this.name == 'qid') {
+             qid = $(this).val();
+          }
+       });
+       if (answer && qid) {
+          api.attempts.insert(qid, answer, attempts_submit_response_handler);
+       }
     }
     
-function attempt_submit_handler(event) {
-   event.preventDefault();
-   var values = $('#attempt_form :input');
-   values.each(function() {
-      if (this.name == 'answer') {
-         answer = $(this).val();
-         $(this).val('');
-      } else if (this.name == 'qid') {
-         qid = $(this).val();
-      }
-   });
-   if (answer && qid) {
-      api.attempts.insert(qid, answer, attempts_submit_response_handler);
-   }
-}
-
-function attempts_submit_response_handler(data) {
-   api.attempts.list(question_id, attempts_list_handler);
-}
+    function attempts_submit_response_handler(data) {
+       api.attempts.list(question_id, attempts_list_handler);
+    }
   </script>
   
-  <style type="text/css">
-    #logbox {
-      background-color: white;
-      width: 38em;
-      padding: 1%;
-      margin: 0 auto;
-
-      border: 3px solid black;
-      border-radius: 3px;
-    }
-  </style>
 
   <title>Regis: View question</title>
 </head>
