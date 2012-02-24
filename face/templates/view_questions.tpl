@@ -99,32 +99,23 @@
   <title>Regis: View question</title>
 </head>
 <body>
-	{% if errors %}
-	<div class="error">
-      {% for e in errors %}
-      <p>{{ e }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-    
-  <!-- The heading, which contains the title and appears above everything else. -->
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
-    
-  <!-- Container for the majority of the page's content. -->
-  <div id="main_body">
-    <div id="question_body">  
-    </div>  
-    <div id="attempts_body">
-    </div>
-    {% include 'include/sidebar.tpl' %}
-  <div style="clear: both; height: 0px;">&nbsp;</div>
-  </div> <!--  end main_body -->
-
-  <!-- Container for the information that appears below the main content (i.e. licensing info). -->
-    <div id="footer">
-    </div>
-</div> 
+      
+    <!-- Container for the majority of the page's content. -->
+    <div id="main_body">
+      <div id="question_body">  
+      </div>  
+      <div id="attempts_body">
+      </div>
+      {% include 'include/sidebar.tpl' %}
+      <div style="clear: both; height: 0px;">&nbsp;</div>
+      </div> <!--  end main_body -->
+  
+      <!-- Container for the information that appears below the main content (i.e. licensing info). -->
+      <div id="footer">
+      </div>
+    </div> 
   </div>
 </body>
 </html>
