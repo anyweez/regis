@@ -226,7 +226,6 @@ def check_q(request):
         return render_to_response('error.tpl', 
             { 'errors' : ['You haven\'t unlocked that question yet.',] })
 
-
 @login_required
 def list_questions(request):
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
