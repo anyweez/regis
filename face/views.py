@@ -509,15 +509,18 @@ def submit_suggestion(request):
         
     return redirect('/dash')
 
+def questions_unknown(request):
+    return redirect('/questions/list')
+
 def list_questions_with_api(request):
-    return render_to_response('list_questions_with_api.tpl', 
+    return render_to_response('questions_list.tpl', 
           { 'stats' : UserStats.UserStats(request.user),
           'user': request.user },
            context_instance=RequestContext(request))
 
 @login_required
 def view_question_with_api(request, tid):
-    return render_to_response('view_question_with_api.tpl', 
+    return render_to_response('questions_view.tpl', 
                 { 'tid' : tid, 
                   'stats' : UserStats.UserStats(request.user),
                   'user': request.user },
@@ -532,7 +535,7 @@ def api_questions_list(request):
     options = { 'html' : 'thumbnail' }
     for question in all_questions:
         if question.status in ['released', 'ready', 'solved']:
-            items.append(questions_get_json(request, question.template.id, options=options))
+            items.append(questions_get_json(request, question.template.id, question=question, options=options))
     response = { "kind" : "questionFeed",
 		"items" : items }
     return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -554,14 +557,14 @@ for embedding in a web page.
 Options can be passed in, like { 'html' : 'thumbnail' } which
 requests only the small view to be embeded in list form.
 '''
-def questions_get_json(request, question_id, options=None):
+def questions_get_json(request, question_id, question=None, options=None):
     user = request.user
     errors = []
     hintids = []
     def create_not_found_package():
         response = { "kind" : "question#notfound" }
         if options['html'] == 'full':
-            response['html'] = render_to_response('question_body.tpl',
+            response['html'] = render_to_response('questions_get.tpl',
                                 { 'questionstatus' : "doesnotexist",
                                   'questiontitle' : "Question not found",
                                   'questionnumber' : question_id,
@@ -571,7 +574,7 @@ def questions_get_json(request, question_id, options=None):
                                 context_instance=RequestContext(request)
                               ).content
         elif options['html'] == 'thumbnail':
-            response['html'] = render_to_response('question_thumbnail.tpl',
+            response['html'] = render_to_response('questions_get_thumbnail.tpl',
                                 { 'questionstatus' : "doesnotexist",
                                   'questiontitle' : "Question not found",
                                   'questionnumber' : question_id,
@@ -592,7 +595,7 @@ def questions_get_json(request, question_id, options=None):
                      "id" : question.template.id,
                      "errors" : errors }
         if options['html'] == 'full':
-            response['html'] = render_to_response('question_body.tpl',
+            response['html'] = render_to_response('questions_get.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -602,7 +605,7 @@ def questions_get_json(request, question_id, options=None):
                                 context_instance=RequestContext(request)
                               ).content
         elif options['html'] == 'thumbnail':
-            response['html'] = render_to_response('question_thumbnail.tpl',
+            response['html'] = render_to_response('questions_get_thumbnail.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -628,7 +631,7 @@ def questions_get_json(request, question_id, options=None):
   		     "actor" : question.user.id,
                      "errors" : errors }
         if options['html'] == 'thumbnail':
-            response['html'] = render_to_response('question_thumbnail.tpl',
+            response['html'] = render_to_response('questions_get_thumbnail.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -638,7 +641,7 @@ def questions_get_json(request, question_id, options=None):
                                 context_instance=RequestContext(request)
                               ).content
         elif options['html'] == 'full':
-            response['html'] = render_to_response('question_body.tpl',
+            response['html'] = render_to_response('questions_get.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -667,24 +670,25 @@ def questions_get_json(request, question_id, options=None):
         options['html'] = request.GET['html']
     else:
         options['html'] = 'full'
-    # First try to find the question.
-    # If the question does not exist, return a does not exist package.
-    try:
-        template = users.QuestionTemplate.objects.get(id=question_id)
-        if template is not None:
-            question = users.Question.objects.filter(user=user, template=template)
-            if len(question) > 0:
-                if len(question) > 1:
-                    errors.append("Redundant questions found.")
-                question = question[0]
+    if question is None:
+        # First try to find the question.
+        # If the question does not exist, return a does not exist package.
+        try:
+            template = users.QuestionTemplate.objects.get(id=question_id)
+            if template is not None:
+                question = users.Question.objects.filter(user=user, template=template)
+                if len(question) > 0:
+                    if len(question) > 1:
+                        errors.append("Redundant questions found.")
+                    question = question[0]
+                else:
+                    return create_not_found_package()
             else:
                 return create_not_found_package()
-        else:
+        except users.QuestionTemplate.DoesNotExist as error:
             return create_not_found_package()
-    except users.QuestionTemplate.DoesNotExist as error:
-        return create_not_found_package()
-    except users.Question.DoesNotExist as error:
-        return create_not_found_package()
+        except users.Question.DoesNotExist as error:
+            return create_not_found_package()
     # Get all hints
     try:
         hints = users.QuestionHint.objects.filter(template=question.template.id)
@@ -721,13 +725,42 @@ def api_hints_list(request, question_id):
                             mimetype='application/json')
 
 @login_required
-def api_hints_vote(request, hint_id, approve):
-    hint_id = request.POST['hint_id']
-    approve = request.POST['approve']
-    return HttpResponse(json.dumps({ "kind" : "hintvotesample", 
-                        "id" : hint_id,
-                        "approve":  approve}),
-                        mimetype='application/json')
+def api_hints_vote(request, hint_id):
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+                            mimetype='application/json')
+    hint_id = int(request.POST['id'])
+    rating = request.POST['rating']
+    if rating == 'yes':
+        rating = True
+    elif rating == 'no':
+        rating = False
+    else:
+        return HttpResponse(json.dumps({ "kind" : "Bad hint vote", 
+                                   }),
+                            mimetype='application/json')
+ 
+    hint = users.QuestionHint.objects.get(id=hint_id)
+    if hint is None:
+        return HttpResponse(json.dumps({ "kind" : "hint#notfound", 
+                                   }),
+                            mimetype='application/json')
+    
+
+    # Check to make sure that the user hasn't voted 
+    prev_ratings = users.QuestionHintRating.objects.filter(hint=hint, src=request.user)
+    if len(prev_ratings) > 0:
+        approval = prev_ratings[0].rating
+        response = { "kind" : "message" }
+        if approval:
+            response['message'] = "You've already upvoted this hint."
+        else:
+            response['message'] = "You've already downvoted this hint."
+    else:
+        users.QuestionHintRating(hint=hint, src=request.user, rating=rating).save()
+        response = hints_get_json(request, hint_id, hint=hint)
+    
+    return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @login_required
 def api_hints_get(request, hint_id):
@@ -744,17 +777,18 @@ def hints_get_json(request, hint_id, hint=None, options=None):
                 return create_not_found_package()
         except users.QuestionHint.DoesNotExist as error:
             return create_not_found_package() 
+    # Get rating
+    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
+    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
+    votetotal = len(hintsup) - len(hintsdown)
     response = { "kind" : "hint",
                  "id" : hint.id,
                  "content" : hint.text,
                  "question" : hint.template.id,
+                 "rating" : votetotal,
                  "actor" : hint.src.id } 
     # Add HTML
-#    response['html'] = '<b>%s</b>' % hint.text
-    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
-    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
-    votetotal = len(hintsup) - len(hintsdown)
-    response['html'] = render_to_response('hint_vote_body.tpl',
+    response['html'] = render_to_response('hints_get.tpl',
                       { 'hintid' : hint.id,
                         'hintcontent' : hint.text,
                         'votetotal' : votetotal },
@@ -773,5 +807,266 @@ def hints_get_json(request, hint_id, hint=None, options=None):
             if k not in fields:
                 del response[k]
     return response
+
+
+#Example: 'api/attempts/insert', views.api_attempts_insert
+@login_required
+def api_attempts_insert(request, question_id):
+    errors = []
+    question_id = int(question_id)
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+                            mimetype='application/json')
+    if 'content' in request.POST:
+        content = request.POST['content']
+        if len(content) == 0:
+            errors.append("Length of content is 0")
+    else:
+        errors.append("No content given")
+    
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({ "kind" : "error", 
+                                         "errors" : errors,
+                                   }),
+                            mimetype='application/json')
+    try: 
+        question = users.Question.objects.get(template__id=question_id, user=request.user)
+    except users.Question.DoesNotExist:
+        raise exception.UnauthorizedAttemptException(request.user, question_id)
+    if question is None:
+        return HttpResponse(json.dumps({ "kind" : "question#notfound", 
+                                   }),
+                            mimetype='application/json')
+    if question.status != 'released':
+        errors.append('Cannot attempt question with status "%s"' % question.status)
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({ "kind" : "error", 
+                                         "errors" : errors,
+                                   }),
+                            mimetype='application/json')
+         
+    question_m = qm.QuestionManager()
+    correct, msg = question_m.check_question(question, content)
+    
+    msghub.register_message(msg, target=question_id, status=correct)
+    
+    # Record the guess.
+    g = users.Guess(user=request.user, 
+                    question=question, 
+                    value=content, 
+                    correct=correct, 
+                    time_guessed=datetime.datetime.now())
+    g.save()
+    if correct and question.status != 'solved':
+        question.status = 'solved'
+        question.save()
+        try:
+            question_m = qm.QuestionManager()
+            # Activate the next question.
+            question_m.activate_next(request.user)
+        except exception.NoQuestionReadyException:
+            # TODO cartland: Should we record this?
+            pass
+    response = attempts_get_json(request, attempt_id=g.id, attempt=g)
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_attempts_list(request, question_id):
+    question_id = int(question_id)
+    def create_not_found_package():
+        return { "kind" : "attempt#notfound" }
+    try:
+        attempts = users.Guess.objects.filter(question__template__id=question_id)
+        items = []
+        options = { "fields" : "kind,id,content,correct,html",
+                    "html" : "thumbnail" }
+        for attempt in attempts:
+            items.append(attempts_get_json(request, attempt.id, attempt=attempt, options=options))
+        response = { "kind" : "attemptFeed",
+                     "question" : question_id,
+                     "items" : items }
+        return HttpResponse(json.dumps(response),
+                            mimetype='application/json')
+    except users.QuestionHint.DoesNotExist as error:
+        return HttpResponse(json.dumps(create_not_found_package()),
+                            mimetype='application/json')
+
+def api_attempts_get(request, attempt_id):
+    return HttpResponse(json.dumps(attempts_get_json(request, attempt_id)),
+                        mimetype='application/json')
+
+def attempts_get_json(request, attempt_id, attempt=None, options=None):
+    def create_not_found_package():
+        return { "kind" : "attempt#notfound" }
+    def get_attempt_html(attempt):
+        return "%s, '%s', %s" % (str(attempt.time_guessed), attempt.value, "Correct" if attempt.correct else "Incorrect")
+    if attempt is None:
+        try:
+            attempt = users.Guess.objects.get(id=attempt_id)
+            if attempt is None:
+                return create_not_found_package()
+        except users.Guess.DoesNotExist as error:
+            return create_not_found_package() 
+    response = { "kind" : "attempt",
+                 "id" : attempt.id,
+                 "content" : attempt.value,
+#                 "attempt_index" : attempt.index,
+                 "html" : get_attempt_html(attempt),
+                 "question" : attempt.question.template.id,
+                 "correct" : attempt.correct,
+  		 "url" : "http://%s/questions/%d" % (request.get_host(), attempt.question.template.id),
+                 "published" : str(attempt.time_guessed),
+                 "actor" : attempt.user.id } 
+    # Handle masking of certain fields based on the fields parameter
+    parameters = ['fields']
+    if options is None:
+        options = {}
+    for p in parameters:
+        if p in request.GET and p not in options:
+            options[p] = request.GET[p]
+    if 'fields' in options:
+        fields = options['fields'].split(',')
+        for k in response.keys():
+            if k not in fields:
+                del response[k]
+    return response
+
+@login_required
+def system_tests_run(request):
+    def is_system_authorized():
+        return request.user.id == 2
+    if not is_system_authorized():
+        return HttpResponse(json.dumps({'kind' : 'unauthorized'}), mimetype='application/json')
+    tests = [
+        ['questions_get_structure', 'generic_api_test', 
+         {
+         'api_method' : 'api.questions.get',
+         'num_args' : '1',
+         'args_list' : [1],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+             'kind' : 'question',
+             'key' : 181,
+             'id' : 1,
+             'hints' : None,
+             'errors' : None,
+             'title' : 'Numbers in Numbers',
+             'url' : 'http://localhost:8080/questions/1',
+             'actor' : 2,
+             'content' : None,
+             'html' : None,
+             'published' : None,
+             'status' : None,
+           })
+         }],
+
+        ['questions_list_structure', 'generic_api_test',
+         {
+         'api_method' : 'api.questions.list',
+         'num_args' : '0',
+         'args_list' : [],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+             'kind' : 'questionFeed',
+             'items' : None,
+           })
+         }],
+
+        ['hints_get_structure', 'generic_api_test',
+         {
+         'api_method' : 'api.hints.get',
+         'num_args' : '1',
+         'args_list' : [1],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "rating": 5,
+           "kind": "hint",
+           "question": 1,
+           "actor": 2,
+           "content": "How would you find the sum of the first five? And then the next five?",
+           "html": None,
+           "id": 1,
+           }),
+         }],
+
+        ['attempts_get_structure', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.get',
+         'num_args' : '1',
+         'args_list' : [1],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attempt",
+           "id": 1,
+           "content": "Attempt",
+           "attempt_index": None,
+           "question": 1,
+           "correct" : False,
+           "url" : None,
+           "actor": 2,
+           "html": None,
+           "published": None,
+           }),
+         }],
+
+        ['attempts_insert_structure', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.insert',
+         'num_args' : '2',
+         'args_list' : [4, "sample"],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attempt",
+           "id": None,
+           "content": "sample",
+           "attempt_index": None,
+           "question": 4,
+           "correct" : False,
+           "url" : None,
+           "actor": 2,
+           "html": None,
+           "published" : None,
+           }),
+         }],
+
+        ['attempts_get_structure_correct', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.get',
+         'num_args' : '1',
+         'args_list' : [56],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attempt",
+           "content": "7920",
+           "question": 3,
+           "html": None,
+           "published": None,
+           "url": 'http://localhost:8080/questions/3',
+           "id": 56,
+           "actor": 2,
+           "correct": True,
+           }),
+         }],
+
+        ['attempts_list_structure', 'generic_api_test',
+         {
+         'api_method' : 'api.attempts.list',
+         'num_args' : '1',
+         'args_list' : [4],
+         'no_more_fields' : 'true',
+         'expected_response' : json.dumps({
+           "kind": "attemptFeed",
+           "question": 4,
+           "items" : None,
+           }),
+         }],
+    ]
+    return render_to_response('system_tests_run.tpl',
+        { 'tests' : tests,
+          'wait_for_click' : 'no' }, 
+          context_instance=RequestContext(request)
+        )
+
+
 
 

@@ -10,8 +10,6 @@
   </script>
   <script type="text/javascript" src="/static/js/api.js">
   </script>
-  <script type="text/javascript" src="/static/js/questions.js">
-  </script>
 
   {% if question %}
   <script type="text/javascript">

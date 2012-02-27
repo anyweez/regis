@@ -2,59 +2,113 @@
 ///      API       ///
 //////////////////////
 
+/* 
+** TO MAKE A NEW API: ** 
 
-var questions = new function() {
-   this.get = function(qid, callback) {
-       $.getJSON('/api/questions/' + qid, callback);};
-   this.list = function(callback) {
-       $.getJSON('/api/questions/list', callback);};
+###      api.js      ###
+Create a new API call for the object being modified.
+Example: create api.attempts.insert
+
+###      urls.py     ###
+Create a rule for the URL that you use in api.js
+Example: ('^api/attempts/insert/([0-9]+)$', views.api_attempts_insert),
+
+###     views.py     ###
+Write the Django handler for the API call.
+This does the meet of the work.
+Make sure it returns a JSON object.
+Example: views.api_attempts_insert(request)
+
+See views.system_tests_run for informaion about testing.
+After testing, the API is ready.
+
+###     templates    ###
+Modify templates as needed to use your API methods.
+*/
+var api = new function() {
+
+   this.questions = new function() {
+      this.get = function(qid, callback) {
+          $.getJSON('/api/questions/' + qid, callback);};
+      this.list = function(callback) {
+          $.getJSON('/api/questions/list', callback);};
+   }
+   
+   this.hints = new function() {
+      this.get = function(hid, callback) {
+          $.getJSON('/api/hints/' + hid, callback);};
+      this.list = function(qid, callback) {
+          $.getJSON('/api/hints/list/' + qid, callback);};
+      this.vote = function(hid, approve, callback) {
+          $.post('/api/hints/' + hid + '/vote',
+                 { 'id' : hid,
+                   'rating' : approve },
+                 callback,
+                 'json');};
+   }
+
+   this.attempts = new function() {
+      this.get = function(id, callback) {
+          $.getJSON('/api/attempts/' + id, callback);};
+      this.list = function(qid, callback) {
+          $.getJSON('/api/attempts/list/' + qid, callback);};
+      this.insert = function(qid, content, callback) {
+          $.post('/api/attempts/insert/' + qid,
+                 { 'content' : content },
+                 callback,
+                 'json');};
+   }
 }
 
-var hints = new function() {
-   this.get = function(hid, callback) {
-       $.getJSON('/api/hints/' + hid, callback);};
-   this.list = function(qid, callback) {
-       $.getJSON('/api/hints/list/' + qid, callback);};
-   this.vote = function(hid, approve, callback) {
-       $.getJSON('/api/hints/vote/' + hid + '/' + approve);};
+function alert_messages(data) {
+   if (data.kind == 'message') {
+      alert(data.message);
+   }
 }
 
-function view_question_handler(data) {
-  $('#question_body').html(data.html);
+function test_api(api_method, num_args, args_list, expected_json, no_more_fields_allowed, callback) {
+   if (!no_more_fields_allowed) {
+      no_more_fields_allowed = false;
+   }
+   var data_handler = function (data) {
+         var errors = Array();
+         for (var key in expected_json) {
+            if (!(key in data)) {
+               errors.push(key + ' not in response');
+            } else if (expected_json[key] == null) {
+               // null indicates that the real data can be any value
+            } else if (expected_json[key] != data[key]) {
+               errors.push(key + ' values do not match');
+            }
+         }
+         if (no_more_fields_allowed) {
+            for (var key in data) {
+               if (!(key in expected_json)) {
+                  errors.push(key + ' not allowed in response');
+               }
+            }
+         }
+         var response = {};
+         if (errors.length == 0) { 
+            response.success = true;
+         } else { 
+            response.success = false;
+         }
+         response.errors = errors;
+         callback(response);
+      };
+   if (num_args == 0) {
+      api_method(data_handler);
+   } else if (num_args == 1) {
+      api_method(args_list[0], data_handler);
+   } else if (num_args == 2) {
+      api_method(args_list[0], args_list[1], data_handler);
+   } else if (num_args == 3) {
+      api_method(args_list[0], args_list[1], args_list[2], data_handler);
+   } else if (num_args == 4) {
+      api_method(args_list[0], args_list[1], args_list[2], args_list[3], data_handler);
+   }
 }
-
-function list_questions_handler(data) {
-  for (var i = 0; i < data.items.length; i++) {
-    $('#question_body').append(data.items[i].html);
-  }
-}
-
-function hints_list_handler(data) {
-  for (var i = 0; i < data.items.length; i++) {
-    var hint = data.items[i];
-    $('#hint' + hint.id).html('<a href="#">Hint ' + (i + 1) +'</a>');
-    $('#hint' + hint.id).click(hint_click_handler);
-  }
-}
-
-function hint_click_handler(event) {
-  event.preventDefault();
-  hints.get($(this).attr("id").slice(4), hint_get_handler);
-}
-
-function hint_get_handler(data) {
-  $('#hint' + data.id).html(data.html);
-}
-
-function hint_vote_up(hint_id) {
-   hints.vote(hint_id, 'yes', function(data) { alert('yes'); } );
-}
-
-function hint_vote_down(hint_id) {
-   hints.vote(hint_id, 'no', function(data) { alert('now'); } );
-}
-
-
 
 // Send CSRF tokens when we make AJAX requests
 $(document).ajaxSend(function(event, xhr, settings) {
@@ -94,67 +148,4 @@ $(document).ajaxSend(function(event, xhr, settings) {
     }
 });
 
-//////////////////////
-/// Hint functions ///
-//////////////////////
 
-function get_hints(qid) {
-   $.getJSON('/ajax/hints/basic/' + qid,
-     function(data) {
-       // Update the hint status to state whether hints are available.
-       if (data.length > 0) {
-         if (data.length == 1) {
-            $('#hintdrop').html('<a onclick="load_hint();" href="#">Want a hint</a>?  There is 1 available.');  
-         }
-         else {
-            $('#hintdrop').html('<a onclick="load_hint();" href="#">Want a hint</a>?  There are ' + data.length + ' available.');
-         }
-         // Add the hint codes to the array.
-         $('#hintdisplay').append('<ul>');
-         for (i = 0; i < data.length; i++) {
-           $('#hintdisplay').append('<li id="' + data[i] + '"></li>');
-         }
-         $('#hintdisplay').append('</ul>');
-       }
-       else {
-         $('#hintdrop').html('No hints are currently available for this question.');
-       }       
-     }
-   );
-}
-
-function load_hint() {
-   $('#hintdisplay').css('display', 'block');
-   elig_hints = $('#hintdisplay').children('li');
-   for (i = 0; i < elig_hints.length; i++) {
-      if ($(elig_hints[i]).html().length == 0) {
-         $.getJSON('/ajax/hints/get/' + question_id + '/' + $(elig_hints[i]).attr('id'),
-            function(data) {
-               var hint_html = "<div class='votepane'><div class='hintvoter'><a onclick=\"hint_vote('" + data.hint_id + "', true)\">";
-               hint_html += "<img title='Upvote this hint' src='/static/img/approve.png' /></a><a onclick='hint_vote(\"" + data.hint_id + "\", false)'>";
-               hint_html += '<img title="Downvote this hint" src="/static/img/disapprove.png" /></a></div>';
-               hint_html += '<div class="hintscore" id="score_' + data.hint_id + '">' + (data.upvotes - data.downvotes) + '</div></div>';
-               hint_html += '<div style="vertical-align: top; display: inline-block; margin-top: 2px; width: 90%;">';
-               hint_html += data.hint_body + '</div>';
-               $(elig_hints[i]).html(hint_html);
-            }
-         );
-         // We've fetched a hint so our work here is done.
-         return;
-     }
-   }
-   alert('Sorry, no more hints are available for this question.');
-}
-
-function hint_vote(hint_id, approve_flag) {
-   url = approve_flag ? '/ajax/hints/vote/yes/' : '/ajax/hints/vote/no/';
-
-   $.post(url + hint_id, { 'hinthash' : hint_id }, function(data) {
-      if (data.msg == 'success') {
-         $('#score_' + hint_id).html(data.upvotes - data.downvotes);
-      }
-      else {
-         alert(data.msg);
-      }
-   });
-}
