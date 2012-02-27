@@ -26,12 +26,14 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body">
-      <div style="padding: 10px;"> 
+      <h2 style="font-weight: normal">Oops!</h2>
+      <div style="padding-top: 10px;"> 
       {% if errors %}
         {% for e in errors %}
-          {{ e }}
+          <p>{{ e }}</p>
         {% endfor %}
       {% endif %}
+      <p>Go <a href='#' onclick="history.go(-1)">back</a>.</p>
       </div>
     </div>
     <div style="clear: both; height: 0px;">&nbsp;</div>

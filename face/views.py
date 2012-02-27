@@ -181,6 +181,10 @@ def check_q(request):
         qid = int(request.POST['qid'])
         answer = str(request.POST['answer'])
         
+        if len(answer.strip()) == 0:
+            return render_to_response('error.tpl', 
+                { 'errors' : ['Please provide an answer before submitting.',] })
+        
         # Check to make sure the current user is allowed to answer this question.
         try:
             question = users.Question.objects.get(id=qid, user=request.user)
@@ -214,11 +218,14 @@ def check_q(request):
                 pass
         return redirect('/question/status/%d' % g.id)
         
-    # Either the qid, the answer, or one of the redirects wasn't set.
-    except KeyError:
-        pass
+    # Either the QID or the answer value wasn't set.
+    except KeyError:        
+        return render_to_response('error.tpl', 
+            { 'errors' : ['There was a problem retrieving information about your guess.  Please refresh the question page and try submitting again.',] })
     except exception.UnauthorizedAttemptException:
-        pass
+        return render_to_response('error.tpl', 
+            { 'errors' : ['You haven\'t unlocked that question yet.',] })
+
 
 @login_required
 def list_questions(request):
