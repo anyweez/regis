@@ -1,4 +1,4 @@
-<div id="right_col">
+<div id="right_column">
   <div id="small_right">
     <h3>{{ user.username }}</h3>
     <div class="statbox">

@@ -1,7 +1,8 @@
 @CHARSET "UTF-8";
 
 body {
-	background-image: url('../img/bg.png');
+/*	background-image: url('../img/bg.png');*/
+	background-color: #0F4D92; /* Yale Blue, UC Berkeley official Blue */
 	font-family: Arial;
 }
 
@@ -96,16 +97,14 @@ h2 a {
 }
 
 #heading {
-	border: 1px solid black;
-	width: 98%;
+	width: 100%;
 	height: 50px;
-	margin: 0 1% 0 1%;
 	
 	position: relative;
 	
 	background-color: black;
 	color: #CCCCCC;	
-    border: 3px solid black;
+	border: 3px solid black;
 }
 
 #heading #navigation {
@@ -138,20 +137,25 @@ h2 a {
     border: 3px solid black;	
 }
 
-#main_body {
-	margin: 0 1% 0 1%;
-	width: 98%;
+
+
+#middle_container {
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
 	
-	background-color: white;
-    border: 3px solid black;
+	background-color: #FFFFFF; /* #FFD700; */ /* Gold */
 }
 
-#main_body #question_body {
+#left_body {
+        float: left;
+	width: 100px;
+        height: auto;
+}
+
+#middle_container #center_body {
 	float: left;
-	width: 72%;
-	
-	margin: 1%;
-	margin-bottom: 0;
+	width: 500px;
 }
 
 h2 {
@@ -159,29 +163,30 @@ h2 {
 	margin: 0;
 }
 
-#question_body #main_q {
+#center_body #main_q {
 	font-size: 24px;
 }
 
-#main_body #right_col {
+#middle_container #right_column {
 	float: right;
-	width: 25%;
+	width: 197px; /* border-left plus width = 200px */
+	height: 100%;
 	border-left: 3px solid black;
-	
-	background-color: #E1F7E4;
+        border-bottom: 3px solid black;
+	background-color: #FFFFFF;
 }
 
-#right_col h3 {
+#right_column h3 {
 	margin: 0;
 	padding: 0;	
 }
 
-#main_body #right_col #small_right {
+#middle_container #right_column #small_right {
 	width: 92%;	
 	padding: 4%;
 }
 
-#main_body #right_col #large_right {
+#middle_container #right_column #large_right {
 	margin: 4%;
 	width: 90%;
 }
@@ -202,14 +207,22 @@ h2 {
 
 .qbox {
 	float: left;
-	width: 90%;
-	height: 20%;
+	width: 100%;
+	height: auto;
+
+	margin-top:1px;
+	padding-top: 40px;
+	padding-bottom: 20px;
 	
-	margin: 2%;
-	padding: 1%;
-	
-	border: 2px solid #666666;
-	background-color: #EEE;
+	background-color: #EEEEEE;
+}
+
+.qbox.status_solved {
+	background-color: #D1DCEC;/*#0F4D92; *//* Put blue here */
+}
+
+.qbox.status_released {
+	background-color: #69E06E;/*#0F4D92; *//* Put blue here */
 }
 
 br {
@@ -227,24 +240,9 @@ br {
 	margin: 5px;
 }
 
-.qbox .q_answered {
-	background-color: #AFDEB6;
-}
-
-.qbox .q_unanswered {
-	background-color: #EBEB98;	
-}
-
-.qbox .q_unavailable {
-	background-color: #CFCFCF;
-}
-
 .q_decoration {
 	height: 90px;
 	width: 130px;
-	
-	border: 2px solid #999;
-	border-radius: 4px;
 	
 	margin-right: 10px;
 	text-align: center;
@@ -497,7 +495,7 @@ div.error {
 	margin-bottom: 2px;
 }
 
-#main_body #test_body {
+#middle_container #test_body {
 	float: left;
 	width: 72%;
 	
@@ -505,6 +503,6 @@ div.error {
 	margin-bottom: 0;
 }
 
-html body div#display_body div#main_body div#test_body div#testtest.testresult div.testname {
+html body div#display_body div#middle_container div#test_body div#testtest.testresult div.testname {
     font-weight: bold;
 }
