@@ -133,7 +133,6 @@ def dash(request):
         next_release = {}
         next_release_s = question_m.time_until_next(request.user).total_seconds()
         
-        print next_release_s
         # Release a question if they've passed their deadline.
         if next_release_s < 0:
             question_m.activate_next(request.user)

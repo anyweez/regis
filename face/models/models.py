@@ -17,6 +17,11 @@ class RegisUser(models.Model):
     user = models.ForeignKey(User, unique=True)
     league = models.ForeignKey(RegisLeague)
     
+    class Meta:
+        permissions = (
+            ('view_user_aggr', 'Can view aggregated statistics about users.'),
+        )
+    
 REGIS_EVENT_TYPE = (
     ('login', 'Log In'),
 )
@@ -38,6 +43,11 @@ class QuestionTemplate(models.Model):
     solver_name = models.CharField(max_length=40)
     
     live = models.BooleanField()
+    
+    class Meta:
+        permissions = (
+            ('view_template_aggr', 'Can view aggregated statistics about question templates.'),
+        )
 
 QUESTION_STATUS = (
     ('solved', 'Solved'),       # question has been released and answered
