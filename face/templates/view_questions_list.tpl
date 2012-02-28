@@ -41,7 +41,7 @@
   <!-- Container for the majority of the page's content. -->
   <div id="middle_container">
     <div id="left_body">
-I am the left body.
+&nbsp;
     </div>
     <div id="center_body">
       <h2>Question List</h2>

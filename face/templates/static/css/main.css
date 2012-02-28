@@ -149,16 +149,43 @@ h2 a {
 
 #left_body {
         float: left;
-	width: 100px;
+	width: 75px;
         height: auto;
 }
 
-#middle_container #center_body {
+#center_body {
+	/* Total width should be 500px */
 	float: left;
-	width: 499px;
+	width: 490px;
+	margin-right: 0px;
+	overflow: hidden;
 }
 
-#middle_container #right_column {
+.qbox {
+	float: left;
+	width: 98%;
+	height: auto;
+
+	padding-top: 20px;
+	padding-bottom: 10px;
+	
+	border-top: 1px solid #DDDDDD;
+	border-right: 1px solid #DDDDDD;
+	border-left: 1px solid #DDDDDD;
+
+	background-color: #EEEEEE;
+}
+
+.qbox.status_solved {
+	background-color: #E4EFFF;/*#0F4D92; *//* Put blue here */
+}
+
+.qbox.status_released {
+	background-color: #DDFFDF;
+}
+
+
+#right_column {
 	float: right;
 	width: 197px; /* border-left plus width = 200px */
 	height: 100%;
@@ -189,28 +216,6 @@ h2 a {
 
 #footer p {
 	margin-top: .5em;
-}
-
-.qbox {
-	float: left;
-	width: 100%;
-	height: auto;
-
-	padding-top: 20px;
-	padding-bottom: 10px;
-	
-	border-top: 1px solid #DDDDDD;
-	border-right: 1px solid #DDDDDD;
-	border-left: 1px solid #DDDDDD;
-	background-color: #EEEEEE;
-}
-
-.qbox.status_solved {
-	background-color: #E4EFFF;/*#0F4D92; *//* Put blue here */
-}
-
-.qbox.status_released {
-	background-color: #DDFFDF;
 }
 
 br {
