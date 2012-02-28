@@ -417,7 +417,6 @@ div.error {
 }
 
 .hintbox .votepane {
-	background-color: #E0D01B;
 	display: inline-block;
 	vertical-align: top;
 
@@ -425,7 +424,7 @@ div.error {
 	margin-bottom: 5px;
 	padding: 3px 6px 3px 6px;
 
-	border: 1px solid #333;
+	border-right: 4px solid #E8A317;
 	border-radius: 2px;
 }
 
@@ -434,7 +433,7 @@ div.error {
 	width: 20px;
 	height: 40px;
 
-	margin-right: 2px;
+	margin-right: 10px;
 }
 
 .hintbox .hintscore {
@@ -443,7 +442,8 @@ div.error {
 	height: 40px;
 	vertical-align: top;
 
-	font-size: 30px;
+	font-size: 36px;
+	margin-right: 4px;
 }
 
 .login_btn {
