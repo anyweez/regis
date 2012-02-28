@@ -6,7 +6,7 @@
     <div id="navigation">
       <ul>
         <li><a href="/dash">current question</a></li>
-        <li><a href="/question/view/all">question list</a></li>
+        <li><a href="/questions/list">question list</a></li>
         <!--<li><a href="/team/challenge">team challenge</a></li>-->
         <li><a href="/how">how it works</a></li>
         <li><a href="/about">about</a></li>

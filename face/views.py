@@ -273,9 +273,9 @@ def view_question(request, tid):
         pass
 
 @login_required
-def question_status(request, gid):
+def question_status(request, qid):
     try:
-        guess = users.Guess.objects.get(id=gid)
+        guess = users.Guess.objects.filter(question__template__id=qid).order_by('-id')[0]
         question = guess.question
         
         # Get the information for the next question
@@ -816,13 +816,20 @@ def api_hints_vote(request, hint_id):
 
     # Check to make sure that the user hasn't voted 
     prev_ratings = users.QuestionHintRating.objects.filter(hint=hint, src=request.user)
-    if len(prev_ratings) > 0:
-        approval = prev_ratings[0].rating
-        response = { "kind" : "message" }
-        if approval:
-            response['message'] = "You've already upvoted this hint."
+    if len(prev_ratings) == 1:
+        if rating != prev_ratings[0].rating:
+            prev_ratings[0].rating = rating
+            prev_ratings[0].save()
+            response = hints_get_json(request, hint_id, hint=hint)
         else:
-            response['message'] = "You've already downvoted this hint."
+            response = { "kind" : "message" }
+            if rating:
+                response['message'] = "You've already upvoted this hint."
+            else:
+                response['message'] = "You've already downvoted this hint."
+    elif len(prev_ratings) > 1:
+        response = { "kind" : "message" }
+        response['message'] = "You've already voted multiple times."
     else:
         users.QuestionHintRating(hint=hint, src=request.user, rating=rating).save()
         response = hints_get_json(request, hint_id, hint=hint)
