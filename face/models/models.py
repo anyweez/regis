@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib import admin
 
 import re, hashlib
 
@@ -19,7 +18,7 @@ class RegisUser(models.Model):
     
     class Meta:
         permissions =(
-            ('view_user_aggr', 'View aggregated information about users.'),
+            ('view_aggregates', 'View summary data in admin panel.'),
         )
     
 REGIS_EVENT_TYPE = (
@@ -44,11 +43,6 @@ class QuestionTemplate(models.Model):
     
     live = models.BooleanField()
     
-    class Meta:
-        permissions =(
-            ('view_template_aggr', 'View aggregated information about question templates.'),
-        )
-
 QUESTION_STATUS = (
     ('solved', 'Solved'),       # question has been released and answered
     ('released', 'Released'),   # question has been released but not answered
@@ -153,14 +147,14 @@ class QuestionFeedback(models.Model):
     value = models.IntegerField()
 
 # Add some stuff to the admin interface.
-admin.site.register(RegisLeague)
-admin.site.register(RegisUser)
-admin.site.register(QuestionTemplate)
-admin.site.register(Question)
-admin.site.register(QuestionHint)
-admin.site.register(Answer)
-admin.site.register(Guess)
-admin.site.register(Suggestion)
+#admin.site.register(RegisLeague)
+#admin.site.register(RegisUser)
+#admin.site.register(QuestionTemplate)
+#admin.site.register(Question)
+#admin.site.register(QuestionHint)
+#admin.site.register(Answer)
+#admin.site.register(Guess)
+#admin.site.register(Suggestion)
 
 # Social auth handlers.
 from social_auth.signals import socialauth_registered

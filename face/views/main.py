@@ -7,7 +7,6 @@ from django.utils.html import strip_tags
 
 import math, datetime
 import models.models as users
-import util
 import util.UserStats as UserStats
 import util.QuestionManager as qm
 import util.Concierge as question_link
@@ -133,7 +132,6 @@ def dash(request):
         next_release = {}
         next_release_s = question_m.time_until_next(request.user).total_seconds()
         
-        print next_release_s
         # Release a question if they've passed their deadline.
         if next_release_s < 0:
             question_m.activate_next(request.user)
