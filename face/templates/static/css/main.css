@@ -196,6 +196,8 @@ h2 a {
 	border-left: 2px solid black;
         border-bottom: 2px solid black;
 	background-color: #FFFFFF;
+
+	overflow-y: auto;
 }
 
 #middle_container #right_column #small_right {
