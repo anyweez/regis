@@ -34,6 +34,7 @@ urlpatterns = patterns('',
     ('ajax/hints/vote/no/([a-f0-9]+)', views.tally_vote, { 'vote' : False }),
     ('^questions/list$', views.list_questions_with_api),
     ('^questions/(\d+)$', views.view_question_with_api),
+    ('^questions/status/(\d+)$', views.question_status),
     ('^questions', views.questions_unknown), # Redirect to /questions/list
     ('^api/questions/list$', views.api_questions_list),
     ('^api/questions/([0-9]+)$', views.api_questions_get),
