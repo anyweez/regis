@@ -11,7 +11,8 @@
 
   <script type="text/javascript">
     $(document).ready(function() {
-       api.questions.list(list_questions_handler);
+       api.questions.list(list_questions_handler, { 'status' : 'released' });
+       api.questions.list(list_questions_handler, { 'status' : 'solved' });
 /*
        $(window).resize(function () {
           var h = Math.min($(window).height(), 500);
@@ -37,25 +38,24 @@
   <!-- The heading, which contains the title and appears above everything else. -->
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
-    
-  <!-- Container for the majority of the page's content. -->
-  <div id="middle_container">
-    <div id="left_body">
-&nbsp;
+      
+    <!-- Container for the majority of the page's content. -->
+    <div id="middle_container">
+      <div id="left_body">
+  &nbsp;
+      </div>
+      <div id="center_body">
+        <h2>Question List</h2>
+        <p>The following questions are available in the system.  Additional questions will be released to you once
+        you either solve a problem or work on it for 48 hours without solving it.</p>     
+      </div>  
+      {% include 'include/sidebar.tpl' %}
+      <div style="clear: both; height: 0px;">&nbsp;</div>
+    </div> <!--  end middle_container -->
+  
+    <!-- Container for the information that appears below the main content (i.e. licensing info). -->
+    <div id="footer">
     </div>
-    <div id="center_body">
-      <h2>Question List</h2>
-      <p>The following questions are available in the system.  Additional questions will be released to you once
-      you either solve a problem or work on it for 48 hours without solving it.</p>     
-    </div>  
-    {% include 'include/sidebar.tpl' %}
-    <div style="clear: both; height: 0px;">&nbsp;</div>
-  </div> <!--  end middle_container -->
-
-  <!-- Container for the information that appears below the main content (i.e. licensing info). -->
-  <div id="footer">
-  </div>
-</div> 
-  </div>
+  </div> 
 </body>
 </html>

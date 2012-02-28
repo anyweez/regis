@@ -30,8 +30,15 @@ var api = new function() {
    this.questions = new function() {
       this.get = function(qid, callback) {
           $.getJSON('/api/questions/' + qid, callback);};
-      this.list = function(callback) {
-          $.getJSON('/api/questions/list', callback);};
+      this.list = function(callback, options) {
+          var url = '/api/questions/list';
+          if (arguments.length > 1) {
+              url += '?';
+              for (var i in arguments[1]) {
+                  url += i + '=' + arguments[1][i] + '&';
+              }
+          }
+          $.getJSON(url, callback);};
    }
    
    this.hints = new function() {

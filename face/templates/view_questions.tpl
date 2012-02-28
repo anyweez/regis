@@ -22,7 +22,7 @@
     });
 
     function questions_get_handler(data) {
-      $('#question_body').html(data.html);
+      $('#center_body').html(data.html);
       $('#attempt_form').submit(attempt_submit_handler);
     }
     
@@ -99,23 +99,27 @@
   <title>Regis: View question</title>
 </head>
 <body>
+  <!-- The heading, which contains the title and appears above everything else. -->
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
       
     <!-- Container for the majority of the page's content. -->
-    <div id="main_body">
-      <div id="question_body">  
-      </div>  
-      <div id="attempts_body">
+    <div id="middle_container">
+      <div id="left_body">
+  &nbsp;
       </div>
+      <div id="center_body">
+        <h2>Question List</h2>
+        <p>The following questions are available in the system.  Additional questions will be released to you once
+        you either solve a problem or work on it for 48 hours without solving it.</p>     
+      </div>  
       {% include 'include/sidebar.tpl' %}
       <div style="clear: both; height: 0px;">&nbsp;</div>
-      </div> <!--  end main_body -->
+    </div> <!--  end middle_container -->
   
-      <!-- Container for the information that appears below the main content (i.e. licensing info). -->
-      <div id="footer">
-      </div>
-    </div> 
-  </div>
+    <!-- Container for the information that appears below the main content (i.e. licensing info). -->
+    <div id="footer">
+    </div>
+  </div> 
 </body>
 </html>
