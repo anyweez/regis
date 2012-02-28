@@ -51,7 +51,7 @@ class UserStats(object):
         
         guess_cnt = [len(question_dict[key]) for key in question_dict.keys()]
 
-        return round((sum(guess_cnt) * 1.0) / len(guess_cnt), 2)
+        return (sum(guess_cnt) * 1.0) / len(guess_cnt)
     
     def fastest_answer(self):
         guesses = regis.Guess.objects.filter(user=self.user, correct=True)
