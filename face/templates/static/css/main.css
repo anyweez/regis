@@ -184,6 +184,10 @@ h2 a {
 	background-color: #DDFFDF;
 }
 
+.qbox.status_ready {
+	background-color: #FFFFDD;
+}
+
 
 #right_column {
 	float: right;
