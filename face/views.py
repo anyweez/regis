@@ -275,7 +275,7 @@ def view_question(request, tid):
 @login_required
 def question_status(request, qid):
     try:
-        guess = users.Guess.objects.filter(question__template__id=qid).order_by('-id')[0]
+        guess = users.Guess.objects.filter(question__template__id=qid).order_by('id')[0]
         question = guess.question
         
         # Get the information for the next question
@@ -521,7 +521,7 @@ def list_questions_with_api(request):
 @login_required
 def view_question_with_api(request, tid):
     return render_to_response('view_questions.tpl', 
-                { 'tid' : tid, 
+                { 'questions_id' : tid, 
                   'stats' : UserStats.UserStats(request.user),
                   'user': request.user },
                 context_instance=RequestContext(request))

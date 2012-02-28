@@ -1,5 +1,7 @@
 {% comment %}
+Requres
 
+question_id
 {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
@@ -13,7 +15,7 @@
   </script>
  
   <script type="text/javascript">
-    var question_id = {{ tid }};
+    var question_id = {{ questions_id }};
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
        api.questions.get(question_id, questions_get_handler);
@@ -22,7 +24,7 @@
     });
 
     function questions_get_handler(data) {
-      $('#center_body').html(data.html);
+      $('#question').html(data.html);
       $('#attempt_form').submit(attempt_submit_handler);
     }
     
@@ -53,26 +55,22 @@
 
     function attempts_list_handler(data) {
        var question_id = data.question;
-       var div = $('#attempts' + question_id);
+       var div = $('#previous_attempts' + question_id);
        var ul = $('<ul></ul>');
-       ul.hide();
        for (var i = 0; i < data.items.length; i++) {
           ul.append($('<li></li>').html(data.items[i].html));
        }
-       div.html('<a href="#">Previous attempts</a>');
-       div.click(previous_attempts_handler);
+       div.html('Previous attempts');
        div.append(ul);
-    }
-   
-    function previous_attempts_handler(event) {
-       event.preventDefault();
-       var ul = $('#attempts' + question_id + ' > ul');
-       if (ul.attr('style') == 'display: block;') {
-          ul.hide();
+       if (data.items[data.items.length - 1].correct) {
+          div = $('#question_status' + question_id);
+          div.html('Correct!');
        } else {
-          ul.show();
+          div = $('#question_status' + question_id);
+          div.html('');
        }
     }
+   
 
     function attempt_submit_handler(event) {
        event.preventDefault();
@@ -109,9 +107,12 @@
   &nbsp;
       </div>
       <div id="center_body">
-        <h2>Question List</h2>
-        <p>The following questions are available in the system.  Additional questions will be released to you once
-        you either solve a problem or work on it for 48 hours without solving it.</p>     
+        <div id="question_status{{ questions_id }}">
+        </div>
+        <div id="question">
+        </div>
+        <div id="previous_attempts{{ questions_id }}">
+        </div>
       </div>  
       {% include 'include/sidebar.tpl' %}
       <div style="clear: both; height: 0px;">&nbsp;</div>
