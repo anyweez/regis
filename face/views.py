@@ -529,16 +529,83 @@ def view_question_with_api(request, tid):
 
 @login_required
 def api_questions_list(request):
+    valid_options = { 'start' : lambda x: int(x) if int(x) >= 0 else None,
+                      'limit' : lambda x: int(x) if int(x) >= 0 else None,
+                      'status' : lambda x: x if x in ['released',
+                                                 'ready',
+                                                 'solved',
+                                                 'pending',
+                                                 'retired',
+                                                 'any',
+                                                ] else None,
+                      'order_by' : lambda x: {'published' : 'text',
+                                              'id' : 'template' }[x] if x in ['published',
+                                                   'id'
+                                                  ] else None,
+                    }
+    default_options = { 'start' : 0,
+                        'limit' : None,
+                        'status' : 'any',
+                        'order_by' : 'id',
+                      }
+    request_options = extract_options(request, valid_options, default_options)
+    
     qs = users.QuestionSet.objects.get(reserved_by=request.user)
-    all_questions = qs.questions.all().order_by('template')
+    if request_options['status'] == 'any':
+        questions_list = qs.questions.all()
+    else:
+        questions_list = qs.questions.filter(status=request_options['status'])
+    questions_list = questions_list.order_by(request_options['order_by'])
+    if 'limit' in request_options:
+        start = request_options['start']
+        end = start + request_options['limit']
+        questions_list = questions_list[start:end]
+    else:
+        start = request_options['start']
+        questions_list = questions_list[start:]
+    
     items = []
     options = { 'html' : 'thumbnail' }
-    for question in all_questions:
+    for question in questions_list:
         if question.status in ['released', 'ready', 'solved']:
             items.append(questions_get_json(request, question.template.id, question=question, options=options))
     response = { "kind" : "questionFeed",
 		"items" : items }
     return HttpResponse(json.dumps(response), mimetype='application/json')
+
+def extract_options(request, valid_options, default_options):
+    request_options = {}
+    for option_name in valid_options.iterkeys():
+        option_value = None
+        if option_name in request.GET:
+            option_value = request.GET[option_name]
+        elif option_name in request.POST:
+            option_value = request.POST[option_name]
+        elif default_options[option_name] is not None:
+            option_value = default_options[option_name] 
+        if option_value is not None:
+            option_value = valid_options[option_name](option_value)
+            if option_value is not None:
+                request_options[option_name] = option_value
+    return request_options
+
+def get_options_dictionary(request, dictionary_of_options):
+    # Figure out options
+    return {}    
+    '''
+        html_options = list_of_options
+        if options is None:
+            options = {}
+        if 'html' in options \
+           and options['html'] in html_options:
+            pass
+        elif 'html' in request.GET \
+             and request.GET['html'] in html_options:
+            options['html'] = request.GET['html']
+        else:
+            options['html'] = 'full'
+    '''
+
 
 @login_required
 def api_questions_get(request, question_id):
