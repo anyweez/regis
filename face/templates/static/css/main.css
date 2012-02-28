@@ -134,7 +134,7 @@ h2 a {
 
 #logbox {
 	background-color: white;
-    border: 3px solid black;	
+	border: 3px solid black;	
 }
 
 
@@ -155,30 +155,16 @@ h2 a {
 
 #middle_container #center_body {
 	float: left;
-	width: 500px;
-}
-
-h2 {
-	font-size: 30px;	
-	margin: 0;
-}
-
-#center_body #main_q {
-	font-size: 24px;
+	width: 499px;
 }
 
 #middle_container #right_column {
 	float: right;
 	width: 197px; /* border-left plus width = 200px */
 	height: 100%;
-	border-left: 3px solid black;
-        border-bottom: 3px solid black;
+	border-left: 2px solid black;
+        border-bottom: 2px solid black;
 	background-color: #FFFFFF;
-}
-
-#right_column h3 {
-	margin: 0;
-	padding: 0;	
 }
 
 #middle_container #right_column #small_right {
@@ -210,19 +196,21 @@ h2 {
 	width: 100%;
 	height: auto;
 
-	margin-top:1px;
-	padding-top: 40px;
-	padding-bottom: 20px;
+	padding-top: 20px;
+	padding-bottom: 10px;
 	
+	border-top: 1px solid #DDDDDD;
+	border-right: 1px solid #DDDDDD;
+	border-left: 1px solid #DDDDDD;
 	background-color: #EEEEEE;
 }
 
 .qbox.status_solved {
-	background-color: #D1DCEC;/*#0F4D92; *//* Put blue here */
+	background-color: #E4EFFF;/*#0F4D92; *//* Put blue here */
 }
 
 .qbox.status_released {
-	background-color: #69E06E;/*#0F4D92; *//* Put blue here */
+	background-color: #DDFFDF;
 }
 
 br {
@@ -241,28 +229,20 @@ br {
 }
 
 .q_decoration {
-	height: 90px;
-	width: 130px;
-	
 	margin-right: 10px;
-	text-align: center;
+	text-align: left;
 	
-	float: left;
+	float: top;
 }
 
 .q_decoration p {
 	margin: 0;
 	padding: 0;
-	
+	display:inline;
 	font-size: small;
 }
 
 .qbox .q_status {
-	font-weight: bold;
-	margin-top: 15px;
-	margin-bottom: 10px;
-	
-	font-size: medium;
 }
 
 .q_suggest_list {

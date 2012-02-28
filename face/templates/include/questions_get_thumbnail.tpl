@@ -13,23 +13,23 @@ hintids
 <div id="question{{ questionnumber }}" class="qbox status_{{ questionstatus }}">
   <div class="question_status">
     {% if questionstatus == 'ready' or questionstatus == 'pending' %}
-      <div class="q_decoration q_unavailable">
-        <p class="q_status">locked</p>
-        <p>solved by 2 of 8</p>
+      <div class="q_decoration">
+        <p class="q_status">Locked.</p>
+        <p>Solved by 2 of 8 students.</p>
         <p>( 25% )</p>
       </div>
     {% endif %}
     {% if questionstatus == 'released' %}
-      <div class="q_decoration q_unanswered">
-        <p class="q_status">unsolved</p>
-        <p>solved by 2 of 8</p>
+      <div class="q_decoration">
+        <p class="q_status">Unsolved.</p>
+        <p>Solved by 2 of 8 students.</p>
         <p>( 25% )</p>
       </div>
     {% endif %}
     {% if questionstatus == 'solved' %}
-      <div class="q_decoration q_answered">
-        <p class="q_status">solved</p>
-        <p>solved by 2 of 8</p>
+      <div class="q_decoration">
+        <p class="q_status">Solved!</p>
+        <p>Solved by 2 of 8 students.</p>
         <p>( 25% )</p>
       </div>
     {% endif %} 
