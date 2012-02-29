@@ -1,15 +1,23 @@
 from django.conf.urls.defaults import patterns, include, url
-import views.main as main
-import views.admin as admin
+from django.contrib import admin
+
+import face.views.main as main
+import face.views.admin as radmin
+
+admin.autodiscover()
 
 urlpatterns = patterns('',
+    # Django admin stuff.
+    url(r'^admin/', include(admin.site.urls)),
+    
     ('^$', main.index),
     ('^login$', main.index),
     ('^about$', main.about),
 #    ('account/create$', main.create_account),
     ('account/logout$', main.logout),
     
-    ('admin', admin.index),
+    ('summary$', radmin.index),
+    ('summary/chart_view/(\d+)$', radmin.chart_view),
     
     ('^build-acct$', main.build_acct),
     ('dash$', main.dash),

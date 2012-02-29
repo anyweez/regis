@@ -5,15 +5,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils.html import strip_tags
 
-import math, datetime
-import models.models as users
-import util.UserStats as UserStats
-import util.QuestionManager as qm
-import util.Concierge as question_link
-import msg.msghub as msghub
-import util.exceptions as exception
+import face.models.models as users
+import face.util.UserStats as UserStats
+import face.util.QuestionManager as qm
+import face.util.Concierge as question_link
+import face.msg.msghub as msghub
+import face.util.exceptions as exception
 
-import re, json
+import re, json, math, datetime
 
 # View is activated when the index page is viewed.
 # There's not a lot of dynamic action here at
