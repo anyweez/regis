@@ -159,18 +159,17 @@ def dash(request):
         next_release['minutes'] = int(math.floor(next_release_s / 60))
         next_release_s -= (next_release['minutes'] * 60)
         
-    return render_to_response('view_questions.tpl', 
+    if current_q is None:
+        return render_to_response('emptydashboard.tpl',
+                { 'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
+    else:
+        return render_to_response('view_questions.tpl', 
                 { 'questions_id' : current_q.template.id, 
                   'stats' : UserStats.UserStats(request.user),
                   'user': request.user },
                 context_instance=RequestContext(request))
-#    return render_to_response('dashboard.tpl', 
-#        { 'user': request.user, 
-#          'question': current_q, 
-#          'ttl' : next_release,
-#        },
-#        context_instance=RequestContext(request)
-#    )
 
 @login_required
 def logout(request):
