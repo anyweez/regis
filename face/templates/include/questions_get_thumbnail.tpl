@@ -9,30 +9,24 @@ questioncontent
 questionpublished
 hintids
 
+Uses (optional):
+questionstats
 {% endcomment %}
 <div id="question{{ questionnumber }}" class="qbox status_{{ questionstatus }}">
   <div class="question_status">
-    {% if questionstatus == 'ready' or questionstatus == 'pending' %}
       <div class="q_decoration">
-        <p class="q_status">Locked.</p>
-        <p>Solved by 2 of 8 students.</p>
-        <p>( 25% )</p>
+        {% if questionstatus == 'ready' or questionstatus == 'pending' %}
+          <p class="q_status">Locked.</p>
+        {% endif %}
+        {% if questionstatus == 'released' %}
+          <p class="q_status">Unsolved.</p>
+        {% endif %}
+        {% if questionstatus == 'solved' %}
+          <p class="q_status">Solved!</p>
+        {% endif %} 
+        <p>Solved by {{ questionstats.num_solved }} of {{ questionstats.num_available }} students.</p>
+        <p>( {{ questionstats.solved_percent }}% )</p>
       </div>
-    {% endif %}
-    {% if questionstatus == 'released' %}
-      <div class="q_decoration">
-        <p class="q_status">Unsolved.</p>
-        <p>Solved by 2 of 8 students.</p>
-        <p>( 25% )</p>
-      </div>
-    {% endif %}
-    {% if questionstatus == 'solved' %}
-      <div class="q_decoration">
-        <p class="q_status">Solved!</p>
-        <p>Solved by 2 of 8 students.</p>
-        <p>( 25% )</p>
-      </div>
-    {% endif %} 
   </div>
   
   <div class="question_content">

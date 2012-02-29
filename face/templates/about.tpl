@@ -5,18 +5,6 @@
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
 
   {% include 'include/common_header.tpl' %}
-  
-  <style type="text/css">
-    #logbox {
-      background-color: white;
-      width: 38em;
-      padding: 1%;
-      margin: 0 auto;
-
-      border: 3px solid black;
-      border-radius: 3px;
-    }
-  </style>
 
   <title>Regis: about</title>
 </head>
@@ -25,22 +13,25 @@
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
     
-  <!-- Container for the majority of the page's content. -->
-  <div id="main_body">
-    <div id="question_body"> 
-      <h2 style="font-weight: normal">About Regis</h2>
-      <p>
+    <!-- Container for the majority of the page's content. -->
+    <div id="middle_container">
+      <div id="left_body">
+  &nbsp;
+      </div>
+      <div id="center_body"> 
+        <h2>About Regis</h2>
+        <p>
          This can say whatever you want, but please provide a link back to 
          <a href="https://github.com/luke-segars/regis">Regis</a> somewhere. 
-      </p>
-    </div>  
-  <div style="clear: both; height: 0px;">&nbsp;</div>
-  </div> <!--  end main_body -->
-
-  <!-- Container for the information that appears below the main content (i.e. licensing info). -->
+        </p>
+      </div>  
+{% comment %}      {% include 'include/sidebar.tpl' %} {% endcomment %}
+      <div style="clear: both; height: 0px;">&nbsp;</div>
+    </div> <!--  end middle_container -->
+  
+    <!-- Container for the information that appears below the main content (i.e. licensing info). -->
     <div id="footer">
     </div>
-</div> 
-  </div>
+  </div> 
 </body>
 </html>

@@ -661,6 +661,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                      "key" : question.id,
 		     "title" : question.template.title,
                      "id" : question.template.id,
+                     "stats" : question.stats,
                      "errors" : errors }
         if options['html'] == 'full':
             response['html'] = render_to_response('include/questions_get.tpl',
@@ -669,6 +670,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                                   'questionnumber' : question.template.id,
                                   'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
                                   'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
                                   'hintids' : [] },
                                 context_instance=RequestContext(request)
                               ).content
@@ -679,6 +681,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                                   'questionnumber' : question.template.id,
                                   'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
                                   'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
                                   'hintids' : [] },
                                 context_instance=RequestContext(request)
                               ).content
@@ -691,6 +694,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                      "key" : question.id,
 		     "title" : question.template.title,
                      "id" : question.template.id,
+                     "questionstats" : question.stats,
   		     "content" : question.decoded_text(),
   		     #"scope" : scope,
   		     "hints" : hintids, 
@@ -703,8 +707,9 @@ def questions_get_json(request, question_id, question=None, options=None):
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
-                                  'questioncontent' : question.decoded_text(),
+                                  'questioncontent' : question.decoded_text(), # strip_tags?
                                   'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
                                   'hintids' : hintids },
                                 context_instance=RequestContext(request)
                               ).content
@@ -713,8 +718,9 @@ def questions_get_json(request, question_id, question=None, options=None):
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
-                                  'questioncontent' : question.decoded_text(),
+                                  'questioncontent' : question.decoded_text(), # strip_tags ?
                                   'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
                                   'hintids' : hintids },
                                 context_instance=RequestContext(request)
                               ).content
@@ -764,6 +770,10 @@ def questions_get_json(request, question_id, question=None, options=None):
             hintids = [h.id for h in hints]
     except users.QuestionHint.DoesNotExist as error:
         errors.append("Error when looking for hints")
+
+    question.stats = get_question_stats(question)
+
+
     # If pending or ready, return a locked package.
     if question.status in ['pending', 'ready']:
         return create_locked_package(question, options)
@@ -772,6 +782,21 @@ def questions_get_json(request, question_id, question=None, options=None):
         return create_question_package(question, options)
     errors.append("Question status unknown")
     return create_question_package(question, options)
+
+def get_question_stats(question):
+    # Compute statistics for # solved vs. # available on the fly.  We
+    # may want to batch this later if performance becomes an issue.  It
+    # won't scale particularly well as the user load increases.
+    available = users.Question.objects.filter(template=question.template).exclude(status='retired')
+    num_available = sum([1 for q in available if q.status in ('released', 'solved')])
+    num_solved = sum([1 for q in available if q.status == 'solved'])
+    if num_available > 0:
+        solved_percent = round((num_solved * 1.0 / num_available) * 100, 1)
+    else:
+        solved_percent = 0.0
+    return { 'num_available' : num_available,
+             'num_solved' : num_solved,
+             'solved_percent' : solved_percent }
 
 @login_required
 def api_hints_list(request, question_id):

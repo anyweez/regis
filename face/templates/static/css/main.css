@@ -45,6 +45,37 @@ body input[type="submit"] {
 	vertical-align: middle;
 }
 
+html body div#display_body div#middle_container div#center_body div#suggestbox form textarea {
+	border: 2px solid #333;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	background-color: #ebf2ff;
+	
+	font-size: 14px;
+	padding: 4px;
+	width: 400px;
+}
+
+html body div#display_body div#middle_container div#center_body div#suggestbox form input[type="submit"] {
+	height: 76px;
+	right: 6px;
+	top: -30px;
+
+
+	border: 2px solid #333;
+	background-color: #ccc;
+	border-radius: 0px 10px 10px 0px;
+	box-shadow:inset 0 0 8px #666;
+	min-width: 70px;
+
+	font-size: normal;
+
+	position: relative;
+
+	vertical-align: middle;
+
+}
+
 body input[type="button"] {
 	border: 2px solid #333;
 	background-color: #ccc;
@@ -58,7 +89,7 @@ body textarea {
 	border: 2px solid #333;
 	border-radius: 2px;
 	box-shadow:inset 0 0 8px #666;
-	background-color: #EBF2FF;
+	background-color: #ebf2ff;
 	
 	font-size: 14px;
 	padding: 4px;
