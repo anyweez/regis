@@ -1005,6 +1005,78 @@ def attempts_get_json(request, attempt_id, attempt=None, options=None):
                 del response[k]
     return response
 
+def sanity_questions_get(request, qid):
+    question_id = int(qid)
+    user = request.user
+    errors = []
+    hintids = []
+    try:
+        template = users.QuestionTemplate.objects.get(id=question_id)
+        if template is not None:
+            question = users.Question.objects.filter(user=user, template=template)
+            if len(question) > 0:
+                if len(question) > 1:
+                    errors.append("Redundant questions found.")
+                question = question[0]
+            else:
+                errors.append('Template found, but question does not exist for users %d' %user.id)
+        else:
+            errors.append('Template not found')
+    except users.QuestionTemplate.DoesNotExist as error:
+        errors.append('Template name does not exist')
+    except users.Question.DoesNotExist as error:
+        errors.append('Question does not exist')
+    # Get all hints
+    try:
+        hints = users.QuestionHint.objects.filter(template=question.template.id)
+        if hints is not None:
+            hintids = [h.id for h in hints]
+            for h in hints:
+                if h.template.id != question_id:
+                    errors.append('Hint %d does not belong to template %d' % (h.id, question_id))
+    except users.QuestionHint.DoesNotExist as error:
+        errors.append('Hints do not exist')
+    if question.status not in ['pending', 'ready', 'released', 'solved']:
+        errors.append("Question status '%s' unknown" % question.status)
+    if question.status == 'released' and question.time_released is None:
+        errors.append("'released' question does not have a published time released")
+    if question.status == 'ready' and question.time_released is not None:
+        errors.append("'ready' question should not have a published time released: %s, time_computed: %s" % (question.time_released, question.time_computed))
+    
+    
+    if question.user != request.user:
+        errors.append('Users do not match question user')
+    if question.user.id != request.user.id:
+        errors.append('Current user id %d does not match questions user id %d' % (request.user.id, question.user.id))
+    
+
+    # ATTEMPTS
+    attempts = users.Guess.objects.filter(question__id=question.id)
+    attempt_count = 0
+    for attempt in attempts:
+        attempt_count += 1
+        if attempt.user != request.user:
+            errors.append('Users do not match attempt %d user' % attempt.id)
+        if attempt.user.id != request.user.id:
+            errors.append('Current user id %d does not match attempt user id %d' % (attempt.user.id, attempt.user.id))
+
+        if attempt.correct:
+            if question.status != 'solved':
+                errors.append("Correct attempt %d exists but questions %d has a status of %s when it should be 'solved'" % (attempt.id, question.id, question.status))
+            if attempt_count != len(attempts):
+                errors.append('Correct attempt (id: %d) is not the last of %s attempts. Instead it is number %d (index starts at 1).' % (attempt.id, len(attempts), attempt_count))
+        if attempt_count == len(attempts):
+            if question.status == 'solved' and not attempt.correct:
+                errors.append('The last attempt (id: %d) in a solved question (id: %d, key: %d)' % (attempt.id, question.id, question.template.id))
+    if question.status == 'solved' and attempt_count == 0:
+       errors.append("'solved' question has 0 attempts")
+
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({'kind' : 'insane', 'errors' : errors}), mimetype='application/json')
+    else:
+        return HttpResponse(json.dumps({'kind' : 'sane'}), mimetype='application/json')
+
+
 @login_required
 def system_tests_run(request):
     def is_system_authorized():

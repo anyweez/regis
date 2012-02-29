@@ -89,6 +89,9 @@ question_id
     }
     
     function attempts_submit_response_handler(data) {
+       if (data.kind == 'error') {
+          alert('Cannot submit an attempt.');
+       }
        api.attempts.list(question_id, attempts_list_handler);
     }
   </script>

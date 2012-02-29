@@ -38,6 +38,7 @@ urlpatterns = patterns('',
     ('^questions', views.questions_unknown), # Redirect to /questions/list
     ('^api/questions/list$', views.api_questions_list),
     ('^api/questions/([0-9]+)$', views.api_questions_get),
+    ('^sanity/questions/([0-9]+)$', views.sanity_questions_get),
     ('^api/hints/list/([0-9]+)$', views.api_hints_list),
     ('^api/hints/([0-9]+)/vote$', views.api_hints_vote),
     ('^api/hints/([0-9]+)$', views.api_hints_get),
