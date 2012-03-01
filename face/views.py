@@ -1068,6 +1068,14 @@ def system_tests_run(request):
           context_instance=RequestContext(request)
         )
 
+@login_required
+def community(request):
+     return render_to_response('questions_list.tpl', 
+        { 'stats' : UserStats.UserStats(request.user),
+          'user': request.user },
+          context_instance=RequestContext(request))
+
+  
 
 
 

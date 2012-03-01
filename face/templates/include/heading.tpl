@@ -10,7 +10,7 @@
         <!--<li><a href="/team/challenge">team challenge</a></li>-->
         <li><a href="/how">how it works</a></li>
         <li><a href="/about">about</a></li>
-        <li><a href ="/suggest">suggest a question</a></li>
+        <li><a href ="/community">community</a></li>
         <li><a href="/account/logout">log out</a></li>
       </ul>
     </div>
