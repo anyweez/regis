@@ -2,6 +2,7 @@ from django.conf.urls.defaults import patterns, include, url
 from django.contrib import admin
 
 import face.views.main as main
+import face.views.api as api
 import face.views.admin as radmin
 
 admin.autodiscover()
@@ -29,10 +30,11 @@ urlpatterns = patterns('',
     ('question/view/(\d+)', main.view_question),
     ('question/view/all$', main.list_questions),
     ('question/status/(\d+)', main.question_status),
-    ('community$', main.community),
-    ('community/add$', main.community_add),
-    ('communty/add/submit$', main.submit_community_q),
-    ('community/(\d+)', main.community_view),
+    ('^community/list$', main.community),
+    ('^community/add$', main.community_add),
+    ('^communty/add/submit$', main.submit_community_q),
+    ('^community/(\d+)$', main.community_view),
+    ('^community', main.redirect_community_list),
     ('suggest$', main.suggest_q),
     ('suggest/submit$', main.submit_suggestion),
     ('ajax/feedback/like/(\d+)/(\d+)', main.feedback_like),
@@ -45,17 +47,17 @@ urlpatterns = patterns('',
     ('^questions/list$', main.list_questions_with_api),
     ('^questions/(\d+)$', main.view_question_with_api),
     ('^questions', main.questions_unknown), # Redirect to /questions/list
-    ('^api/questions/list$', main.api_questions_list),
-    ('^api/questions/([0-9]+)$', main.api_questions_get),
-    ('^api/hints/list/([0-9]+)$', main.api_hints_list),
-    ('^api/hints/([0-9]+)/vote$', main.api_hints_vote),
-    ('^api/hints/([0-9]+)$', main.api_hints_get),
-    ('^api/attempts/insert/([0-9]+)$', main.api_attempts_insert),
-    ('^api/attempts/([0-9]+)$', main.api_attempts_get),
-    ('^api/attempts/list/([0-9]+)$', main.api_attempts_list),
-    ('^api/community/questions/list$', main.api_community_questions_list),
-    ('^api/community/questions/(\d+)$', main.api_community_questions_get),
-    ('^api/community/questions/insert$', main.api_community_questions_insert),
+    ('^api/questions/list$', api.api_questions_list),
+    ('^api/questions/([0-9]+)$', api.api_questions_get),
+    ('^api/hints/list/([0-9]+)$', api.api_hints_list),
+    ('^api/hints/([0-9]+)/vote$', api.api_hints_vote),
+    ('^api/hints/([0-9]+)$', api.api_hints_get),
+    ('^api/attempts/insert/([0-9]+)$', api.api_attempts_insert),
+    ('^api/attempts/([0-9]+)$', api.api_attempts_get),
+    ('^api/attempts/list/([0-9]+)$', api.api_attempts_list),
+    ('^api/community/questions/list$', api.api_community_questions_list),
+    ('^api/community/questions/(\d+)$', api.api_community_questions_get),
+    ('^api/community/questions/insert$', api.api_community_questions_insert),
     ('^system/tests/run$', main.system_tests_run),
     url(r'', include('social_auth.urls')),
 )
