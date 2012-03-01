@@ -67,11 +67,6 @@ var api = new function() {
    }
 }
 
-function alert_messages(data) {
-   if (data.kind == 'message') {
-      alert(data.message);
-   }
-}
 
 function test_api(api_method, num_args, args_list, expected_json, no_more_fields_allowed, callback) {
    if (!no_more_fields_allowed) {

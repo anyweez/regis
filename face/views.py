@@ -253,25 +253,6 @@ def list_questions(request):
           'user' : request.user }
     )
 
-@login_required
-def view_question(request, tid):
-    try:
-        template = users.QuestionTemplate.objects.get(id=tid)
-        question = users.Question.objects.exclude(status='retired').get(user=request.user, template=template)
-
-        print question.id
-
-        return render_to_response('view_question.tpl', 
-            { 'question' : question, 
-              'stats' : UserStats.UserStats(request.user),
-              'user': request.user },
-              context_instance=RequestContext(request))
-    except users.QuestionTemplate.DoesNotExist:
-        # TODO: Need to return some error responses here.
-        pass
-    except users.Question.DoesNotExist:
-        # There is no question matching the requested data.
-        pass
 
 @login_required
 def question_status(request, qid):
@@ -578,10 +559,8 @@ def extract_options(request, valid_options, default_options):
     request_options = {}
     for option_name in valid_options.iterkeys():
         option_value = None
-        if option_name in request.GET:
-            option_value = request.GET[option_name]
-        elif option_name in request.POST:
-            option_value = request.POST[option_name]
+        if option_name in request.REQUEST:
+            option_value = request.REQUEST[option_name]
         elif default_options[option_name] is not None:
             option_value = default_options[option_name] 
         if option_value is not None:
@@ -819,8 +798,10 @@ def api_hints_list(request, question_id):
 
 @login_required
 def api_hints_vote(request, hint_id):
+    messages = []
     if request.method != 'POST':
-        return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+        messages.append("Expecting POST request")
+        return HttpResponse(json.dumps({ "kind" : "error", 'messages' : messages, }),
                             mimetype='application/json')
     hint_id = int(request.POST['id'])
     rating = request.POST['rating']
@@ -829,13 +810,15 @@ def api_hints_vote(request, hint_id):
     elif rating == 'no':
         rating = False
     else:
-        return HttpResponse(json.dumps({ "kind" : "Bad hint vote", 
+        messages.append('Failed to vote for hint.')
+        return HttpResponse(json.dumps({ "kind" : "error", 'messages' : messages,
                                    }),
                             mimetype='application/json')
  
     hint = users.QuestionHint.objects.get(id=hint_id)
     if hint is None:
-        return HttpResponse(json.dumps({ "kind" : "hint#notfound", 
+        messages.append('Failed to vote for hint.')
+        return HttpResponse(json.dumps({ "kind" : "error", 'messages' : messages,
                                    }),
                             mimetype='application/json')
     
@@ -847,19 +830,19 @@ def api_hints_vote(request, hint_id):
             prev_ratings[0].rating = rating
             prev_ratings[0].save()
             response = hints_get_json(request, hint_id, hint=hint)
+            messages.append('Changed vote for hint.')
         else:
-            response = { "kind" : "message" }
             if rating:
-                response['message'] = "You've already upvoted this hint."
+                messages.append("You've already upvoted this hint.")
             else:
-                response['message'] = "You've already downvoted this hint."
+                messages.append("You've already downvoted this hint.")
     elif len(prev_ratings) > 1:
-        response = { "kind" : "message" }
-        response['message'] = "You've already voted multiple times."
+        messages.append("You've already voted multiple times.")
     else:
         users.QuestionHintRating(hint=hint, src=request.user, rating=rating).save()
-        response = hints_get_json(request, hint_id, hint=hint)
-    
+        messages.append('Voted for hint.')
+    response = hints_get_json(request, hint_id, hint=hint)
+    response['messages'] = messages
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @login_required
@@ -913,6 +896,7 @@ def hints_get_json(request, hint_id, hint=None, options=None):
 @login_required
 def api_attempts_insert(request, question_id):
     errors = []
+    messages = []
     question_id = int(question_id)
     if request.method != 'POST':
         return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
@@ -921,12 +905,14 @@ def api_attempts_insert(request, question_id):
         content = request.POST['content']
         if len(content) == 0:
             errors.append("Length of content is 0")
+            messages.append("You tried to submit a blank attempt.")
     else:
-        errors.append("No content given")
+        errors.append("No content given") # LOGTHISERROR
     
     if len(errors) > 0:
         return HttpResponse(json.dumps({ "kind" : "error", 
                                          "errors" : errors,
+                                         "messages" : messages,
                                    }),
                             mimetype='application/json')
     try: 
@@ -935,13 +921,17 @@ def api_attempts_insert(request, question_id):
         raise exception.UnauthorizedAttemptException(request.user, question_id)
     if question is None:
         return HttpResponse(json.dumps({ "kind" : "question#notfound", 
+                                         "messages" : messages,
                                    }),
                             mimetype='application/json')
     if question.status != 'released':
-        errors.append('Cannot attempt question with status "%s"' % question.status)
+        problem = 'Cannot attempt "%s" question' % question.status
+        errors.append(problem)
+        messages.append(problem)
     if len(errors) > 0:
         return HttpResponse(json.dumps({ "kind" : "error", 
                                          "errors" : errors,
+                                         "messages" : messages,
                                    }),
                             mimetype='application/json')
          
@@ -960,6 +950,7 @@ def api_attempts_insert(request, question_id):
     if correct and question.status != 'solved':
         question.status = 'solved'
         question.save()
+        messages.append('Great job! Your answer %s is correct.' % content)
         try:
             question_m = qm.QuestionManager()
             # Activate the next question.
@@ -967,7 +958,10 @@ def api_attempts_insert(request, question_id):
         except exception.NoQuestionReadyException:
             # TODO cartland: Should we record this?
             pass
+    if not correct:
+        messages.append("Try again! You'll get it soon.")
     response = attempts_get_json(request, attempt_id=g.id, attempt=g)
+    response['messages'] = messages
     return HttpResponse(json.dumps(response), mimetype='application/json')
 
 @login_required
@@ -976,14 +970,17 @@ def api_attempts_list(request, question_id):
     def create_not_found_package():
         return { "kind" : "attempt#notfound" }
     try:
-        attempts = users.Guess.objects.filter(question__template__id=question_id)
+        attempts = users.Guess.objects.filter(question__template__id=question_id).order_by('time_guessed')
         items = []
         options = { "fields" : "kind,id,content,correct,html",
                     "html" : "thumbnail" }
         for attempt in attempts:
-            items.append(attempts_get_json(request, attempt.id, attempt=attempt, options=options))
+            item = attempts_get_json(request, attempt.id, attempt=attempt, options=options)
+            items.append(item)
+        question = users.Question.objects.get(id=question_id)
         response = { "kind" : "attemptFeed",
                      "question" : question_id,
+                     "question_status" : question.status,
                      "items" : items }
         return HttpResponse(json.dumps(response),
                             mimetype='application/json')
@@ -1077,7 +1074,7 @@ def sanity_questions_get(request, qid):
     
 
     # ATTEMPTS
-    attempts = users.Guess.objects.filter(question__id=question.id)
+    attempts = users.Guess.objects.filter(question__id=question.id).order_by('time_guessed')
     attempt_count = 0
     for attempt in attempts:
         attempt_count += 1
@@ -1093,7 +1090,7 @@ def sanity_questions_get(request, qid):
                 errors.append('Correct attempt (id: %d) is not the last of %s attempts. Instead it is number %d (index starts at 1).' % (attempt.id, len(attempts), attempt_count))
         if attempt_count == len(attempts):
             if question.status == 'solved' and not attempt.correct:
-                errors.append('The last attempt (id: %d) in a solved question (id: %d, key: %d)' % (attempt.id, question.id, question.template.id))
+                errors.append('The last attempt (id: %d) is not a solved question (id: %d, key: %d)' % (attempt.id, question.id, question.template.id))
     if question.status == 'solved' and attempt_count == 0:
        errors.append("'solved' question has 0 attempts")
 

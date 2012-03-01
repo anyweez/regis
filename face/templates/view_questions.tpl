@@ -1,5 +1,5 @@
 {% comment %}
-Requres
+Requires
 
 question_id
 {% endcomment %}
@@ -16,16 +16,19 @@ question_id
  
   <script type="text/javascript">
     var question_id = {{ questions_id }};
+
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
        api.questions.get(question_id, questions_get_handler);
        api.hints.list(question_id, hints_list_handler);
        api.attempts.list(question_id, attempts_list_handler);
+       clear_messages();
     });
 
     function questions_get_handler(data) {
       $('#question').html(data.html);
       $('#attempt_form').submit(attempt_submit_handler);
+      update_question_status(data.status);
     }
     
     function hints_list_handler(data) {
@@ -39,40 +42,69 @@ question_id
     function hint_click_handler(event) {
       event.preventDefault();
       api.hints.get($(this).attr("id").slice(4), hint_get_handler);
+      $(this).unbind('click');
     }
     
     function hint_get_handler(data) {
       $('#hint' + data.id).html(data.html);
+      update_messages(data.messages);
     }
     
     function hint_vote_up(hint_id) {
-       api.hints.vote(hint_id, 'yes', alert_messages );
+       clear_messages();
+       api.hints.vote(hint_id, 'yes', hint_get_handler );
     }
     
     function hint_vote_down(hint_id) {
-       api.hints.vote(hint_id, 'no', alert_messages);
+       clear_messages();
+       api.hints.vote(hint_id, 'no', hint_get_handler );
     }
 
     function attempts_list_handler(data) {
        var question_id = data.question;
        var div = $('#previous_attempts' + question_id);
        var ul = $('<ul></ul>');
-       for (var i = 0; i < data.items.length; i++) {
+       for (var i = data.items.length - 1; i >= 0; i--) {
           ul.append($('<li></li>').html(data.items[i].html));
        }
        div.html('Previous attempts');
        div.append(ul);
-       if (data.items[data.items.length - 1].correct) {
+    }
+    
+    function update_question_status(question_status) {
+       if (question_status == 'solved') {
           div = $('#question_status' + question_id);
-          div.html('Correct!');
+          div.html('<h1>Solved!</h1>');
        } else {
           div = $('#question_status' + question_id);
-          div.html('');
+          div.html('Ready to solve.');
        }
     }
-   
+    
+    // This variable acts as a flag to tell the message updater
+    // whether it should replace the list of messages, or 
+    // add the new messages to the old list. The flag is set
+    // by calling clear_messages().
+    var mark_message_for_deletion = true;
+    function update_messages(messages) {
+       if (messages) {
+          var ul = $('#messages > ul');
+          if (mark_messages_for_deletion == true) {
+             ul.html('');
+             mark_messages_for_deletion = false;
+          }
+          for (var i = 0; i < messages.length; i++) {
+             ul.append($('<li></li>').html(messages[i]));
+          }
+       }
+    }
+    
+    function clear_messages() {
+       mark_messages_for_deletion = true;
+    }
 
     function attempt_submit_handler(event) {
+       clear_messages();
        event.preventDefault();
        var values = $('#attempt_form :input');
        values.each(function() {
@@ -89,10 +121,8 @@ question_id
     }
     
     function attempts_submit_response_handler(data) {
-       if (data.kind == 'error') {
-          alert('Cannot submit an attempt.');
-       }
        api.attempts.list(question_id, attempts_list_handler);
+       update_messages(data.messages);
     }
   </script>
   
@@ -111,6 +141,9 @@ question_id
       </div>
       <div id="center_body">
         <div id="question_status{{ questions_id }}">
+        </div>
+        <div id="messages">
+          <ul></ul>
         </div>
         <div id="question">
         </div>
