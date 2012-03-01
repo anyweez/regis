@@ -22,8 +22,8 @@
   
   <script type="text/javascript">
 	function validate() {
-		if ($("#question_suggestion").val().length == 0) {
-			alert("Please enter a question before submitting");
+		if ($("#question").val().length == 0 or $("#answer").val().length == 0 or $("#subj").val().length == 0) {
+			alert("Please enter a question and an answer, and selectan option before submitting");
 			return false;
 		}
 	}
@@ -33,7 +33,7 @@
 	});	
   </script>
 
-  <title>Regis: Suggest a Question</title>
+  <title>Regis: Submit a Community Question</title>
 </head>
 <body>
 	{% if errors %}
@@ -51,7 +51,7 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body">         
-      <h2 style="margin-bottom: 5px;">Submit a Question:</h2>
+      <h2 style="margin-bottom: 5px;">Submit a Community Question:</h2>
       {% include 'include/communityaddtbox.tpl' %}
 
     </div>  

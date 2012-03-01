@@ -1070,12 +1070,32 @@ def system_tests_run(request):
 
 @login_required
 def community(request):
-     return render_to_response('questions_list.tpl', 
+     return render_to_response('community_list.tpl', 
         { 'stats' : UserStats.UserStats(request.user),
           'user': request.user },
           context_instance=RequestContext(request))
 
-  
+@login_required
+def community_add(request):
+    return render_to_response('community_add.tpl', { 'user': request.user },
+                              context_instance=RequestContext(request))
+
+@login_required
+def submit_community_q(request):
+    q = str(request.POST['question'])
+    ans = str(request.POST['answer'])
+    subjective = str(request.POST['subjective'])
+    if (subjective == "free"):
+        subjective = True
+    else:
+        subjective = False
+
+    # Record the submission. (still leftover from suggestion copy)
+    #s = users.Suggestion(user=request.user, question=sugg_q, answer=ans, time_submitted=datetime.datetime.now())
+    #s.save()
+    msghub.register_message('Thanks for submitting a question!')
+        
+    return redirect('/community')  
 
 
 
