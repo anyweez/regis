@@ -43,6 +43,11 @@ class QuestionTemplate(models.Model):
     solver_name = models.CharField(max_length=40)
     
     live = models.BooleanField()
+    # Whether the question is provided by the community or moderated
+    community = models.BooleanField()
+    # Whether the question has a precise set of correct answers (false)
+    # or an infinite number of open-ended ones (true).
+    subjective = models.BooleanField()
     
 QUESTION_STATUS = (
     ('solved', 'Solved'),       # question has been released and answered

@@ -19,6 +19,9 @@ class Command(BaseCommand):
         print 'SOLUTION:'
         print '**********'
         results = solver.solve(q)
+        if results is None:
+            print 'Question was provided by community and has no solver.'
+            
         for i, result in enumerate(results['correct']):
             print '(%d) %s' % (i+1, result[0])
         print ''

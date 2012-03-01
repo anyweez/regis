@@ -27,6 +27,9 @@ class Command(BaseCommand):
         for q in qlist:
             try:
                 results = solver.solve(q)
+                # If the problem is community-based it does not have to be solved.
+                if results is None:
+                    continue
             
                 for val, msg in results['correct']:
                     ans = regis.Answer(question=q, correct=True, value=val, message=msg)

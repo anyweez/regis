@@ -8,6 +8,11 @@ class QuestionSolver(object):
 		pass
 		
 	def solve(self, question):
+		# If the question is provided by the community, it doesn't
+		# have a solver and nothing happens here.
+		if question.community:
+			return None
+		
 		# Get the name of the solver from the database.
 		solver_name = '%sSolver' % (question.template.solver_name)
 		# The values of the variables are also stored in the DB.
