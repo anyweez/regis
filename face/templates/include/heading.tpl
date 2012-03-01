@@ -21,7 +21,7 @@
         {% endcomment %}
         
         {% if 'models.view_aggregates' in user.get_all_permissions %}
-        <li style="font-weight: bold; text-decoration: underline;"><a href ="/admin">administer</a></li>
+        <li style="font-weight: bold; text-decoration: underline;"><a href ="/summary">administer</a></li>
         {% endif %}
         <li><a href="/account/logout">log out</a></li>
       </ul>

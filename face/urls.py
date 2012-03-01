@@ -18,6 +18,9 @@ urlpatterns = patterns('',
     
     ('summary$', radmin.index),
     ('summary/chart_view/(\d+)$', radmin.chart_view),
+    ('summary/chart_view/get/([a-z]+)$', radmin.get_chart),
+    ('summary/chart_view/request/([a-z]+)$', radmin.request_chart),
+    ('summary/chart_view/new_joins$', radmin.chart_new_joins),
     
     ('^build-acct$', main.build_acct),
     ('dash$', main.dash),

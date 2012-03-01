@@ -6,8 +6,8 @@
    
 <script type="text/javascript">
     $(document).ready(function() {
-      if ($("#qc_pb")) {
-        $("#qc_pb").progressbar( { value : {{ stats.percent_answered }} } );
+      if ($("#qc_pb") && '{{stats.percent_answered}}'.length > 0) {
+        $("#qc_pb").progressbar( { value : 0{{ stats.percent_answered }} } );
       }
     });
 </script>

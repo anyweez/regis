@@ -8,12 +8,15 @@
 
   <script type="text/javascript" src="/static/js/api.js">
   </script>
+  <script type="text/javascript" src="/static/js/highcharts/highcharts.js">
+  </script>
   <script type="text/javascript" src="/static/js/charts.js">
   </script>
 
   <script type="text/javascript">
+  
   $(document).ready(function() {
-    charts.make($('#chart_zone'), { chart_type: 'pie' }, [], []);
+    charts.make('chart_zone', '{{chart_type}}');
   });
   </script>
 
@@ -27,6 +30,10 @@
       border: 3px solid black;
       border-radius: 3px;
     }
+    
+    #right_col {
+      border-bottom: 3px solid black;
+    }
   </style>
 
   <title>Regis: Data Viewer</title>
@@ -39,13 +46,13 @@
   <!-- Container for the majority of the page's content. -->
   <div id="main_body">
     <div id="question_body"> 
-      <h2 style="font-weight: normal">Loading...</h2>
-      <p>Description</p>
+      <h2 style="font-weight: normal">{{chart.title}}</h2>
+      <p>{{chart.description}}</p>
 
       <div id="chart_zone">
       
       </div>
-              
+      <p>Back to <a href="/summary">admin</a>.</p>
     </div>  
     {% include 'include/admin_sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>

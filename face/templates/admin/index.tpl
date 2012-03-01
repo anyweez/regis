@@ -58,10 +58,10 @@
       </div>
       <div style="width: 45%; border: 1px solid black; display: inline-block; padding-left: 10px; vertical-align: top;">
         <h3>Analytics</h3>
-        <p style="margin-bottom: 0; padding-bottom: 0;"><a href="#">New joins</a></p>
+        <p style="margin-bottom: 0; padding-bottom: 0;"><a href="/summary/chart_view/new_joins">New joins</a></p>
         <p style="margin: 4px 0 10px 0; font-size: small; font-style: italic;">The number of new members joining over time.</p>
 
-        <p style="margin-bottom: 0; padding-bottom: 0;"><a href="#">User engagement</a></p>
+        <p style="margin-bottom: 0; padding-bottom: 0;"><a href="/summary/chart_view/get/engagement">User engagement</a></p>
         <p style="margin: 4px 0 10px 0; font-size: small; font-style: italic;">Various measures of engagement among all users.</p>
 
         
