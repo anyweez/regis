@@ -52,7 +52,7 @@
   <div id="main_body">
     <div id="question_body">         
       <h2 style="margin-bottom: 5px;">Submit a Community Question:</h2>
-      {% include 'include/communityaddtbox.tpl' %}
+      {% include 'include/communityaddbox.tpl' %}
 
     </div>  
     {% include 'include/sidebar.tpl' %}
