@@ -1097,5 +1097,74 @@ def submit_community_q(request):
         
     return redirect('/community')  
 
+def api_community_questions_list(request):
+    all_questions = range(1000,1003)
+    items = []
+    options = { 'html' : 'thumbnail' }
+    for question_id in all_questions:
+        items.append(community_questions_get_json(request, question_id, options=options))
+    response = { "kind" : "communityFeed",
+		"items" : items }
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_community_questions_get(request, question_id):
+    return HttpResponse(json.dumps(community_questions_get_json(request, question_id)),
+                        mimetype='application/json')
+  
+@login_required
+def api_community_questions_insert(request):
+    question_id = 2000
+    return HttpResponse(json.dumps(community_questions_get_json(request, question_id)),
+                        mimetype='application/json')
+
+
+def community_questions_get_json(request, question_id, options=None):
+    errors = ['This is stub code']
+    # Figure out options
+    # html=full [default] or html=thumbnail or html=hide
+    html_options = ['full', 'thumbnail', 'hide']
+    if options is None:
+        options = {}
+    if 'html' in options \
+       and options['html'] in html_options:
+        pass
+    elif 'html' in request.GET \
+         and request.GET['html'] in html_options:
+        options['html'] = request.GET['html']
+    else:
+        options['html'] = 'full'
+
+    response = { "kind" : "communityQuestion",
+                 "id" : question_id,
+                 "status" : "released",
+                 "content" : "What is recursion?",
+                 "title" : None,
+                 "published" : "Yesterday",
+                 "solver_name" : None, 
+                 "errors" : errors }
+    if options['html'] == 'thumbnail':
+        response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+           { 'questionstatus' : response['status'],
+             'questiontitle' : response['title'],
+             'questionnumber' : response['id'],
+             'questioncontent' : response['content'],
+             'questionpublished' : response['published'],
+           },
+           context_instance=RequestContext(request)
+           ).content
+    elif options['html'] == 'full':
+        response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+           { 'questionstatus' : response['status'],
+             'questiontitle' : response['title'],
+             'questionnumber' : response['id'],
+             'questioncontent' : response['content'],
+             'questionpublished' : response['published'],
+           },
+           context_instance=RequestContext(request)
+           ).content
+    else:
+        pass
+    return response
 
 
