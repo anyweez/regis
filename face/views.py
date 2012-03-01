@@ -1154,7 +1154,7 @@ def community_questions_get_json(request, question_id, options=None):
            context_instance=RequestContext(request)
            ).content
     elif options['html'] == 'full':
-        response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+        response['html'] = render_to_response('include/questions_get.tpl',
            { 'questionstatus' : response['status'],
              'questiontitle' : response['title'],
              'questionnumber' : response['id'],
