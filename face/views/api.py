@@ -424,9 +424,12 @@ def api_community_questions_list(request):
     templates = users.QuestionTemplate.objects.filter(community=True)
     items = []
     options = { 'html' : 'thumbnail' }
-    for template in templates:
-        question = get_community_question_from_template(template)
-        items.append(community_questions_get_json(request, template.id, question=question, options=options))
+    temporary_ids = range(1, 6)
+    for template_id in temporary_ids:
+        items.append(community_questions_get_json(request, template_id, options=options))
+#    for template in templates:
+#        question = get_community_question_from_template(template)
+#        items.append(community_questions_get_json(request, template.id, question=question, options=options))
     response = { "kind" : "communityFeed",
 		 "items" : items }
     return HttpResponse(json.dumps(response), mimetype='application/json')
@@ -528,6 +531,7 @@ def api_community_questions_insert(request):
 
 
 def community_questions_get_json(request, question_id, options=None):
+    question_id = int(question_id)
     errors = ['This is stub code']
     # Figure out options
     # html=full [default] or html=thumbnail or html=hide
@@ -542,17 +546,17 @@ def community_questions_get_json(request, question_id, options=None):
         options['html'] = request.GET['html']
     else:
         options['html'] = 'full'
-
+    fake_content_list = ['What is recursion?', 'What is the difference between cross-site scripting and cross-site request forgery?', 'What is depth first search?', 'Why computers use binary instead of some other number base?', 'What is "Moore\'s Law"?']
     response = { "kind" : "communityQuestion",
                  "id" : question_id,
                  "status" : "released",
-                 "content" : "What is recursion?",
+                 "content" : fake_content_list[question_id % len(fake_content_list)],
                  "title" : None,
-                 "published" : "Yesterday",
+                 "published" : "2012-02-29",
                  "solver_name" : None, 
                  "errors" : errors }
     if options['html'] == 'thumbnail':
-        response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+        response['html'] = render_to_response('include/community_questions_get_thumbnail.tpl',
            { 'questionstatus' : response['status'],
              'questiontitle' : response['title'],
              'questionnumber' : response['id'],
@@ -562,7 +566,7 @@ def community_questions_get_json(request, question_id, options=None):
            context_instance=RequestContext(request)
            ).content
     elif options['html'] == 'full':
-        response['html'] = render_to_response('include/questions_get.tpl',
+        response['html'] = render_to_response('include/community_questions_get.tpl',
            { 'questionstatus' : response['status'],
              'questiontitle' : response['title'],
              'questionnumber' : response['id'],
@@ -574,3 +578,28 @@ def community_questions_get_json(request, question_id, options=None):
     else:
         pass
     return response
+    
+@login_required
+def api_community_questions_grade(request, question_id):
+    response = community_questions_get_json(request, question_id)
+    response['html'] = render_to_response('include/community_questions_submitted.tpl',
+           { 'questionstatus' : response['status'],
+             'questiontitle' : response['title'],
+             'questionnumber' : response['id'],
+             'questioncontent' : response['content'],
+             'questionpublished' : response['published'],
+           },
+           context_instance=RequestContext(request)
+           ).content
+    response['grading_body'] = get_grading_body(request, question_id)
+    return HttpResponse(json.dumps(response),
+                        mimetype='application/json')
+  
+def get_grading_body(request, question_id):
+    question_id = int(question_id)
+    return render_to_response('include/community_test_answers.tpl',
+           {
+             'questionnumber' : question_id,
+           },
+           context_instance=RequestContext(request)
+           ).content

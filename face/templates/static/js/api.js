@@ -74,6 +74,8 @@ var api = new function() {
                     },
                     callback,
                     'json');};
+         this.grade = function(qid, callback) { // Temporary for testing
+             $.getJSON('/api/community/questions/' + qid + '/grade', callback);};
       }
    }
 }

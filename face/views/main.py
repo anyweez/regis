@@ -662,7 +662,7 @@ def system_tests_run(request):
         )
 
 def redirect_community_list(request):
-    return redirect('community/list')
+    return redirect('/community/list')
 
 @login_required
 def community(request):
@@ -674,6 +674,16 @@ def community(request):
 @login_required
 def community_add(request):
     return render_to_response('community_add.tpl', { 'user': request.user },
+                              context_instance=RequestContext(request))
+
+@login_required
+def community_attempt_submit(request):
+    question_id = request.POST['qid']
+    return render_to_response('community_attempt_submitted.tpl', 
+                             { 
+                             'user': request.user,
+                             'tid': question_id,
+                             },
                               context_instance=RequestContext(request))
 
 @login_required

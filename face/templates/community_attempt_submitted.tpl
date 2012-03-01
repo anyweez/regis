@@ -1,5 +1,5 @@
 {% comment %}
-
+tid
 {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
@@ -16,11 +16,12 @@
     var question_id = {{ tid }};
     // Fetch information about hints as soon as the page is loaded.
     $(document).ready(function() {
-       api.community.questions.get(question_id, questions_get_handler);
+       api.community.questions.grade(question_id, questions_get_handler);
     });
 
     function questions_get_handler(data) {
       $('#question_body').html(data.html);
+      $('#grading_body').html(data.grading_body);
 //      $('#attempt_form').submit(attempt_submit_handler);
     }
     
@@ -114,6 +115,8 @@
     <div id="question_body">  
     </div>  
     <div id="attempts_body">
+    </div>
+    <div id="grading_body">
     </div>
     {% include 'include/sidebar.tpl' %}
   <div style="clear: both; height: 0px;">&nbsp;</div>
