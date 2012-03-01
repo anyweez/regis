@@ -9,7 +9,6 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Django admin stuff.
     url(r'^admin/', include(admin.site.urls)),
-    
     ('^$', main.index),
     ('^login$', main.index),
     ('^about$', main.about),

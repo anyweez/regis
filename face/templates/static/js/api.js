@@ -51,9 +51,9 @@ var api = new function() {
       this.get = function(id, callback) {
           $.getJSON('/api/attempts/' + id, callback);};
       this.list = function(qid, callback) {
-          $.getJSON('/api/attempts/list/' + qid, callback);};
+          $.getJSON('/api/questions/' + qid + '/attempts/list', callback);};
       this.insert = function(qid, content, callback) {
-          $.post('/api/attempts/insert/' + qid,
+          $.post('/api/questions/' + qid + '/attempts/insert',
                  { 'content' : content },
                  callback,
                  'json');};
