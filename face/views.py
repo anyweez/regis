@@ -1167,4 +1167,10 @@ def community_questions_get_json(request, question_id, options=None):
         pass
     return response
 
-
+@login_required
+def community_view(request, tid):
+    return render_to_response('community_view.tpl', 
+                { 'tid' : tid, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
