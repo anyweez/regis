@@ -58,6 +58,24 @@ var api = new function() {
                  callback,
                  'json');};
    }
+
+   this.community = new function() {
+      this.questions = new function() {
+         this.get = function(qid, callback) {
+             $.getJSON('/api/community/questions/' + qid, callback);};
+         this.list = function(callback) {
+             $.getJSON('/api/community/questions/list', callback);};
+         this.insert = function(content, answer, subjective, callback) {
+             $.post('/api/community/questions/insert',
+                    { 
+                      'content' : content,
+                      'answer' : answer,
+                      'subjective' : subjective,
+                    },
+                    callback,
+                    'json');};
+      }
+   }
 }
 
 function alert_messages(data) {

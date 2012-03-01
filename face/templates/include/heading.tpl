@@ -10,6 +10,7 @@
         <!--<li><a href="/team/challenge">team challenge</a></li>-->
         <li><a href="/how">how it works</a></li>
         <li><a href="/about">about</a></li>
+<<<<<<< HEAD
         <li><a href ="/suggest">suggest a question</a></li>
         
         {% comment %}
@@ -23,6 +24,9 @@
         {% if 'models.view_aggregates' in user.get_all_permissions %}
         <li style="font-weight: bold; text-decoration: underline;"><a href ="/summary">administer</a></li>
         {% endif %}
+=======
+        <li><a href ="/community">community</a></li>
+>>>>>>> 9ad0346f6a464f33528b09ec82f38d7b7a77d3aa
         <li><a href="/account/logout">log out</a></li>
       </ul>
     </div>
