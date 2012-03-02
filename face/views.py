@@ -563,7 +563,7 @@ def questions_get_json(request, question_id, question=None, options=None):
     def create_not_found_package():
         response = { "kind" : "question#notfound" }
         if options['html'] == 'full':
-            response['html'] = render_to_response('questions_get.tpl',
+            response['html'] = render_to_response('include/questions_get.tpl',
                                 { 'questionstatus' : "doesnotexist",
                                   'questiontitle' : "Question not found",
                                   'questionnumber' : question_id,
@@ -573,7 +573,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                                 context_instance=RequestContext(request)
                               ).content
         elif options['html'] == 'thumbnail':
-            response['html'] = render_to_response('questions_get_thumbnail.tpl',
+            response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
                                 { 'questionstatus' : "doesnotexist",
                                   'questiontitle' : "Question not found",
                                   'questionnumber' : question_id,
@@ -594,7 +594,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                      "id" : question.template.id,
                      "errors" : errors }
         if options['html'] == 'full':
-            response['html'] = render_to_response('questions_get.tpl',
+            response['html'] = render_to_response('include/questions_get.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -604,7 +604,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                                 context_instance=RequestContext(request)
                               ).content
         elif options['html'] == 'thumbnail':
-            response['html'] = render_to_response('questions_get_thumbnail.tpl',
+            response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -630,7 +630,7 @@ def questions_get_json(request, question_id, question=None, options=None):
   		     "actor" : question.user.id,
                      "errors" : errors }
         if options['html'] == 'thumbnail':
-            response['html'] = render_to_response('questions_get_thumbnail.tpl',
+            response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -640,7 +640,7 @@ def questions_get_json(request, question_id, question=None, options=None):
                                 context_instance=RequestContext(request)
                               ).content
         elif options['html'] == 'full':
-            response['html'] = render_to_response('questions_get.tpl',
+            response['html'] = render_to_response('include/questions_get.tpl',
                                 { 'questionstatus' : question.status,
                                   'questiontitle' : question.template.title,
                                   'questionnumber' : question.template.id,
@@ -787,7 +787,7 @@ def hints_get_json(request, hint_id, hint=None, options=None):
                  "rating" : votetotal,
                  "actor" : hint.src.id } 
     # Add HTML
-    response['html'] = render_to_response('hints_get.tpl',
+    response['html'] = render_to_response('include/hints_get.tpl',
                       { 'hintid' : hint.id,
                         'hintcontent' : hint.text,
                         'votetotal' : votetotal },
@@ -1037,6 +1037,7 @@ def system_tests_run(request):
          'expected_response' : json.dumps({
            "kind": "attempt",
            "content": "7920",
+           "attempt_index": None,
            "question": 3,
            "html": None,
            "published": None,

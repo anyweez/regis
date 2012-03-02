@@ -12,15 +12,15 @@ hintids
 {% endcomment %}
 <div id="question{{ questionnumber }}" class="question_container">
   {% if questionstatus == "released" or questionstatus == "solved" %}
-    <h2 style="margin-bottom: 5px;">
+    <h2>
       Question #{{ questionnumber }}:
-      <span style="font-weight: normal">{{ questiontitle }}</span>
+      <span>{{ questiontitle }}</span>
     </h2>
-    <p style="color: #555; margin: 0px 0px 10px 3px; padding: 0;">
+    <p>
     released on {{ questionpublished }}
     </p>
     <p id="main_q">{{ questioncontent }}</p>
-    <div id="answerbox" style="height: 40px;">
+    <div id="answerbox"">
       <form id="attempt_form" accept-charset="utf-8" method="post" action="/question/check">
         {% csrf_token %}
         <div style="display:none">
