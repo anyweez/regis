@@ -42,3 +42,10 @@ class NoQuestionSetReadyException(Exception):
     
     def __str__(self):
         return 'No question set available for user #%d (%s)' % (self.user.id, self.user.username)
+    
+class KamikazeException(Exception):
+    def __init__(self, user):
+        self.user = user
+        
+    def __str__(self):
+        return '%s just dropped a KamikazeException' % self.user.username

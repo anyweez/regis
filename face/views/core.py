@@ -648,6 +648,8 @@ def system_tests_run(request):
           context_instance=RequestContext(request)
         )
 
-
-
+@login_required
+def bomb(request):
+    raise exception.KamikazeException(request.user)
+    return render_to_response('empty.tpl')
 
