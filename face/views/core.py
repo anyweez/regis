@@ -311,7 +311,7 @@ def get_question_file(request, tid):
         field = []
 
         try:
-            questions = users.Question.objects.filter(user=request.user, templates=template).exclude(status='retired')
+            questions = users.Question.objects.filter(user=request.user, template=template).exclude(status='retired')
             data = json.loads(questions[0].variables)
             for actual, visible in data.values():
                 try:
