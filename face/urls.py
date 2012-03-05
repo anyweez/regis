@@ -1,4 +1,5 @@
 from django.conf.urls.defaults import patterns, include, url
+from django.views.generic.simple import direct_to_template
 import views.core as core
 import views.admin as summary
 import views.api as api
@@ -10,6 +11,7 @@ admin.autodiscover()
 urlpatterns = patterns('',
     # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
+    (r'^robots\.txt$', direct_to_template, {'template': 'robots.tpl', 'mimetype': 'text/plain'}),
     ('^$', core.index),
     ('^login$', core.index),
     ('^about$', core.about),
