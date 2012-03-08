@@ -1025,7 +1025,6 @@ def attempts_get_json(request, attempt_id, attempt=None, options=None):
             if k not in fields:
                 del response[k]
     return response
->>>>>>> e4df422e2cb0dba58b114d13f17ea652fe19d560
 
 def sanity_questions_get(request, qid):
     question_id = int(qid)
