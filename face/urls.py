@@ -46,5 +46,6 @@ urlpatterns = patterns('',
     ('^api/attempts/([0-9]+)$', api.api_attempts_get),
     ('^api/questions/([0-9]+)/attempts/list$', api.api_attempts_list),
     ('^system/tests/run$', core.system_tests_run),
+    ('^sanity/questions/([0-9]+)$', core.sanity_questions_get),
     url(r'', include('social_auth.urls')),
 )

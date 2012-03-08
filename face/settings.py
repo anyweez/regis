@@ -6,6 +6,7 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@example.com'),
+    ('Cartland', 'c.cartland@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -145,7 +146,7 @@ LOGGING = {
     'loggers': {
         'django.request': {
             'handlers': ['mail_admins'],
-            'level': 'ERROR',
+            'level': 'WARNING',
             'propagate': True,
         },
     }

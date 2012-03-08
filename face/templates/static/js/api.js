@@ -30,8 +30,15 @@ var api = new function() {
    this.questions = new function() {
       this.get = function(qid, callback) {
           $.getJSON('/api/questions/' + qid, callback);};
-      this.list = function(callback) {
-          $.getJSON('/api/questions/list', callback);};
+      this.list = function(callback, options) {
+          var url = '/api/questions/list';
+          if (arguments.length > 1) {
+              url += '?';
+              for (var i in arguments[1]) {
+                  url += i + '=' + arguments[1][i] + '&';
+              }
+          }
+          $.getJSON(url, callback);};
    }
    
    this.hints = new function() {
@@ -60,11 +67,6 @@ var api = new function() {
    }
 }
 
-function alert_messages(data) {
-   if (data.kind == 'message') {
-      alert(data.message);
-   }
-}
 
 function test_api(api_method, num_args, args_list, expected_json, no_more_fields_allowed, callback) {
    if (!no_more_fields_allowed) {

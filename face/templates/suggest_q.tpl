@@ -3,23 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
-  
-  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js">
-  </script>
-  
-  
-  <style type="text/css">
-    #logbox {
-      background-color: white;
-      width: 38em;
-      padding: 1%;
-      margin: 0 auto;
 
-      border: 3px solid black;
-      border-radius: 3px;
-    }
-  </style>
-  
   <script type="text/javascript">
 	function validate() {
 		if ($("#question_suggestion").val().length == 0) {
@@ -32,37 +16,31 @@
 		$("#suggestbox").submit(validate);
 	});	
   </script>
+  {% include 'include/common_header.tpl' %}
 
   <title>Regis: Suggest a Question</title>
 </head>
-<body>
-	{% if errors %}
-	<div class="error">
-      {% for e in errors %}
-      <p>{{ e }}</p>
-      {% endfor %}
-    </div>
-    {% endif %}
-    
+<body>    
   <!-- The heading, which contains the title and appears above everything else. -->
   <div id="display_body">   
     {% include 'include/heading.tpl' %}
     
-  <!-- Container for the majority of the page's content. -->
-  <div id="main_body">
-    <div id="question_body">         
-      <h2 style="margin-bottom: 5px;">Suggest a Question:</h2>
-      {% include 'include/suggestbox.tpl' %}
-
-    </div>  
-    {% include 'include/sidebar.tpl' %}
-  <div style="clear: both; height: 0px;">&nbsp;</div>
-  </div> <!--  end main_body -->
-
-  <!-- Container for the information that appears below the main content (i.e. licensing info). -->
+    <!-- Container for the majority of the page's content. -->
+    <div id="middle_container">
+      <div id="left_body">
+  &nbsp;
+      </div>
+      <div id="center_body"> 
+        <h2>Suggest a Question:</h2>
+        {% include 'include/suggestbox.tpl' %}
+      </div>  
+{% comment %}      {% include 'include/sidebar.tpl' %} {% endcomment %}
+      <div style="clear: both; height: 0px;">&nbsp;</div>
+    </div> <!--  end middle_container -->
+  
+    <!-- Container for the information that appears below the main content (i.e. licensing info). -->
     <div id="footer">
     </div>
-</div> 
-  </div>
+  </div> 
 </body>
 </html>

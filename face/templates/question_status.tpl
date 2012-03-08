@@ -149,7 +149,6 @@
       try this question?</p>
       <p style="margin: 2px;">A good hint will not give away the answer, but will provide some guidance about the 
       algorithm you developed or thought process you went through to develop it.</p>
-      
 	  {% include 'include/hintsubmit.tpl' %}
       </div>  
       

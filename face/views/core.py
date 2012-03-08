@@ -157,16 +157,17 @@ def dash(request):
         next_release['minutes'] = int(math.floor(next_release_s / 60))
         next_release_s -= (next_release['minutes'] * 60)
         
-    return render_to_response('dashboard.tpl', 
-        { 'user': request.user, 
-          'question': current_q, 
-          'ttl' : next_release,
-          'messages' : msghub.get_messages(),
-          'errors' : msghub.get_printable_errors(),
-          'stats' : UserStats.UserStats(request.user),
-        },
-        context_instance=RequestContext(request)
-    )
+    if current_q is None:
+        return render_to_response('emptydashboard.tpl',
+                { 'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
+    else:
+        return render_to_response('view_questions.tpl', 
+                { 'questions_id' : current_q.template.id, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
 
 @login_required
 def logout(request):
@@ -250,30 +251,11 @@ def list_questions(request):
           'user' : request.user }
     )
 
-@login_required
-def view_question(request, tid):
-    try:
-        template = users.QuestionTemplate.objects.get(id=tid)
-        question = users.Question.objects.exclude(status='retired').get(user=request.user, template=template)
-
-        print question.id
-
-        return render_to_response('view_question.tpl', 
-            { 'question' : question, 
-              'stats' : UserStats.UserStats(request.user),
-              'user': request.user },
-              context_instance=RequestContext(request))
-    except users.QuestionTemplate.DoesNotExist:
-        # TODO: Need to return some error responses here.
-        pass
-    except users.Question.DoesNotExist:
-        # There is no question matching the requested data.
-        pass
 
 @login_required
-def question_status(request, gid):
+def question_status(request, qid):
     try:
-        guess = users.Guess.objects.get(id=gid)
+        guess = users.Guess.objects.filter(question__template__id=qid).order_by('id')[0]
         question = guess.question
         
         # Get the information for the next question
@@ -509,6 +491,612 @@ def submit_suggestion(request):
 
 def questions_unknown(request):
     return redirect('/questions/list')
+
+def list_questions_with_api(request):
+    return render_to_response('view_questions_list.tpl', 
+          { 'stats' : UserStats.UserStats(request.user),
+          'user': request.user },
+           context_instance=RequestContext(request))
+
+@login_required
+def view_question_with_api(request, tid):
+    return render_to_response('view_questions.tpl', 
+                { 'questions_id' : tid, 
+                  'stats' : UserStats.UserStats(request.user),
+                  'user': request.user },
+                context_instance=RequestContext(request))
+
+
+@login_required
+def api_questions_list(request):
+    valid_options = { 'start' : lambda x: int(x) if int(x) >= 0 else None,
+                      'limit' : lambda x: int(x) if int(x) >= 0 else None,
+                      'status' : lambda x: x if x in ['released',
+                                                 'ready',
+                                                 'solved',
+                                                 'pending',
+                                                 'retired',
+                                                 'any',
+                                                ] else None,
+                      'order_by' : lambda x: {'published' : 'text',
+                                              'id' : 'template' }[x] if x in ['published',
+                                                   'id'
+                                                  ] else None,
+                    }
+    default_options = { 'start' : 0,
+                        'limit' : None,
+                        'status' : 'any',
+                        'order_by' : 'id',
+                      }
+    request_options = extract_options(request, valid_options, default_options)
+    
+    qs = users.QuestionSet.objects.get(reserved_by=request.user)
+    if request_options['status'] == 'any':
+        questions_list = qs.questions.all()
+    else:
+        questions_list = qs.questions.filter(status=request_options['status'])
+    questions_list = questions_list.order_by(request_options['order_by'])
+    if 'limit' in request_options:
+        start = request_options['start']
+        end = start + request_options['limit']
+        questions_list = questions_list[start:end]
+    else:
+        start = request_options['start']
+        questions_list = questions_list[start:]
+    
+    items = []
+    options = { 'html' : 'thumbnail' }
+    for question in questions_list:
+        if question.status in ['released', 'ready', 'solved']:
+            items.append(questions_get_json(request, question.template.id, question=question, options=options))
+    response = { "kind" : "questionFeed",
+		"items" : items }
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+def extract_options(request, valid_options, default_options):
+    request_options = {}
+    for option_name in valid_options.iterkeys():
+        option_value = None
+        if option_name in request.REQUEST:
+            option_value = request.REQUEST[option_name]
+        elif default_options[option_name] is not None:
+            option_value = default_options[option_name] 
+        if option_value is not None:
+            option_value = valid_options[option_name](option_value)
+            if option_value is not None:
+                request_options[option_name] = option_value
+    return request_options
+
+def get_options_dictionary(request, dictionary_of_options):
+    # Figure out options
+    return {}    
+    '''
+        html_options = list_of_options
+        if options is None:
+            options = {}
+        if 'html' in options \
+           and options['html'] in html_options:
+            pass
+        elif 'html' in request.GET \
+             and request.GET['html'] in html_options:
+            options['html'] = request.GET['html']
+        else:
+            options['html'] = 'full'
+    '''
+
+
+@login_required
+def api_questions_get(request, question_id):
+    return HttpResponse(json.dumps(questions_get_json(request, question_id)),
+                        mimetype='application/json')
+
+'''
+questions_get_json is used by the API call get and list.
+This function handles all permissions and formats the JSON
+response with the appropriate fields.
+If the question does not exist, return a "question#notfound" package.
+If the question is "locked", return some fields.
+If the questions is "released", return everything.
+By default, send the HTML snippet in the 'html' attribute
+for embedding in a web page. 
+Options can be passed in, like { 'html' : 'thumbnail' } which
+requests only the small view to be embeded in list form.
+'''
+def questions_get_json(request, question_id, question=None, options=None):
+    user = request.user
+    errors = []
+    hintids = []
+    def create_not_found_package():
+        response = { "kind" : "question#notfound" }
+        if options['html'] == 'full':
+            response['html'] = render_to_response('include/questions_get.tpl',
+                                { 'questionstatus' : "doesnotexist",
+                                  'questiontitle' : "Question not found",
+                                  'questionnumber' : question_id,
+                                  'questioncontent' : "This question does not exist. Contact us if you think this is a mistake.",
+                                  'questionpublished' : "",
+                                  'hintsids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'thumbnail':
+            response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+                                { 'questionstatus' : "doesnotexist",
+                                  'questiontitle' : "Question not found",
+                                  'questionnumber' : question_id,
+                                  'questioncontent' : "This question does not exist. Contact us if you think this is a mistake.",
+                                  'questionpublished' : "",
+                                  'hintids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        else:
+            pass
+        return response
+            
+    def create_locked_package(question, options):
+        response = { "kind" : "question",
+                     "status" : question.status,
+                     "key" : question.id,
+		     "title" : question.template.title,
+                     "id" : question.template.id,
+                     "stats" : question.stats,
+                     "errors" : errors }
+        if options['html'] == 'full':
+            response['html'] = render_to_response('include/questions_get.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
+                                  'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
+                                  'hintids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'thumbnail':
+            response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : "Oops, this questions is locked. Keep working and you'll be here soon!",
+                                  'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
+                                  'hintids' : [] },
+                                context_instance=RequestContext(request)
+                              ).content
+        else:
+            pass
+        return response
+    def create_question_package(question, options):
+        response = { "kind" : "question",
+                     "status" : question.status,
+                     "key" : question.id,
+		     "title" : question.template.title,
+                     "id" : question.template.id,
+                     "questionstats" : question.stats,
+  		     "content" : question.decoded_text(),
+  		     #"scope" : scope,
+  		     "hints" : hintids, 
+  		     "url" : "http://%s/questions/%d" % (request.get_host(), question.template.id),
+  		     "published" : str(question.time_released),
+  		     "actor" : question.user.id,
+                     "errors" : errors }
+        if options['html'] == 'thumbnail':
+            response['html'] = render_to_response('include/questions_get_thumbnail.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : question.decoded_text(), # strip_tags?
+                                  'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
+                                  'hintids' : hintids },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'full':
+            response['html'] = render_to_response('include/questions_get.tpl',
+                                { 'questionstatus' : question.status,
+                                  'questiontitle' : question.template.title,
+                                  'questionnumber' : question.template.id,
+                                  'questioncontent' : question.decoded_text(), # strip_tags ?
+                                  'questionpublished' : str(question.time_released),
+                                  'questionstats' : question.stats,
+                                  'hintids' : hintids },
+                                context_instance=RequestContext(request)
+                              ).content
+        elif options['html'] == 'hide':
+            if 'html' in response:
+                del response['html']
+        else:  
+            if 'html' in response:
+                del response['html']
+        return response
+    # Figure out options
+    # html=full [default] or html=thumbnail or html=hide
+    html_options = ['full', 'thumbnail', 'hide']
+    if options is None:
+        options = {}
+    if 'html' in options \
+       and options['html'] in html_options:
+        pass
+    elif 'html' in request.GET \
+         and request.GET['html'] in html_options:
+        options['html'] = request.GET['html']
+    else:
+        options['html'] = 'full'
+    if question is None:
+        # First try to find the question.
+        # If the question does not exist, return a does not exist package.
+        try:
+            template = users.QuestionTemplate.objects.get(id=question_id)
+            if template is not None:
+                question = users.Question.objects.filter(user=user, template=template)
+                if len(question) > 0:
+                    if len(question) > 1:
+                        errors.append("Redundant questions found.")
+                    question = question[0]
+                else:
+                    return create_not_found_package()
+            else:
+                return create_not_found_package()
+        except users.QuestionTemplate.DoesNotExist as error:
+            return create_not_found_package()
+        except users.Question.DoesNotExist as error:
+            return create_not_found_package()
+    # Get all hints
+    try:
+        hints = users.QuestionHint.objects.filter(template=question.template.id)
+        if hints is not None:
+            hintids = [h.id for h in hints]
+    except users.QuestionHint.DoesNotExist as error:
+        errors.append("Error when looking for hints")
+
+    question.stats = get_question_stats(question)
+
+
+    # If pending or ready, return a locked package.
+    if question.status in ['pending', 'ready']:
+        return create_locked_package(question, options)
+    # This must be a released questions
+    elif question.status in ['released', 'solved']:
+        return create_question_package(question, options)
+    errors.append("Question status unknown")
+    return create_question_package(question, options)
+
+def get_question_stats(question):
+    # Compute statistics for # solved vs. # available on the fly.  We
+    # may want to batch this later if performance becomes an issue.  It
+    # won't scale particularly well as the user load increases.
+    available = users.Question.objects.filter(template=question.template).exclude(status='retired')
+    num_available = sum([1 for q in available if q.status in ('released', 'solved')])
+    num_solved = sum([1 for q in available if q.status == 'solved'])
+    if num_available > 0:
+        solved_percent = round((num_solved * 1.0 / num_available) * 100, 1)
+    else:
+        solved_percent = 0.0
+    return { 'num_available' : num_available,
+             'num_solved' : num_solved,
+             'solved_percent' : solved_percent }
+
+@login_required
+def api_hints_list(request, question_id):
+    def create_not_found_package():
+        return { "kind" : "hint#notfound" }
+    try:
+        hints = users.QuestionHint.objects.filter(template__id=question_id)
+        items = []
+        options = { "fields" : "kind,id" }
+        for hint in hints:
+            items.append(hints_get_json(request, hint.id, hint=hint, options=options))
+        response = { "kind" : "hintFeed",
+                     "question" : question_id,
+                     "items" : items }
+        return HttpResponse(json.dumps(response),
+                            mimetype='application/json')
+    except users.QuestionHint.DoesNotExist as error:
+        return HttpResponse(json.dumps(create_not_found_package()),
+                            mimetype='application/json')
+
+@login_required
+def api_hints_vote(request, hint_id):
+    messages = []
+    if request.method != 'POST':
+        messages.append("Expecting POST request")
+        return HttpResponse(json.dumps({ "kind" : "error", 'messages' : messages, }),
+                            mimetype='application/json')
+    hint_id = int(request.POST['id'])
+    rating = request.POST['rating']
+    if rating == 'yes':
+        rating = True
+    elif rating == 'no':
+        rating = False
+    else:
+        messages.append('Failed to vote for hint.')
+        return HttpResponse(json.dumps({ "kind" : "error", 'messages' : messages,
+                                   }),
+                            mimetype='application/json')
+ 
+    hint = users.QuestionHint.objects.get(id=hint_id)
+    if hint is None:
+        messages.append('Failed to vote for hint.')
+        return HttpResponse(json.dumps({ "kind" : "error", 'messages' : messages,
+                                   }),
+                            mimetype='application/json')
+    
+
+    # Check to make sure that the user hasn't voted 
+    prev_ratings = users.QuestionHintRating.objects.filter(hint=hint, src=request.user)
+    if len(prev_ratings) == 1:
+        if rating != prev_ratings[0].rating:
+            prev_ratings[0].rating = rating
+            prev_ratings[0].save()
+            response = hints_get_json(request, hint_id, hint=hint)
+            messages.append('Changed vote for hint.')
+        else:
+            if rating:
+                messages.append("You've already upvoted this hint.")
+            else:
+                messages.append("You've already downvoted this hint.")
+    elif len(prev_ratings) > 1:
+        messages.append("You've already voted multiple times.")
+    else:
+        users.QuestionHintRating(hint=hint, src=request.user, rating=rating).save()
+        messages.append('Voted for hint.')
+    response = hints_get_json(request, hint_id, hint=hint)
+    response['messages'] = messages
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_hints_get(request, hint_id):
+    return HttpResponse(json.dumps(hints_get_json(request, hint_id)),
+                        mimetype='application/json')
+
+def hints_get_json(request, hint_id, hint=None, options=None):
+    def create_not_found_package():
+        return { "kind" : "hint#notfound" }
+    if hint is None:
+        try:
+            hint = users.QuestionHint.objects.get(id=hint_id)
+            if hint is None:
+                return create_not_found_package()
+        except users.QuestionHint.DoesNotExist as error:
+            return create_not_found_package() 
+    # Get rating
+    hintsup = users.QuestionHintRating.objects.filter(hint=hint, rating=True)
+    hintsdown = users.QuestionHintRating.objects.filter(hint=hint, rating=False)
+    votetotal = len(hintsup) - len(hintsdown)
+    response = { "kind" : "hint",
+                 "id" : hint.id,
+                 "content" : hint.text,
+                 "question" : hint.template.id,
+                 "rating" : votetotal,
+                 "actor" : hint.src.id } 
+    # Add HTML
+    response['html'] = render_to_response('include/hints_get.tpl',
+                      { 'hintid' : hint.id,
+                        'hintcontent' : hint.text,
+                        'votetotal' : votetotal },
+                      context_instance=RequestContext(request)
+                      ).content
+    # Handle masking of certain fields based on the fields parameter
+    parameters = ['fields']
+    if options is None:
+        options = {}
+    for p in parameters:
+        if p in request.GET and p not in options:
+            options[p] = request.GET[p]
+    if 'fields' in options:
+        fields = options['fields'].split(',')
+        for k in response.keys():
+            if k not in fields:
+                del response[k]
+    return response
+
+
+#Example: 'api/attempts/insert', views.api_attempts_insert
+@login_required
+def api_attempts_insert(request, question_id):
+    errors = []
+    messages = []
+    question_id = int(question_id)
+    if request.method != 'POST':
+        return HttpResponse(json.dumps({ "kind" : "Expecting POST request" }),
+                            mimetype='application/json')
+    if 'content' in request.POST:
+        content = request.POST['content']
+        if len(content) == 0:
+            errors.append("Length of content is 0")
+            messages.append("You tried to submit a blank attempt.")
+    else:
+        errors.append("No content given") # LOGTHISERROR
+    
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({ "kind" : "error", 
+                                         "errors" : errors,
+                                         "messages" : messages,
+                                   }),
+                            mimetype='application/json')
+    try: 
+        question = users.Question.objects.get(template__id=question_id, user=request.user)
+    except users.Question.DoesNotExist:
+        raise exception.UnauthorizedAttemptException(request.user, question_id)
+    if question is None:
+        return HttpResponse(json.dumps({ "kind" : "question#notfound", 
+                                         "messages" : messages,
+                                   }),
+                            mimetype='application/json')
+    if question.status != 'released':
+        problem = 'Cannot attempt "%s" question' % question.status
+        errors.append(problem)
+        messages.append(problem)
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({ "kind" : "error", 
+                                         "errors" : errors,
+                                         "messages" : messages,
+                                   }),
+                            mimetype='application/json')
+         
+    question_m = qm.QuestionManager()
+    correct, msg = question_m.check_question(question, content)
+    
+    msghub.register_message(msg, target=question_id, status=correct)
+    
+    # Record the guess.
+    g = users.Guess(user=request.user, 
+                    question=question, 
+                    value=content, 
+                    correct=correct, 
+                    time_guessed=datetime.datetime.now())
+    g.save()
+    if correct and question.status != 'solved':
+        question.status = 'solved'
+        question.save()
+        messages.append('Great job! Your answer %s is correct.' % content)
+        try:
+            question_m = qm.QuestionManager()
+            # Activate the next question.
+            question_m.activate_next(request.user)
+        except exception.NoQuestionReadyException:
+            # TODO cartland: Should we record this?
+            pass
+    if not correct:
+        messages.append("Try again! You'll get it soon.")
+    response = attempts_get_json(request, attempt_id=g.id, attempt=g)
+    response['messages'] = messages
+    return HttpResponse(json.dumps(response), mimetype='application/json')
+
+@login_required
+def api_attempts_list(request, question_id):
+    question_id = int(question_id)
+    def create_not_found_package():
+        return { "kind" : "attempt#notfound" }
+    try:
+        attempts = users.Guess.objects.filter(question__template__id=question_id).order_by('time_guessed')
+        items = []
+        options = { "fields" : "kind,id,content,correct,html",
+                    "html" : "thumbnail" }
+        for attempt in attempts:
+            item = attempts_get_json(request, attempt.id, attempt=attempt, options=options)
+            items.append(item)
+        question = users.Question.objects.get(id=question_id)
+        response = { "kind" : "attemptFeed",
+                     "question" : question_id,
+                     "question_status" : question.status,
+                     "items" : items }
+        return HttpResponse(json.dumps(response),
+                            mimetype='application/json')
+    except users.QuestionHint.DoesNotExist as error:
+        return HttpResponse(json.dumps(create_not_found_package()),
+                            mimetype='application/json')
+
+def api_attempts_get(request, attempt_id):
+    return HttpResponse(json.dumps(attempts_get_json(request, attempt_id)),
+                        mimetype='application/json')
+
+def attempts_get_json(request, attempt_id, attempt=None, options=None):
+    def create_not_found_package():
+        return { "kind" : "attempt#notfound" }
+    def get_attempt_html(attempt):
+        return "%s, '%s', %s" % (str(attempt.time_guessed), attempt.value, "Correct" if attempt.correct else "Incorrect")
+    if attempt is None:
+        try:
+            attempt = users.Guess.objects.get(id=attempt_id)
+            if attempt is None:
+                return create_not_found_package()
+        except users.Guess.DoesNotExist as error:
+            return create_not_found_package() 
+    response = { "kind" : "attempt",
+                 "id" : attempt.id,
+                 "content" : attempt.value,
+#                 "attempt_index" : attempt.index,
+                 "html" : get_attempt_html(attempt),
+                 "question" : attempt.question.template.id,
+                 "correct" : attempt.correct,
+  		 "url" : "http://%s/questions/%d" % (request.get_host(), attempt.question.template.id),
+                 "published" : str(attempt.time_guessed),
+                 "actor" : attempt.user.id } 
+    # Handle masking of certain fields based on the fields parameter
+    parameters = ['fields']
+    if options is None:
+        options = {}
+    for p in parameters:
+        if p in request.GET and p not in options:
+            options[p] = request.GET[p]
+    if 'fields' in options:
+        fields = options['fields'].split(',')
+        for k in response.keys():
+            if k not in fields:
+                del response[k]
+    return response
+>>>>>>> e4df422e2cb0dba58b114d13f17ea652fe19d560
+
+def sanity_questions_get(request, qid):
+    question_id = int(qid)
+    user = request.user
+    errors = []
+    hintids = []
+    try:
+        template = users.QuestionTemplate.objects.get(id=question_id)
+        if template is not None:
+            question = users.Question.objects.filter(user=user, template=template)
+            if len(question) > 0:
+                if len(question) > 1:
+                    errors.append("Redundant questions found.")
+                question = question[0]
+            else:
+                errors.append('Template found, but question does not exist for users %d' %user.id)
+        else:
+            errors.append('Template not found')
+    except users.QuestionTemplate.DoesNotExist as error:
+        errors.append('Template name does not exist')
+    except users.Question.DoesNotExist as error:
+        errors.append('Question does not exist')
+    # Get all hints
+    try:
+        hints = users.QuestionHint.objects.filter(template=question.template.id)
+        if hints is not None:
+            hintids = [h.id for h in hints]
+            for h in hints:
+                if h.template.id != question_id:
+                    errors.append('Hint %d does not belong to template %d' % (h.id, question_id))
+    except users.QuestionHint.DoesNotExist as error:
+        errors.append('Hints do not exist')
+    if question.status not in ['pending', 'ready', 'released', 'solved']:
+        errors.append("Question status '%s' unknown" % question.status)
+    if question.status == 'released' and question.time_released is None:
+        errors.append("'released' question does not have a published time released")
+    if question.status == 'ready' and question.time_released is not None:
+        errors.append("'ready' question should not have a published time released: %s, time_computed: %s" % (question.time_released, question.time_computed))
+    
+    
+    if question.user != request.user:
+        errors.append('Users do not match question user')
+    if question.user.id != request.user.id:
+        errors.append('Current user id %d does not match questions user id %d' % (request.user.id, question.user.id))
+    
+
+    # ATTEMPTS
+    attempts = users.Guess.objects.filter(question__id=question.id).order_by('time_guessed')
+    attempt_count = 0
+    for attempt in attempts:
+        attempt_count += 1
+        if attempt.user != request.user:
+            errors.append('Users do not match attempt %d user' % attempt.id)
+        if attempt.user.id != request.user.id:
+            errors.append('Current user id %d does not match attempt user id %d' % (attempt.user.id, attempt.user.id))
+
+        if attempt.correct:
+            if question.status != 'solved':
+                errors.append("Correct attempt %d exists but questions %d has a status of %s when it should be 'solved'" % (attempt.id, question.id, question.status))
+            if attempt_count != len(attempts):
+                errors.append('Correct attempt (id: %d) is not the last of %s attempts. Instead it is number %d (index starts at 1).' % (attempt.id, len(attempts), attempt_count))
+        if attempt_count == len(attempts):
+            if question.status == 'solved' and not attempt.correct:
+                errors.append('The last attempt (id: %d) is not a solved question (id: %d, key: %d)' % (attempt.id, question.id, question.template.id))
+    if question.status == 'solved' and attempt_count == 0:
+       errors.append("'solved' question has 0 attempts")
+
+    if len(errors) > 0:
+        return HttpResponse(json.dumps({'kind' : 'insane', 'errors' : errors}), mimetype='application/json')
+    else:
+        return HttpResponse(json.dumps({'kind' : 'sane'}), mimetype='application/json')
 
 
 @login_required

@@ -1,7 +1,8 @@
 @CHARSET "UTF-8";
 
 body {
-	background-image: url('../img/bg.png');
+/*	background-image: url('../img/bg.png');*/
+	background-color: #0F4D92; /* Yale Blue, UC Berkeley official Blue */
 	font-family: Arial;
 }
 
@@ -44,6 +45,37 @@ body input[type="submit"] {
 	vertical-align: middle;
 }
 
+html body div#display_body div#middle_container div#center_body div#suggestbox form textarea {
+	border: 2px solid #333;
+	border-radius: 2px;
+	box-shadow:inset 0 0 8px #666;
+	background-color: #ebf2ff;
+	
+	font-size: 14px;
+	padding: 4px;
+	width: 400px;
+}
+
+html body div#display_body div#middle_container div#center_body div#suggestbox form input[type="submit"] {
+	height: 76px;
+	right: 6px;
+	top: -30px;
+
+
+	border: 2px solid #333;
+	background-color: #ccc;
+	border-radius: 0px 10px 10px 0px;
+	box-shadow:inset 0 0 8px #666;
+	min-width: 70px;
+
+	font-size: normal;
+
+	position: relative;
+
+	vertical-align: middle;
+
+}
+
 body input[type="button"] {
 	border: 2px solid #333;
 	background-color: #ccc;
@@ -57,7 +89,7 @@ body textarea {
 	border: 2px solid #333;
 	border-radius: 2px;
 	box-shadow:inset 0 0 8px #666;
-	background-color: #EBF2FF;
+	background-color: #ebf2ff;
 	
 	font-size: 14px;
 	padding: 4px;
@@ -96,16 +128,14 @@ h2 a {
 }
 
 #heading {
-	border: 1px solid black;
-	width: 98%;
+	width: 100%;
 	height: 50px;
-	margin: 0 1% 0 1%;
 	
 	position: relative;
 	
 	background-color: black;
 	color: #CCCCCC;	
-    border: 3px solid black;
+	border: 3px solid black;
 }
 
 #heading #navigation {
@@ -135,53 +165,78 @@ h2 a {
 
 #logbox {
 	background-color: white;
-    border: 3px solid black;	
+	border: 3px solid black;	
 }
 
-#main_body {
-	margin: 0 1% 0 1%;
-	width: 98%;
+
+
+#middle_container {
+	width: 800px;
+	margin-left: auto;
+	margin-right: auto;
 	
-	background-color: white;
-    border: 3px solid black;
+	background-color: #FFFFFF; /* #FFD700; */ /* Gold */
 }
 
-#main_body #question_body {
+#left_body {
+        float: left;
+	width: 75px;
+        height: auto;
+}
+
+#center_body {
+	/* Total width should be 500px */
 	float: left;
-	width: 72%;
+	width: 490px;
+	margin-right: 0px;
+	overflow: hidden;
+}
+
+.qbox {
+	float: left;
+	width: 98%;
+	height: auto;
+
+	padding-top: 20px;
+	padding-bottom: 10px;
 	
-	margin: 1%;
-	margin-bottom: 0;
+	border-top: 1px solid #DDDDDD;
+	border-right: 1px solid #DDDDDD;
+	border-left: 1px solid #DDDDDD;
+
+	background-color: #EEEEEE;
 }
 
-h2 {
-	font-size: 30px;	
-	margin: 0;
+.qbox.status_solved {
+	background-color: #E4EFFF;/*#0F4D92; *//* Put blue here */
 }
 
-#question_body #main_q {
-	font-size: 24px;
+.qbox.status_released {
+	background-color: #DDFFDF;
 }
 
-#main_body #right_col {
+.qbox.status_ready {
+	background-color: #FFFFDD;
+}
+
+
+#right_column {
 	float: right;
-	width: 25%;
-	border-left: 3px solid black;
-	
-	background-color: #E1F7E4;
+	width: 197px; /* border-left plus width = 200px */
+	height: 100%;
+	border-left: 2px solid black;
+        border-bottom: 2px solid black;
+	background-color: #FFFFFF;
+
+	overflow-y: auto;
 }
 
-#right_col h3 {
-	margin: 0;
-	padding: 0;	
-}
-
-#main_body #right_col #small_right {
+#middle_container #right_column #small_right {
 	width: 92%;	
 	padding: 4%;
 }
 
-#main_body #right_col #large_right {
+#middle_container #right_column #large_right {
 	margin: 4%;
 	width: 90%;
 }
@@ -200,18 +255,6 @@ h2 {
 	margin-top: .5em;
 }
 
-.qbox {
-	float: left;
-	width: 90%;
-	height: 20%;
-	
-	margin: 2%;
-	padding: 1%;
-	
-	border: 2px solid #666666;
-	background-color: #EEE;
-}
-
 br {
 	display: block;
 	margin: 10px 0;
@@ -227,44 +270,21 @@ br {
 	margin: 5px;
 }
 
-.qbox .q_answered {
-	background-color: #AFDEB6;
-}
-
-.qbox .q_unanswered {
-	background-color: #EBEB98;	
-}
-
-.qbox .q_unavailable {
-	background-color: #CFCFCF;
-}
-
 .q_decoration {
-	height: 90px;
-	width: 130px;
-	
-	border: 2px solid #999;
-	border-radius: 4px;
-	
 	margin-right: 10px;
-	text-align: center;
+	text-align: left;
 	
-	float: left;
+	float: top;
 }
 
 .q_decoration p {
 	margin: 0;
 	padding: 0;
-	
+	display:inline;
 	font-size: small;
 }
 
 .qbox .q_status {
-	font-weight: bold;
-	margin-top: 15px;
-	margin-bottom: 10px;
-	
-	font-size: medium;
 }
 
 .q_suggest_list {
@@ -497,7 +517,7 @@ div.error {
 	margin-bottom: 2px;
 }
 
-#main_body #test_body {
+#middle_container #test_body {
 	float: left;
 	width: 72%;
 	
@@ -505,6 +525,6 @@ div.error {
 	margin-bottom: 0;
 }
 
-html body div#display_body div#main_body div#test_body div#testtest.testresult div.testname {
+html body div#display_body div#middle_container div#test_body div#testtest.testresult div.testname {
     font-weight: bold;
 }
