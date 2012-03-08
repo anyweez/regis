@@ -1,6 +1,5 @@
-import offline.Terms.Term as Term
-import offline.ParserTools.ParserTools as ParserTools
-import util.exceptions as exceptions
+import face.offline.Terms.Term as Term
+import face.offline.ParserTools.ParserTools as ParserTools
 
 import random
 

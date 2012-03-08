@@ -1,4 +1,4 @@
-import offline.Solvers.Solver as Solver
+import face.offline.Solvers.Solver as Solver
 
 # This is just an example solver that shows the general form that
 # all solvers should take.  They should inherit from the BaseSolver

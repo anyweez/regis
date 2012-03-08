@@ -1,4 +1,4 @@
-import offline.Solvers.Solver as Solver
+import face.offline.Solvers.Solver as Solver
 
 class PrimeFinderSolver(Solver.BaseSolver):
 	def correct(self, st, params):

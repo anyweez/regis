@@ -1,4 +1,4 @@
-import offline.Solvers.Solver as Solver
+import face.offline.Solvers.Solver as Solver
 
 class ShouldersOfGiantsSolver(Solver.BaseSolver):
 	# This is going to be REALLY inefficient for now.  I'll come back

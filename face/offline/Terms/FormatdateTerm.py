@@ -1,6 +1,6 @@
-import offline.Terms.Term as Term
-import offline.ParserTools.ParserTools as ParserTools
-import random, datetime
+import face.offline.Terms.Term as Term
+import face.offline.ParserTools.ParserTools as ParserTools
+import datetime
 
 class FormatdateTerm(Term.BaseTerm):
 	def execute(self, params):

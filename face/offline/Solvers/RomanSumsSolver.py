@@ -1,4 +1,4 @@
-import offline.Solvers.Solver as Solver
+import face.offline.Solvers.Solver as Solver
 
 class RomanSumsSolver(Solver.BaseSolver):
 	def _segment2value(self, segment):

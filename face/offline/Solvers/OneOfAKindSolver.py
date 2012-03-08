@@ -1,4 +1,4 @@
-import offline.Solvers.Solver as Solver
+import face.offline.Solvers.Solver as Solver
 
 class OneOfAKindSolver(Solver.BaseSolver):
 	def correct(self, st, params):

@@ -1,6 +1,5 @@
-import offline.Terms.Term as Term
-import offline.ParserTools.ParserTools as ParserTools
-import util.exceptions as exceptions
+import face.offline.Terms.Term as Term
+import face.offline.ParserTools.ParserTools as ParserTools
 
 import random
 
@@ -15,8 +14,9 @@ class ChoosestrTerm(Term.BaseTerm):
         pt = ParserTools.ParserTools()
         lines = pt.load_datafile(filename)
 
+
         line = random.choice(lines).strip()
         while len(line) is 0:
             line = random.choice(lines).strip()
 
-        return (line, line)
+        return ([line,], [line,])
