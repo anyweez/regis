@@ -83,7 +83,7 @@ class UserStats(object):
         elif minutes > 0:
             return '%d minutes and %d seconds' % (minutes, seconds)
         else:
-            return '%d seconds!'
+            return '%d seconds!' % seconds
         
     def hardest_question_answered(self):
         # Get all questions that have been answered by the user.

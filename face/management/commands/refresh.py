@@ -1,8 +1,4 @@
 import face.models.models as regis
-import face.offline.QuestionParser as qp
-import face.offline.ParserTools.ParserTools as ParserTools
-
-import json, datetime
 
 from django.core.management.base import BaseCommand, CommandError
 
