@@ -7,7 +7,7 @@ class CaesarTerm(Term.BaseTerm):
 		pt = ParserTools.ParserTools()
 		phrase, shift_amt = pt.prepare_params(params)
 		
-		phrase = phrase.lower() # all alpha characters fall in the range [97, 122]
+		phrase = phrase[0].lower() # all alpha characters fall in the range [97, 122]
 		
 		new_ascii = []
 		for letter in phrase:
