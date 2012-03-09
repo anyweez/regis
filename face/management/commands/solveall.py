@@ -74,13 +74,13 @@ class Command(BaseCommand):
             print '  * %s' % solver
 
     def get_question_list(self):
-        all_q = regis.Question.objects.exclude(status='retired')
-        keepers = []
+        all_q = regis.Question.objects.filter(status='pending')
+        keepers = [q for q in all_q]
       
-        for q in all_q:
-            num_ans = regis.Answer.objects.filter(question=q)
-
-            if len(num_ans) == 0:
-                keepers.append(q)
+#        for q in all_q:
+#            num_ans = regis.Answer.objects.filter(question=q)
+#
+#            if len(num_ans) == 0:
+#                keepers.append(q)
               
         return keepers
