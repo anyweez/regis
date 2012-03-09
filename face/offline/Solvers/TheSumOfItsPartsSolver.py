@@ -28,7 +28,6 @@ class TheSumOfItsPartsSolver(Solver.BaseSolver):
 		p = st.prepare_params(params)
 		decomposed = self.decompose_num(p['number'])
 		
-		print decomposed
 		if decomposed is not None:
 			return [(decomposed[0], None),]
 		else:

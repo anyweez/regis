@@ -7,14 +7,15 @@ class EvenSplitSolver(Solver.BaseSolver):
 		text = self.load_userfile()[0]
 		words = [word.strip('.,;"\'') for word in text.strip().split(' ') if len(word) > 0]
 
-		for i, word in enumerate(words):
-			print '#%d: %s' % (i, word)
+		middle = len(words) / 2
 		if len(words) % 2 == 0:
-			middle = len(words) / 2
-			return [('%s %s' % ( words[middle-1], words[middle]), )]
+			return [
+				('%s %s' % ( words[middle-1], words[middle] ), None),
+			]
 		else:
-			middle = len(words) / 2
-			return [('%s' % ( words[int(math.ceil(round(middle)))],), None)]
+			return [
+				('%s' %  words[int(math.ceil(round(middle)))], None),
+			]
 		
 	def mistakes(self, params):
 		return []

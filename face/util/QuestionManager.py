@@ -11,10 +11,10 @@ class QuestionManager(object):
 
         # If there is a question to be released, release it.
         try:
-            q = regis.Question.objects.get(user=user, order=target_order['order__min'])
-        
+            q = regis.Question.objects.get(user=user, order=target_order['order__min'], status='ready')
             q.time_released = datetime.datetime.now()
             q.status = 'released'
+            
             q.save()
         except regis.Question.DoesNotExist:
             raise exception.NoQuestionReadyException(user)

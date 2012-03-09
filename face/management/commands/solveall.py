@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand, CommandError
 import face.offline.QuestionSolver as qs
 import face.models.models as regis
 
+import traceback, sys
+
 class Command(BaseCommand):
     args = 'none'
     help = 'Solves all of the questions that havent been solved for all users.'
@@ -17,12 +19,15 @@ class Command(BaseCommand):
             return ancestors[0]
         except regis.Question.DoesNotExist:
             return None
+        except IndexError:
+            return None
 
     def handle(self, *args, **options):
         solver = qs.QuestionSolver()
         qlist = self.get_question_list()
 
         missing_solvers = []
+        found_solvers = []
         solved_count = 0
         for q in qlist:
             try:
@@ -50,15 +55,23 @@ class Command(BaseCommand):
                     q.save()
             
                 solved_count += 1
+                found_solvers.append(q.template.solver_name)
             except ImportError:
-                missing_solvers.append(q.template.id)
+                missing_solvers.append(q.template.solver_name)
             except Exception as e:
                 print 'Exception thrown while running solver %s:' % q.template.solver_name
                 print e
-                continue
+                # Print the stack trace
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                print traceback.print_tb(exc_traceback)
+#                continue
         
-        print 'Solved %d new problems.' % solved_count
+        print 'Solved %d new problems from %d templates.' % (solved_count, len(list(set(found_solvers))))
+        for solver in list(set(found_solvers)):
+            print '  * %s' % solver
         print 'Missing solvers for %d templates.' % len(list(set(missing_solvers)))
+        for solver in list(set(missing_solvers)):
+            print '  * %s' % solver
 
     def get_question_list(self):
         all_q = regis.Question.objects.exclude(status='retired')

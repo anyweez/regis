@@ -96,7 +96,7 @@ class Answer(models.Model):
     question = models.ForeignKey(Question)
     correct = models.BooleanField()
     
-    value = models.CharField(max_length=100)
+    value = models.CharField(max_length=255)
     message = models.CharField(max_length=200, null=True)
     
     time_computed = models.DateTimeField(auto_now_add=True)
