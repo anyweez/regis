@@ -43,7 +43,10 @@ class QuestionTemplate(models.Model):
     solver_name = models.CharField(max_length=40)
     
     live = models.BooleanField()
-    
+
+    # Record properties of this question.
+    categories = models.ManyToManyField('QuestionTag')
+
     class Meta:
         permissions = (
             ('view_template_aggr', 'Can view aggregated statistics about question templates.'),
@@ -76,9 +79,6 @@ class Question(models.Model):
     
     status = models.CharField(max_length=10, choices=QUESTION_STATUS)
     order = models.IntegerField()
-    
-    # Record properties of this question.
-    categories = models.ManyToManyField(QuestionTag)
     
     def decoded_text(self):
         base_url = 'http://localhost:8000'
