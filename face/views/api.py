@@ -429,3 +429,15 @@ def attempts_get_json(request, attempt_id, attempt=None, options=None):
             if k not in fields:
                 del response[k]
     return response
+
+
+def fakelist(response):
+    info = []
+    info.append({'id': 0, 'title': 'First Q', 'text': 'Why are we here?'})
+    info.append({'id': 1, 'title': 'Second Q', 'text': 'What is recursion?'})
+    info.append({'id': 2, 'title': 'Third Q', 'text': 'Who is the president of the United States?'})
+    info.append({'id': 3, 'title': 'Fourth Q', 'text': 'How many Twitter followers do I have?'})
+    info.append({'id': 4, 'title': 'Fifth Q', 'text': 'How many Twitter followers do you have?'})
+    info.append({'id': 5, 'title': 'Sixth Q', 'text': 'Why do I have so many more Twitter followers than you?'})
+    info.append({'id': 6, 'title': 'Seventh Q', 'text': 'Wait what is Twitter?'})
+    return HttpResponse(json.dumps(info), mimetype='application/json')
