@@ -100,13 +100,29 @@ var DeckCollectionType = Backbone.Collection.extend({
 
 // View for a single deck to generate icon view.
 var DeckTypeIconView = Backbone.View.extend({
+  tagName: 'li',
+  className: 'deck-icon',
+  
   initialize: function() {
-    $('#deck-zone').append(this.el);
+    $('#deck-bench-list').append(this.el);
   },
 
   render: function() {
-    $(this.el).html('<p>' + this.collection.name + ' (# cards: ' + this.collection.length + ')</p>');
-    $(this.el).css('display', 'block');
+	icon_html = "<p>" + this.collection.name + "</p>";
+	icon_html += "<p>(" + this.collection.length + ")</p>";
+	
+	if (this.collection.length < 10) {
+		$(this.el).addClass('deck-size-lg');
+	}
+	else if (this.collection.length < 20) {
+		$(this.el).addClass('deck-size-med');
+	}
+	else {
+		$(this.el).addClass('deck-size-lg');		
+	}
+	
+    $(this.el).html(icon_html);
+    $(this.el).css('display', 'inline-block');
     return this;
   },
 });
@@ -123,7 +139,7 @@ var DeckCollectionTypeView = Backbone.View.extend({
   },
   
   render: function() {
-    $(this.el).html('<p>Rendering the bottom tray...</p>');  
+    $(this.el).html("<p id='deck-bench-label'>Your Decks</p><ul style='display: inline;' id='deck-bench-list'>");  
     $(this.el).css('display', 'block');
     $(this.el).css('position', 'absolute');
     $(this.el).css('top', '10px');
@@ -229,8 +245,8 @@ function regis_init() {
   };
 })();
 
-//$(document).ready(function() {
-//  $(document).bind('keydown', regis.keyResponse);
-//});
+$(document).ready(function() {
+  $(document).bind('keydown', regis.keyResponse);
+});
 }
 

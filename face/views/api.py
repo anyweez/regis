@@ -445,18 +445,30 @@ def fakelist(response):
     return HttpResponse(json.dumps(info), mimetype='application/json')
 
 def home_deck(response):
-    card1 = get_template('home_deck.tpl')
+    login_card = get_template('login.tpl')
+    about_card = get_template('about.tpl')
     
     cards = []
-    cards.append({'html' : card1.render(Context( {'text' : '(first deck)'})) })
-    cards.append({'html' : card1.render(Context( {'text' : '(first deck, second card)'})) })
-    cards.append({'html' : card1.render(Context( {'text' : '(first deck, third card)'})) })
+    cards.append({'html' : login_card.render(Context()) })
+    cards.append({'html' : about_card.render(Context()) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
 
-def home_deck2(response):
-    card1 = get_template('home_deck.tpl')
-    
+@login_required
+def get_deck(request, deck_name):
     cards = []
-    cards.append({'html' : card1.render(Context( {'text' : '(second deck)'})) })
-    cards.append({'html' : card1.render(Context( {'text' : '(second deck, second card)'})) })
-    return HttpResponse(json.dumps(cards), mimetype='application/json')
+    
+    questions = models.Question.objects.filter(user=request.user, status='released')
+    question_tpl = get_template('question.tpl')
+    
+    for question in questions:
+        cards.append({
+          'html' : question_tpl.render(Context({
+            'text' : question.text, 
+            'time_released' : str(question.time_released),
+            'question_num' : question.template.id
+          }))
+        })
+    
+    return HttpResponse(json.dumps(cards), 
+                mimetype='application/json')
+    

@@ -13,6 +13,13 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
     (r'^robots\.txt$', direct_to_template, {'template': 'robots.tpl', 'mimetype': 'text/plain'}),
     ('^$', core.index),
+    ('^path$', core.path),
+    
+    ('^api/decks/home$', api.home_deck),
+    ('^api/decks/([a-f0-9]+)', api.get_deck),
+    
+    
+    
     ('^login$', core.index),
     ('^about$', core.about),
     ('^bomb$', core.bomb),
@@ -47,8 +54,6 @@ urlpatterns = patterns('',
     ('^api/questions/([0-9]+)/attempts/list$', api.api_attempts_list),
     ('^api/questions/fakelist$', api.fakelist),
     
-    ('^api/decks/home$', api.home_deck),
-    ('^api/decks/home2$', api.home_deck2),
     ('^system/tests/run$', core.system_tests_run),
     ('^sanity/questions/([0-9]+)$', core.sanity_questions_get),
     url(r'', include('social_auth.urls')),

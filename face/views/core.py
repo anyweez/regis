@@ -97,7 +97,7 @@ def build_acct(request):
         pass
 
     # Correct, let's proceed.
-    return redirect('/dash')
+    return redirect('/path')
 
 def _find_acct_errors(uname, email, pwd, lid):
     errors = []
