@@ -3,61 +3,34 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
+  <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
+  <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="/static/js/underscore.js"></script>
+  <script type="text/javascript" src="/static/js/backbone.js"></script>
+  <script type="text/javascript" src="/static/js/regis/regis.js"></script>
 
-  <style type="text/css">
-    #logbox {
-      background-color: white;
-      width: 38em;
-      padding: 1%;
-      margin: 0 auto;
+  <script type="text/javascript">
+    deck = regis.Deck('home');
+    deck2 = regis.Deck('home2');
+    
+    setTimeout(function() { regis.activateDeck(deck); }, 500);
+    setTimeout(function() { regis.activateDeck(deck2); }, 5000);
 
-      border: 3px solid black;
-      border-radius: 3px;
-    }
-  </style>
+//    deck.show();
+  </script>
 
-  <title>Welcome to Regis!</title>
+  <title>Welcome to codepath!</title>
   {% include 'include/common_header.tpl' %}
 </head>
 <body>
-  <div style="margin-top: 7%;" id="logbox">
-    <img style="display: block; margin: 0 auto" src="static/img/logo-large.png" />
-    <p style="margin-top: 20px;">Regis is a tool for practicing programming skills.  It generates a unique question for
-    you every other day and customizes its content to give you the best practice possible.</p>
-
-	{% if errors %}
-	<div class="error">
-      {% for e in errors %}
-      <p>{{ e }}</p>
-      {% endfor %}
+  <div id='main-display'>
+    <h1 id="codepath-title"><span class="cp_first">code</span><span class="cp_second">path</span></h1>
+    <div id="navigation">
+<!--         <div id="profile_btn"><img src="/static/img/profile.png" />profile</div> -->
     </div>
-    {% endif %}
-
-	<div id="extra_login" style="text-align: center; margin-top: 5px;">
-	  {% for name in social_auth.backends.oauth %}
-	    <p><a rel="nofollow" href="{% url socialauth_begin name %}">{{ name }}</a></p>
-	  {% endfor %}
-	  {% for name in social_auth.backends.openid %}
-	    {% if name == 'google' %}
-	    <a rel="nofollow" href="{% url socialauth_begin name %}">
-	      <div class="login_btn">
-	        <img src="/static/img/google.png" />
-	        <span>Log in with Google</span>
-	      </div>
-	    </a>	  
-	    {% endif %}
-	  {% endfor %}
-	  {% for name in social_auth.backends.oauth2 %}
-	    {% if name == 'facebook' %}
-	    <a rel="nofollow" href="{% url socialauth_begin name %}">
-	      <div class="login_btn">
-	        <img src="/static/img/facebook.png" />
-	        <span>Log in with Facebook</span>
-	      </div>
-	    </a>
-	    {% endif %}
-	  {% endfor %}
-	</div>
+    <div id='card-stack'>
+    </div>
   </div>
 </body>
 </html>

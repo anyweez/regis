@@ -1,6 +1,8 @@
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.http import HttpResponse
+from django.template.loader import get_template
+from django.template import Context
 
 from django.contrib.auth.decorators import login_required
 
@@ -441,3 +443,18 @@ def fakelist(response):
     info.append({'id': 5, 'title': 'Sixth Q', 'text': 'Why do I have so many more Twitter followers than you?'})
     info.append({'id': 6, 'title': 'Seventh Q', 'text': 'Wait what is Twitter?'})
     return HttpResponse(json.dumps(info), mimetype='application/json')
+
+def home_deck(response):
+    card1 = get_template('home_deck.tpl')
+    
+    cards = []
+    cards.append({'html' : card1.render(Context( {'text' : '(first deck)'})) })
+    cards.append({'html' : card1.render(Context( {'text' : '(first deck, second card)'})) })
+    return HttpResponse(json.dumps(cards), mimetype='application/json')
+
+def home_deck2(response):
+    card1 = get_template('home_deck.tpl')
+    
+    cards = []
+    cards.append({'html' : card1.render(Context( {'text' : '(second deck)'})) })
+    return HttpResponse(json.dumps(cards), mimetype='application/json')

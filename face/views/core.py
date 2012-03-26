@@ -20,11 +20,14 @@ import re, json
 # this point.
 def index(request):
     if request.user.is_authenticated():
-        return redirect('/dash')
+        return redirect('/path')
     else:
-        return render_to_response('index.tpl', 
-            { 'errors' : msghub.get_printable_errors() }, 
+        return render_to_response('index.tpl',
             context_instance=RequestContext(request))
+
+@login_required
+def path(request):
+    return render_to_response('path.tpl')
 
 @login_required
 def about(request):
