@@ -450,6 +450,7 @@ def home_deck(response):
     cards = []
     cards.append({'html' : card1.render(Context( {'text' : '(first deck)'})) })
     cards.append({'html' : card1.render(Context( {'text' : '(first deck, second card)'})) })
+    cards.append({'html' : card1.render(Context( {'text' : '(first deck, third card)'})) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
 
 def home_deck2(response):

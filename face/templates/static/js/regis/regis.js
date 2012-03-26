@@ -46,7 +46,7 @@ var DeckType = Backbone.Collection.extend({
 	initialize: function(deck_name) {
 	  this.url = this.url + deck_name;
 	},
-	
+
 	updateView: function() {
 	  _.each(this.models, function(card) {
 	    card.view.hide();
@@ -93,6 +93,46 @@ var DeckType = Backbone.Collection.extend({
 	},
 });
 
+// Collection to hold all of the decks.
+var DeckCollectionType = Backbone.Collection.extend({
+    collection: DeckType
+});
+
+// View for a single deck to generate icon view.
+var DeckTypeIconView = Backbone.View.extend({
+  initialize: function() {
+    $('#deck-zone').append(this.el);
+  },
+
+  render: function() {
+    $(this.el).html('<p>' + this.collection.name + ' (# cards: ' + this.collection.length + ')</p>');
+    $(this.el).css('display', 'block');
+    return this;
+  },
+});
+
+// Render the views for all of the deck icons.  This only needs to be
+// called once.
+var DeckCollectionTypeView = Backbone.View.extend({
+  tagName: 'div',
+  className: 'deck-zone',
+  id: 'deck-zone',
+
+  initialize: function() {
+    $('#deck-icons').append(this.el);
+  },
+  
+  render: function() {
+    $(this.el).html('<p>Rendering the bottom tray...</p>');  
+    $(this.el).css('display', 'block');
+    $(this.el).css('position', 'absolute');
+    $(this.el).css('top', '10px');
+    $(this.el).css('left', '20px');
+
+    return this;
+  }
+});
+
 var DeckTypeView = Backbone.View.extend({
 	initialize: function() {
 		var that = this;
@@ -124,33 +164,43 @@ var DeckTypeView = Backbone.View.extend({
 	
 });
 
-/// Regis API code ///
-var regis = (function() {
-  var activeDeck = null;
-  var decks = {};
-    
-  return {
-    Deck: function(deck_name) {
-      var deck = new DeckType(deck_name);
+function regis_init() {
+  /// Regis API code ///
+  regis = (function() {
+    var activeDeck = null;
+  
+    // Maybe we could use this collection to get the list of decks from the server?
+    var deckCollection = new DeckCollectionType();
+    var decks = {};
+    var dctv = new DeckCollectionTypeView({collection: deckCollection});
+  
+    dctv.render();
+    deckCollection.view = dctv;
+  
+    return {
+      Deck: function(deck_name, deck_endpoint) {
+        var deck = new DeckType(deck_endpoint);
+        deck.name = deck_name;
       
-      deck.fetch({ success: function() {
-        dtv = new DeckTypeView({collection: deck});
-        dtv.on('change:activeQuestion', function(model, text) {
-     	  console.log('Active question: ' + text);
-   		});
+        deck.fetch({ success: function(target_deck) {
+          target_deck.view = new DeckTypeView({collection: target_deck});
+          target_deck.icon = new DeckTypeIconView({collection: target_deck});
+        
+   	  	  // Set the active card to the first one
+   	  	  if (target_deck.length > 0) {
+   			target_deck.view.aci = 0;
+   		  }
    		
-   		// Set the active card to the first one
-   		if (deck.length > 0) {
-   			dtv.activeCard = 0;
-   		}
-   		deck.view = dtv;
-   		deck.ready = true;
-   	  }});
-    
-      // Store the deck locally.
-      decks[deck_name] = deck;
+   		  // Render the deck's icon view.
+		  target_deck.icon.render();
+   		  target_deck.ready = true;
+
+          deckCollection.add(target_deck);
+          // Store the deck locally.
+          decks[deck_endpoint] = deck;
+   	    }}, deck);
       
-      return deck;
+        return deck;
     },
   
     activateDeck : function(target_deck) {
@@ -179,6 +229,8 @@ var regis = (function() {
   };
 })();
 
-$(document).ready(function() {
-  $(document).bind('keydown', regis.keyResponse);
-});
+//$(document).ready(function() {
+//  $(document).bind('keydown', regis.keyResponse);
+//});
+}
+

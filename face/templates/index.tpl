@@ -11,12 +11,16 @@
   <script type="text/javascript" src="/static/js/regis/regis.js"></script>
 
   <script type="text/javascript">
-    deck = regis.Deck('home');
-    deck2 = regis.Deck('home2');
+    $(document).ready(function() {
+      regis_init();
+      deck = regis.Deck('All', 'home');
+      deck2 = regis.Deck('Study Cards', 'home2');
+      
+      setTimeout(function() { regis.activateDeck(deck); }, 500);
+    });
     
-    setTimeout(function() { regis.activateDeck(deck); }, 500);
-    setTimeout(function() { regis.activateDeck(deck2); }, 5000);
-
+//    deck2 = regis.Deck('Study Cards', 'home2');
+//    setTimeout(function() { regis.activateDeck(deck2); }, 5000);
 //    deck.show();
   </script>
 
@@ -31,6 +35,8 @@
     </div>
     <div id='card-stack'>
     </div>
+    
+    <div id='deck-icons'></div>
   </div>
 </body>
 </html>
