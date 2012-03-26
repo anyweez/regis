@@ -41,9 +41,55 @@ var DeckType = Backbone.Collection.extend({
 	model: CardType,
 	url: '/api/decks/',
 	ready: false,
+	aci: null,									// active card index
 	
 	initialize: function(deck_name) {
-		this.url = this.url + deck_name;
+	  this.url = this.url + deck_name;
+	},
+	
+	updateView: function() {
+	  _.each(this.models, function(card) {
+	    card.view.hide();
+	  });
+      this.models[this.aci].view.show();
+	},
+	
+	incrActive: function() {
+	  if (this.aci != null) {
+        if (this.aci + 1 >= this.length) {
+          this.aci = 0;
+        }
+        else {
+          this.aci++;
+        }
+	  }
+	  else if (this.length > 0) {
+	    this.aci = 0;
+	    console.log('Activating first card');
+	  }
+	  else {
+	    console.log('No card to activate');
+	  }
+      this.updateView();
+	},
+	
+	decrActive: function() {
+	  if (this.aci != null) {
+        if (this.aci - 1 < 0) {
+          this.aci = this.length - 1;
+        }
+        else {
+          this.aci--;
+        }
+	  }
+	  else if (this.length > 0) {
+	    this.aci = 0;
+	    console.log('Activating first card');
+	  }
+	  else {
+	    console.log('No card to activate');
+	  }
+      this.updateView();
 	},
 });
 
@@ -78,13 +124,11 @@ var DeckTypeView = Backbone.View.extend({
 	
 });
 
-
 /// Regis API code ///
 var regis = (function() {
   var activeDeck = null;
   var decks = {};
-  
-  
+    
   return {
     Deck: function(deck_name) {
       var deck = new DeckType(deck_name);
@@ -119,5 +163,22 @@ var regis = (function() {
   	  target_deck.view.show();
   	  activeDeck = target_deck;
     },
+    
+    keyResponse : function(key) {
+      if (activeDeck != null) {
+        // right arrow key
+        if (key.keyCode == 39) {
+          activeDeck.incrActive();
+        }
+        // left arrow key
+        else if (key.keyCode == 37) {
+          activeDeck.decrActive();
+        }
+      }
+    },
   };
 })();
+
+$(document).ready(function() {
+  $(document).bind('keydown', regis.keyResponse);
+});
