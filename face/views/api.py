@@ -6,6 +6,7 @@ from django.template import Context
 
 from django.contrib.auth.decorators import login_required
 
+import urllib2 # for Django requests to third party servers 
 import json, datetime
 import face.util.UserStats as UserStats
 import face.models.models as models
@@ -471,4 +472,10 @@ def get_deck(request, deck_name):
     
     return HttpResponse(json.dumps(cards), 
                 mimetype='application/json')
+
+
+def test_third_party_latency(request):
+    url = request.GET['url']
     
+    f = urllib2.urlopen(url)
+    return HttpResponse(f.read())
