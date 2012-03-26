@@ -6,6 +6,7 @@ from django.template import Context
 
 from django.contrib.auth.decorators import login_required
 
+import urllib2 # for Django requests to third party servers 
 import json, datetime
 import face.util.UserStats as UserStats
 import face.models.models as models
@@ -463,7 +464,6 @@ def home_deck2(response):
 
 def test_third_party_latency(request):
     url = request.GET['url']
-    import urllib2
     
     f = urllib2.urlopen(url)
     return HttpResponse(f.read())

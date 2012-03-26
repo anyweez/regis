@@ -26,7 +26,7 @@
           sum += latencies[i][1];
         }
         var average = sum / latencies.length;
-        var item = '<li>Trials: ' + latencies.length + ', Average: ' + average + "</li>";
+        var item = '<li>Trials: ' + latencies.length + ', Average: ' + average + "ms</li>";
         results.append(item);
       }
       var do_test = function() {
@@ -37,7 +37,7 @@
           var callindex = total_countdown - countdown;
           var latency = stoptime - starttime;
           latencies.push([callindex, latency]);
-          var item = '<li>Index: ' + callindex + ', Time: ' + latency + "</li>";
+          var item = '<li>Index: ' + callindex + ', Time: ' + latency + "ms</li>";
           results.append(item);
           if (countdown > 0) {
              do_test();
