@@ -49,6 +49,8 @@ urlpatterns = patterns('',
     
     ('^api/decks/home$', api.home_deck),
     ('^api/decks/home2$', api.home_deck2),
+    ('^test/thirdpartylatency$', api.test_third_party_latency),
+    ('^test/latency$', core.test_latency),
     ('^system/tests/run$', core.system_tests_run),
     ('^sanity/questions/([0-9]+)$', core.sanity_questions_get),
     url(r'', include('social_auth.urls')),

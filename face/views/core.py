@@ -1243,3 +1243,9 @@ def bomb(request):
     raise exception.KamikazeException(request.user)
     return render_to_response('empty.tpl')
 
+def test_latency(request):
+    url = request.GET['url']
+    return render_to_response('latency.tpl', { 'url' : url })
+
+
+

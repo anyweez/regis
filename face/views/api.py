@@ -460,3 +460,12 @@ def home_deck2(response):
     cards.append({'html' : card1.render(Context( {'text' : '(second deck)'})) })
     cards.append({'html' : card1.render(Context( {'text' : '(second deck, second card)'})) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
+
+def test_third_party_latency(request):
+    url = request.GET['url']
+    import urllib2
+    
+    f = urllib2.urlopen(url)
+    return HttpResponse(f.read())
+    
+
