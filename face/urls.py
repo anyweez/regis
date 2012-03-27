@@ -15,8 +15,10 @@ urlpatterns = patterns('',
     ('^$', core.index),
     ('^path$', core.path),
     
+    ('^api/decks$', api.get_decks),
     ('^api/decks/home$', api.home_deck),
-    ('^api/decks/([a-f0-9]+)', api.get_deck),
+    ('^api/questions$', api.get_questions),
+#    ('^api/decks/([a-f0-9]+)', api.get_deck),
     
     
     
@@ -52,7 +54,6 @@ urlpatterns = patterns('',
     ('^api/questions/([0-9]+)/attempts/insert$', api.api_attempts_insert),
     ('^api/attempts/([0-9]+)$', api.api_attempts_get),
     ('^api/questions/([0-9]+)/attempts/list$', api.api_attempts_list),
-    ('^api/questions/fakelist$', api.fakelist),
     
     ('^test/thirdpartylatency$', api.test_third_party_latency),
     ('^test/latency$', core.test_latency),

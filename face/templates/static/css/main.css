@@ -42,11 +42,11 @@ body {
 	
 	background-color: white;
    	border: 3px solid black;
-    box-shadow: 2px 2px 12px #333;
+	box-shadow: 2px 2px 12px #333;
 
 	position: absolute;
 	left: 110%;
-	top: 32%;
+	top: 15%;
 	display: none;
 }
 
@@ -72,7 +72,7 @@ h1 {
 	padding: 0;
 
 	position: absolute;
-	top: 20%;
+	top: 15%;
 	left: 20%;
 
 	text-shadow: #333 3px 2px 8px;

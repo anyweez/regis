@@ -16,17 +16,16 @@
     
       // Initialize Regis and get some decks.
       regis_init();
-      deck = regis.Deck('All', 'all');
       
       // Activate a deck after some time has passed.  This should be
       // converted to an event eventually.
-      setTimeout(function() { regis.activateDeck(deck); }, 500);
+//      setTimeout(function() { regis.activateDeck(deck); }, 500);
 
       // Make the deck bench.
       var layout = $('body').layout({ 
         applyDefaultStyles: true, 
         resizable: true, 
-		initClosed: true,
+//		initClosed: true,
 		size: 180,
         onopen : function () { 
           $(".ui-layout-south").css("z-index", 1000);
@@ -52,20 +51,7 @@
     </div>
     <div id='card-stack'>
     </div>
-    
   </div>
     <div id='deck-icons' class="ui-layout-south"></div>
-<!---
-  <div id="" class="ui-layout-south">
-    <ul id="deck-bench">
-      <li class="deck-icon" style="display:inline; margin-right:10px;">All (37)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Instructor (12)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Unanswered (2)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Midterm Review (8)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Final Review (1)</li>	
-      <li class="deck-icon" style="display:inline; margin-right:10px;">My Questions (2)</li>	
-    </ul>
-  </div>
--->
 </body>
 </html>

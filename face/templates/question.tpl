@@ -1,4 +1,4 @@
-<h2>{{question.status|capfirst}} Question</h2>
+<h2>{{question.status|capfirst}} Question [{{question.template.id}}]</h2>
 <p style="font-size: small;">released on {{ question.time_released }}</p>
 <p>{{question.decoded_text|safe}}</p>
 

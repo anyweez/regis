@@ -3,8 +3,19 @@
 ///////////////////////////////////////////////////
 
 /// Cards ///
-
+/**
+ * The base class for a single card.  These are constructed based
+ * on the data received in the CardListType.  They can be constructed
+ * manually as well, although it shouldn't really be necessary.
+ * 
+ * The only field the card requires is the 'html' field, which is the
+ * data that is directly injected into the card's body.
+ */
 var CardType = Backbone.Model.extend({});
+
+/**
+ * The view for a single CardType.
+ */
 var CardTypeView = Backbone.View.extend({
    tagName: 'div',
    className: 'card',
@@ -15,6 +26,8 @@ var CardTypeView = Backbone.View.extend({
    
    initialize: function() {
       $('#card-stack').append(this.el);
+      
+      _.bindAll(this);
    },
    
    // Activates this card in the deck that' currently active.
@@ -44,16 +57,37 @@ var CardTypeView = Backbone.View.extend({
    },
 });
 
-/// Decks ///
+/**
+ * Keeps track of all cards that are viewable by the user.  This is the
+ * single source of truth; all questions that the user can view are stored
+ * here.  Individual cards are added to decks based on this list.
+ */
+var CardListType = Backbone.Collection.extend({
+	model: CardType,
+	url: '/api/questions',
+	ready: false
+});
 
+/// Decks ///
+/**
+ * A single deck, which contains a series of cards from a CardListType.
+ * The endpoint that this model pulls from provides a list of card id's
+ * that are then used to add the correct cards to the deck (this step
+ * currently occurs in the callback for the fetch() method).  
+ * 
+ * The deck also keeps track of which card is 'active' in order to make
+ * it possible to store different values per deck.
+ */
 var DeckType = Backbone.Collection.extend({
 	model: CardType,
-	url: '/api/decks/',
+//	url: '/api/decks/',
 	ready: false,
 	aci: null,									// active card index
 	
 	initialize: function(deck_name) {
 	  this.url = this.url + deck_name;
+	  
+	  _.bindAll(this);
 	},
 	
 	activate: function(target_card) {
@@ -61,6 +95,7 @@ var DeckType = Backbone.Collection.extend({
 		this.each(function(card, index) {
 			if (target_card.get('card_id') == card.get('card_id')) {
 				that.aci = index;
+				// TODO: Check to make sure that this deck is active before doing this.
 				that.view.update();
 			}
 		});
@@ -70,55 +105,70 @@ var DeckType = Backbone.Collection.extend({
 	  this.aci = null;
 	},
 	
-	updateView: function() {
-	  _.each(this.models, function(card) {
-	    card.view.hide();
-	  });
-      this.models[this.aci].view.show();
-	},
-	
 	incrActive: function() {
-	  if (this.aci != null) {
-        if (this.aci + 1 >= this.length) {
-          this.aci = 0;
-        }
-        else {
-          this.aci++;
-        }
-	  }
-	  else if (this.length > 0) {
-	    this.aci = 0;
-	    console.log('Activating first card');
-	  }
-	  else {
-	    console.log('No card to activate');
-	  }
-      this.updateView();
+      // Nothing we can do in this case.
+	  if (this.length == 0) return;
+	  // If there isn't an active card, set the first card as the new
+      // active card.
+	  if (this.aci == null && this.length > 0) this.aci = 0;
+	  // If there is an active card and we're overflowing, wrap around
+	  // to the beginning.
+	  else if (this.aci + 1 >= this.length) this.aci = 0;
+	  // Otherwise, increment normally.
+      else this.aci++;
+
+	  this.view.update();
 	},
 	
 	decrActive: function() {
-	  if (this.aci != null) {
-        if (this.aci - 1 < 0) {
-          this.aci = this.length - 1;
-        }
-        else {
-          this.aci--;
-        }
-	  }
-	  else if (this.length > 0) {
-	    this.aci = 0;
-	    console.log('Activating first card');
-	  }
-	  else {
-	    console.log('No card to activate');
-	  }
-      this.updateView();
+      // No cards, no service.
+      if (this.length == 0) return;
+      // No active card, start at the back.
+      if (this.aci == null && this.length > 0) this.aci = this.length - 1;
+      // Wrap around to the back.
+      else if (this.aci - 1 < 0) this.aci = this.length - 1;
+      // Otherwise just decrease by one.
+      else this.aci--;
+
+      this.view.update();
 	},
 });
 
 // Collection to hold all of the decks.
 var DeckCollectionType = Backbone.Collection.extend({
-    collection: DeckType
+    collection: DeckType,
+	url: '/api/decks',
+
+	parse: function(response) {
+	  var models = [];
+	  _.each(response, function(deck_opt) {
+		  var new_deck = new DeckType();
+		  new_deck.name = deck_opt.name;
+        
+		  regis.getCardList().each(function(card, index) {
+			  if (deck_opt.members.indexOf(card.get('card_id')) > -1) {
+			    new_deck.add(card);
+			  }
+		  });
+		  
+		  console.log('Added ' + new_deck.size() + ' cards to deck "' + new_deck.name + '"');
+
+   	  	  // Set the active card to the first one
+		  new_deck.aci = (new_deck.length > 0) ? 0 : null;
+		  
+		  // Define the views that go along with this deck.
+		  new_deck.view = new DeckTypeView({collection: new_deck});
+		  new_deck.icon = new DeckTypeIconView({collection: new_deck});
+
+   		  // Render the deck's icon view.
+		  new_deck.icon.render();
+		  new_deck.ready = true;
+		  
+		  models.push(new_deck);
+	  });
+	  
+	  return models;
+	},
 });
 
 // View for a single deck to generate icon view.
@@ -126,10 +176,20 @@ var DeckTypeIconView = Backbone.View.extend({
   tagName: 'li',
   className: 'deck-icon',
   
+  events : {
+	  'click' : 'activate'
+  },
+  
   initialize: function() {
-    $('#deck-bench-list').append(this.el);
+    $('#deck-icons').append(this.el);
+    
+    _.bindAll(this);
   },
 
+  activate: function() {
+	  regis.activateDeck(this.collection);
+  },
+  
   render: function() {
 	icon_html = "<p>" + this.collection.name + "</p>";
 	icon_html += "<p>(" + this.collection.length + ")</p>";
@@ -164,9 +224,8 @@ var DeckCollectionTypeView = Backbone.View.extend({
   render: function() {
     $(this.el).html("<p id='deck-bench-label'>Your Decks</p><ul style='display: inline;' id='deck-bench-list'>");  
     $(this.el).css('display', 'block');
-    $(this.el).css('position', 'absolute');
-    $(this.el).css('top', '10px');
-    $(this.el).css('left', '20px');
+    $(this.el).css('line-height', '.5em');
+    $(this.el).css('padding-bottom', '0px');
 
     return this;
   }
@@ -174,19 +233,16 @@ var DeckCollectionTypeView = Backbone.View.extend({
 
 var DeckTypeView = Backbone.View.extend({
 	initialize: function() {
-//		this.on('click', this.activate, this);
 		var that = this;
-//		this._questionViews = [];
 
 		this.collection.each(function(card) {
-			qv = new CardTypeView({model: card});
-//			that._questionViews.push(qv);
-			
-			card.view = qv;
-			
-			qv.setCollectionView(that);
-			qv.render();
+			card.view = new CardTypeView({model: card});
+
+			card.view.setCollectionView(that);
+			card.view.render();
 		});
+		
+		_.bindAll(this);
 	},
 	
 	show: function() {
@@ -210,6 +266,14 @@ var DeckTypeView = Backbone.View.extend({
 	  });
 	},
 	
+	// TODO: Is this still required?  Can it be rolled into update() if so?
+	updateView: function() {
+	  _.each(this.models, function(card) {
+	    card.view.hide();
+	  });
+      this.models[this.aci].view.show();
+	},
+	
 	update: function() {
 	  if (this.collection.aci == null) return;
 
@@ -221,12 +285,12 @@ var DeckTypeView = Backbone.View.extend({
 	    // Move eastward.
 	    if (index - aci > 2) {
 	      $(card.view.el).hide();
-	      $(card.view.el).css({'left' : '160%', 'top' : '32%'});
+	      $(card.view.el).css({'left' : '160%', 'top' : '26%'});
 	    }
 	    // Move westward.
 	    else if (index - aci < -2) {
 	      $(card.view.el).hide();
-	      $(card.view.el).css({'left' : '-120%', 'top' : '32%'});
+	      $(card.view.el).css({'left' : '-120%', 'top' : '26%'});
 	    }
 	  });
 	  
@@ -237,54 +301,76 @@ var DeckTypeView = Backbone.View.extend({
         if (index == aci - 2) {
           $(card.view.el).css({'z-index' : 1});
           $(card.view.el).show();
-          $(card.view.el).animate({ 'left' : '-120%', 'top' : '32%' }, 500);
+          $(card.view.el).animate({ 'left' : '-120%', 'top' : '26%' }, 500);
         }
         // The element before the current element should appear on the left.
         if (index == aci - 1) {
           $(card.view.el).css({'z-index' : 2});
           $(card.view.el).show();
-          $(card.view.el).animate({ 'left' : '-50%', 'top' : '32%' }, 500);
+          $(card.view.el).animate({ 'left' : '-50%', 'top' : '26%' }, 500);
         }
         // The focus element should appear in the middle.
         else if (index == aci) {
           $(card.view.el).css({'z-index' : 3});
           $(card.view.el).show();
-          $(card.view.el).animate({ 'left' : '20%', 'top' : '32%' }, 500);
+          $(card.view.el).animate({ 'left' : '20%', 'top' : '26%' }, 500);
         }
         // The element beyond the current element should appear on the right.
         else if (index == aci + 1) {
           $(card.view.el).css({'z-index' : 2});
           $(card.view.el).show();
-          $(card.view.el).animate({ 'left' : '90%', 'top' : '32%' }, 500);
+          $(card.view.el).animate({ 'left' : '90%', 'top' : '26%' }, 500);
         }
         else if (index == aci + 2) {
           $(card.view.el).css({'z-index' : 1});
           $(card.view.el).show();
-          $(card.view.el).animate({ 'left' : '160%', 'top' : '32%' }, 500);
+          $(card.view.el).animate({ 'left' : '160%', 'top' : '26%' }, 500);
         }
       });
 	}
 });
 
+/**
+ * The starter function that takes care of initial data requests and provides
+ * the client-side API for loading and managing cards and decks.
+ * 
+ * This function should be called after the document has been loaded but before
+ * any other Regis API code usage.
+ */
 function regis_init() {
   /// Regis API code ///
   regis = (function() {
     var activeDeck = null;
   
+    var cardList = new CardListType();
     // Maybe we could use this collection to get the list of decks from the server?
-    var deckCollection = new DeckCollectionType();
-    var decks = {};
-    var dctv = new DeckCollectionTypeView({collection: deckCollection});
-  
-    dctv.render();
-    deckCollection.view = dctv;
+    var dc = new DeckCollectionType();
+    var dctv = new DeckCollectionTypeView({collection: dc});
+
+    // Fetch all questions from the server.
+    cardList.fetch( { success: function() {
+    	cardList.ready = true;
+    	
+    	dc.fetch({ success: function() {
+    	    dctv.render();
+    	    dc.view = dctv;
+        }});
+    }});
   
     return {
+    /*
       Deck: function(deck_name, deck_endpoint) {
         var deck = new DeckType(deck_endpoint);
         deck.name = deck_name;
       
         deck.fetch({ success: function(target_deck) {
+          cardList.each(function(card, index) {
+        	  // Add cards that are members of this deck.
+        	  if (target_deck.members.indexOf(card.get('card_id')) > 0) {
+        		  target_deck.add(card);
+        	  }
+          });
+          
           target_deck.view = new DeckTypeView({collection: target_deck});
           target_deck.icon = new DeckTypeIconView({collection: target_deck});
         
@@ -304,17 +390,27 @@ function regis_init() {
       
         return deck;
     },
+    */
     
     getActiveDeck : function() {
     	return activeDeck;
     },
+    
+    getCardList : function() {
+    	return cardList;
+    },
+    
+    getDeckCollection: function() {
+    	return dc;
+    },
   
     activateDeck : function(target_deck) {
+      console.log('Switching to deck "' + target_deck.name + '"');
 	  // Hide the currently active deck.
 	  if (activeDeck != null) {
 	    activeDeck.view.hide();
 	  }
-	
+	  
 	  // Show the newly activated deck and save it as the active deck.
   	  target_deck.view.update();
   	  target_deck.view.show();
@@ -322,19 +418,18 @@ function regis_init() {
     },
     
     keyResponse : function(key) {
+      var earlyActive = activeDeck;
       if (activeDeck != null) {
-        // right arrow key
-        if (key.keyCode == 39) {
-          activeDeck.incrActive();
-        }
+        var updated = false;
+    	// right arrow key
+        if (key.keyCode == 39) activeDeck.incrActive();
         // left arrow key
-        else if (key.keyCode == 37) {
-          activeDeck.decrActive();
-        }
-        else if (key.keyCode == 32) {
-          activeDeck.view.showAll();
-        }
-        activeDeck.view.update();
+        else if (key.keyCode == 37) activeDeck.decrActive();
+        // space bar
+        else if (key.keyCode == 32) activeDeck.view.showAll();
+        
+        // update the deck's view if anything changed
+        if (earlyActive != activeDeck) activeDeck.view.update();
       }
     },
   };

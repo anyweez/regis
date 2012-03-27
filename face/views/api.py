@@ -434,17 +434,6 @@ def attempts_get_json(request, attempt_id, attempt=None, options=None):
     return response
 
 
-def fakelist(response):
-    info = []
-    info.append({'id': 0, 'title': 'First Q', 'text': 'Why are we here?'})
-    info.append({'id': 1, 'title': 'Second Q', 'text': 'What is recursion?'})
-    info.append({'id': 2, 'title': 'Third Q', 'text': 'Who is the president of the United States?'})
-    info.append({'id': 3, 'title': 'Fourth Q', 'text': 'How many Twitter followers do I have?'})
-    info.append({'id': 4, 'title': 'Fifth Q', 'text': 'How many Twitter followers do you have?'})
-    info.append({'id': 5, 'title': 'Sixth Q', 'text': 'Why do I have so many more Twitter followers than you?'})
-    info.append({'id': 6, 'title': 'Seventh Q', 'text': 'Wait what is Twitter?'})
-    return HttpResponse(json.dumps(info), mimetype='application/json')
-
 def home_deck(response):
     login_card = get_template('login.tpl')
     about_card = get_template('about.tpl')
@@ -456,8 +445,16 @@ def home_deck(response):
     cards.append({'card_id' : 7823, 'html' : about_card.render(Context()) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
 
+def get_decks(request):
+    decks = []
+    
+    decks.append({'name' : 'First Wave', 'members' : [2, 4]})
+    decks.append({'name' : 'Second Wave', 'members' : [2, 4, 7]})
+
+    return HttpResponse(json.dumps(decks), mimetype='application/json')
+
 @login_required
-def get_deck(request, deck_name):
+def get_questions(request):
     cards = []
     
     questions = models.Question.objects.filter(user=request.user, status='released')
