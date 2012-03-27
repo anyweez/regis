@@ -3,6 +3,7 @@ from django.views.generic.simple import direct_to_template
 import views.core as core
 import views.admin as summary
 import views.api as api
+import views.question_server_stub as question_server_stub
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -20,8 +21,6 @@ urlpatterns = patterns('',
     ('^api/decks/users$', api.get_users),
     ('^api/questions$', api.get_questions),
 #    ('^api/decks/([a-f0-9]+)', api.get_deck),
-    
-    
     
     ('^login$', core.index),
     ('^about$', core.about),
@@ -44,17 +43,11 @@ urlpatterns = patterns('',
     ('ajax/hints/submit/(\d+)', core.submit_hint),
     ('ajax/hints/vote/yes/([a-f0-9]+)', core.tally_vote, { 'vote' : True }),
     ('ajax/hints/vote/no/([a-f0-9]+)', core.tally_vote, { 'vote' : False }),
-    ('^questions/list$', api.list_questions_with_api),
-    ('^questions/(\d+)$', api.view_question_with_api),
     ('^questions', core.questions_unknown), # Redirect to /questions/list
-    ('^api/questions/list$', api.api_questions_list),
-    ('^api/questions/([0-9]+)$', api.api_questions_get),
-    ('^api/hints/list/([0-9]+)$', api.api_hints_list),
-    ('^api/hints/([0-9]+)/vote$', api.api_hints_vote),
-    ('^api/hints/([0-9]+)$', api.api_hints_get),
-    ('^api/questions/([0-9]+)/attempts/insert$', api.api_attempts_insert),
-    ('^api/attempts/([0-9]+)$', api.api_attempts_get),
-    ('^api/questions/([0-9]+)/attempts/list$', api.api_attempts_list),
+    ('^api/questions$', api.api_questions),
+    ('^api/decks$', api.api_decks),
+    ('^api/decks/(\d+)$', api.api_deck),
+    ('^api/question_server_stub/questions$', question_server_stub.questions),
     
     ('^test/thirdpartylatency$', api.test_third_party_latency),
     ('^test/latency$', core.test_latency),
