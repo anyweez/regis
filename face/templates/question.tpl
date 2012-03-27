@@ -6,6 +6,6 @@
 
   <div id="answerbox" style="height: 40px;">
     <input type="text" value="" name="answer">
-    <input onclick="submit_question({{ question.template.id }});" type="submit" value="Guess" name="submit">
+    <input onclick="submit_question({{ question.id }});" type="submit" value="Guess" name="submit">
   </div>
 </div>

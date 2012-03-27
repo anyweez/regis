@@ -5,6 +5,7 @@
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
   <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
   <script type="text/javascript" src="/static/js/underscore.js"></script>
+  <script type="text/javascript" src="/static/js/api.js"></script>
   <script type="text/javascript" src="/static/js/jquery.js"></script>
   <script type="text/javascript" src="/static/js/backbone.js"></script>
   <script type="text/javascript" src="/static/js/regis/regis.js"></script>
