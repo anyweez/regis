@@ -80,7 +80,7 @@ var CardListType = Backbone.Collection.extend({
  */
 var DeckType = Backbone.Collection.extend({
 	model: CardType,
-//	url: '/api/decks/',
+	url: '/api/decks/',
 	ready: false,
 	aci: null,									// active card index
 	
@@ -92,11 +92,12 @@ var DeckType = Backbone.Collection.extend({
 	
 	activate: function(target_card) {
 		that = this;
+		old_aci = this.aci;
 		this.each(function(card, index) {
 			if (target_card.get('card_id') == card.get('card_id')) {
 				that.aci = index;
 				// TODO: Check to make sure that this deck is active before doing this.
-				that.view.update();
+				if (old_aci != that.aci) that.view.update();
 			}
 		});
 	},
@@ -232,11 +233,17 @@ var DeckCollectionTypeView = Backbone.View.extend({
 });
 
 var DeckTypeView = Backbone.View.extend({
+	draggable: true,
+	
 	initialize: function() {
 		var that = this;
+		// If the user specified that the card *shouldn't* be draggable, flip
+		// the flag.
+		if (this.options.draggable === false) this.draggable = this.options.draggable;
 
 		this.collection.each(function(card) {
 			card.view = new CardTypeView({model: card});
+			if (that.draggable) $(card.view.el).addClass('draggable');
 
 			card.view.setCollectionView(that);
 			card.view.render();
@@ -264,14 +271,6 @@ var DeckTypeView = Backbone.View.extend({
 		    $(card.view.el).css({'z-index' : index});
 		    $(card.view.el).animate({ 'top' : (15 * index) + 32 + '%', 'left' : '20%' });
 	  });
-	},
-	
-	// TODO: Is this still required?  Can it be rolled into update() if so?
-	updateView: function() {
-	  _.each(this.models, function(card) {
-	    card.view.hide();
-	  });
-      this.models[this.aci].view.show();
 	},
 	
 	update: function() {
@@ -330,6 +329,46 @@ var DeckTypeView = Backbone.View.extend({
 	}
 });
 
+function initialize_dragndrop() {
+	$('.draggable').each(function(index, el) {
+		$(el).draggable({ 
+		  distance: 30,
+		  revert: true,
+		  start: function(event, ui) {
+		    console.log('dragging');
+		    $(el).css('opacity', '.6');
+		  },
+		  stop: function(event, ui) {
+		    $(el).css('opacity', '1');
+		  },
+		});
+	});
+
+	$('.deck-icon').each(function(index, el) {
+		$(el).droppable({ 
+		  tolerance: 'pointer',
+		  activate: function(event, ui) {
+			console.log('activated dragging (droppable noticed)');  
+		  },
+			
+		  drop: function(event, ui) {
+		    console.log('dropped onto icon');
+	        $(this).css('background-color', 'transparent');
+		    // this = droppable
+		    // ui.draggable = draggable
+		  },
+		  
+		  over: function(event, ui) {
+            $(this).css('background-color', 'yellow');
+		  },
+		  
+		  out: function(event, ui) {
+	        $(this).css('background-color', 'transparent');
+		  }
+		});
+	});
+}
+
 /**
  * The starter function that takes care of initial data requests and provides
  * the client-side API for loading and managing cards and decks.
@@ -354,43 +393,31 @@ function regis_init() {
     	dc.fetch({ success: function() {
     	    dctv.render();
     	    dc.view = dctv;
+    	    
+        	initialize_dragndrop();
         }});
+    	
     }});
   
     return {
-    /*
       Deck: function(deck_name, deck_endpoint) {
         var deck = new DeckType(deck_endpoint);
         deck.name = deck_name;
       
         deck.fetch({ success: function(target_deck) {
-          cardList.each(function(card, index) {
-        	  // Add cards that are members of this deck.
-        	  if (target_deck.members.indexOf(card.get('card_id')) > 0) {
-        		  target_deck.add(card);
-        	  }
-          });
-          
-          target_deck.view = new DeckTypeView({collection: target_deck});
-          target_deck.icon = new DeckTypeIconView({collection: target_deck});
-        
+          target_deck.view = new DeckTypeView({collection: target_deck, draggable: false});
    	  	  // Set the active card to the first one
    	  	  if (target_deck.length > 0) {
    			target_deck.aci = 0;
    		  }
    	  	  
    		  // Render the deck's icon view.
-		  target_deck.icon.render();
+//		  target_deck.icon.render();
    		  target_deck.ready = true;
-
-          deckCollection.add(target_deck);
-          // Store the deck locally.
-          decks[deck_endpoint] = deck;
    	    }}, deck);
       
         return deck;
     },
-    */
     
     getActiveDeck : function() {
     	return activeDeck;
@@ -435,8 +462,8 @@ function regis_init() {
   };
 })();
 
-$(document).ready(function() {
-  $(document).bind('keydown', regis.keyResponse);
-});
+  $(document).ready(function() {
+    $(document).bind('keydown', regis.keyResponse);
+  });
 }
 

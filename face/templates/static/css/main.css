@@ -59,6 +59,8 @@ body {
 	
 	font-size: 1.5em;
 	font-weight: normal;
+
+	cursor: pointer;
 }
 
 .card p {
@@ -88,7 +90,7 @@ h1 .cp_second {
 
 #navigation {
 	position: absolute;
-	top: 25%;
+	top: 20%;
 	left: 70%;
 }
 
@@ -101,6 +103,11 @@ h1 .cp_second {
 	text-decoration: underline;
 	letter-spacing: 1px;
 	vertical-align: middle;
+	cursor: pointer;
+}
+
+#navigation a {
+	color: #e0e0e0;
 }
 
 #navigation img {
@@ -123,7 +130,7 @@ h1 .cp_second {
 	height: 120px;
 
 	vertical-align: middle;
-	margin: 10px;
+	margin: 5px;
 	
 	cursor: pointer;
 }

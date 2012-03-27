@@ -433,6 +433,13 @@ def attempts_get_json(request, attempt_id, attempt=None, options=None):
                 del response[k]
     return response
 
+@login_required
+def get_users(request):
+    personal = get_template('profile.tpl')
+
+    cards = []
+    cards.append({ 'html' : personal.render(Context({'user':request.user})) })
+    return HttpResponse(json.dumps(cards), mimetype='application/json')
 
 def home_deck(response):
     login_card = get_template('login.tpl')
