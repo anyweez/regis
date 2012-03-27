@@ -122,8 +122,8 @@ def home_deck(response):
 def get_decks(request):
     decks = []
     
-    decks.append({'name' : 'First Wave', 'members' : [2, 4]})
-    decks.append({'name' : 'Second Wave', 'members' : [2, 4, 7]})
+    decks.append({'deck_id': 1, 'name' : 'First Wave', 'members' : [2, 4]})
+    decks.append({'deck_id': 2, 'name' : 'Second Wave', 'members' : [2, 4, 7]})
 
     return HttpResponse(json.dumps(decks), mimetype='application/json')
 

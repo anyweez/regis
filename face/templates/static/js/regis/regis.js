@@ -85,7 +85,7 @@ var DeckType = Backbone.Collection.extend({
 	aci: null,									// active card index
 	
 	initialize: function(deck_name) {
-	  this.url = this.url + deck_name;
+	  if (deck_name != null) this.url = this.url + deck_name;
 	  
 	  _.bindAll(this);
 	},
@@ -144,8 +144,16 @@ var DeckCollectionType = Backbone.Collection.extend({
 	  var models = [];
 	  _.each(response, function(deck_opt) {
 		  var new_deck = new DeckType();
+//		  var new_deck = new DeckType({ 
+//			  'name' : deck_opt.name,
+//			  'aci' : null,
+//			  'ready' : false,
+//			  'view' : null,
+//			  'icon' : null,
+//		  });
 		  new_deck.name = deck_opt.name;
-        
+		  new_deck.deck_id = deck_opt.deck_id;
+		  
 		  regis.getCardList().each(function(card, index) {
 			  if (deck_opt.members.indexOf(card.get('card_id')) > -1) {
 			    new_deck.add(card);
@@ -161,6 +169,9 @@ var DeckCollectionType = Backbone.Collection.extend({
 		  new_deck.view = new DeckTypeView({collection: new_deck});
 		  new_deck.icon = new DeckTypeIconView({collection: new_deck});
 
+		  new_deck.on('add', new_deck.icon.render);
+		  new_deck.on('remove', new_deck.icon.render);
+		  new_deck.on('remove', new_deck.view.update);
    		  // Render the deck's icon view.
 		  new_deck.icon.render();
 		  new_deck.ready = true;
@@ -275,8 +286,8 @@ var DeckTypeView = Backbone.View.extend({
 	
 	update: function() {
 	  if (this.collection.aci == null) return;
-
 	  var that = this;
+	  
       // Move all of the invisible cards to the right side of the active
 	  // question.  This prevents cards zooming around in the background.
 	  this.collection.each(function(card, index) {
@@ -329,7 +340,7 @@ var DeckTypeView = Backbone.View.extend({
 	}
 });
 
-function initialize_dragndrop() {
+function initialize_ui() {
 	$('.draggable').each(function(index, el) {
 		$(el).draggable({ 
 		  distance: 30,
@@ -356,6 +367,9 @@ function initialize_dragndrop() {
 	        $(this).css('background-color', 'transparent');
 		    // this = droppable
 		    // ui.draggable = draggable
+	        
+	        // Add draggable to droppable
+	        regis.addCardToDeck(ui.draggable[0], this);
 		  },
 		  
 		  over: function(event, ui) {
@@ -366,6 +380,12 @@ function initialize_dragndrop() {
 	        $(this).css('background-color', 'transparent');
 		  }
 		});
+	});
+	
+	$('.card-close-btn').each(function(index, el) {
+		$(el).click(function(event) {
+			regis.removeCardFromDeck($(el).parent());
+		})
 	});
 }
 
@@ -394,7 +414,7 @@ function regis_init() {
     	    dctv.render();
     	    dc.view = dctv;
     	    
-        	initialize_dragndrop();
+        	initialize_ui();
         }});
     	
     }});
@@ -403,6 +423,7 @@ function regis_init() {
       Deck: function(deck_name, deck_endpoint) {
         var deck = new DeckType(deck_endpoint);
         deck.name = deck_name;
+        deck.id = deck_endpoint;
       
         deck.fetch({ success: function(target_deck) {
           target_deck.view = new DeckTypeView({collection: target_deck, draggable: false});
@@ -430,7 +451,69 @@ function regis_init() {
     getDeckCollection: function() {
     	return dc;
     },
-  
+
+    // Pass in HTML elements.  We need to scan through to determine which (a) card
+    // and (b) deck the elements are referring to.  This should be able to be O(1)
+    // if I can figure out a way to store card ID's in the HTML...maybe using
+    // jQuery's data() call.  
+    // TODO (luke): optimize addCardToDeck() in clientside API.
+    addCardToDeck: function(in_card, in_deck) {
+      var target_card = null;
+      var target_deck = null;
+      activeDeck.each(function(current_card) {
+    	  if (current_card.view.el == in_card) target_card = current_card;
+      });
+      
+      regis.getDeckCollection().each(function(current_deck) {
+    	  if (current_deck.attributes.icon.el == in_deck) target_deck = current_deck.attributes;
+      });
+      
+      try {
+    	  target_deck.add(target_card);
+    	  // Send a POST request so that the server gets the update.  There's
+    	  // probably a more Backbone-y way to do this, possibly overriding
+    	  // sync() for DeckType, but I haven't been able to figure that
+    	  // out yet.
+    	  // TODO (luke): Try to integrate deck updating w/ Backbone.
+    	  $.ajax({
+    	    type: 'put',
+    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + target_card.get('card_id'),
+          });
+      }
+      catch (err) {
+    	  console.log('[Warning] That card already exists in the specified deck.');
+      }
+    },
+    
+    // Removes out_card from the active deck.
+    removeCardFromDeck: function(out_card) {
+    	var target_card = null;
+    	var target_index = null;
+    	
+        activeDeck.each(function(current_card, index) {
+      	  if (current_card.view.el == out_card[0]) {
+      		  target_card = current_card;
+      		  target_index = index;
+      	  }
+        });
+        
+        if (target_card != null) {
+        	activeDeck.view.hide();
+        	activeDeck.remove(target_card);
+
+        	// This could likely also be integrated into the Backbone framework somehow.
+      	    // TODO (luke): Try to integrate deck updating w/ Backbone.
+      	    $.ajax({
+      	      type: 'delete',
+      	      url: '/api/decks/' + activeDeck.deck_id + '/questions/' + target_card.get('card_id'),
+            });
+      	  
+        	if (activeDeck.aci == target_index) {
+        		activeDeck.incrActive();
+        	}
+        }
+    },
+    
     activateDeck : function(target_deck) {
       console.log('Switching to deck "' + target_deck.name + '"');
 	  // Hide the currently active deck.
