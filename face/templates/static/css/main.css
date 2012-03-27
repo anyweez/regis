@@ -60,7 +60,6 @@ body {
 	font-size: 1.5em;
 	font-weight: normal;
 
-	cursor: pointer;
 }
 
 .card p {
@@ -163,4 +162,24 @@ h1 .cp_second {
 .deck-size-lg {
 	background-image: url('/static/img/deck-3.png');
 	background-repeat: no-repeat;
+}
+
+.draggable h2 {
+	cursor: pointer;
+}
+
+.card-close-btn {
+	border: 1px solid #333;
+	background-color: #CCC;
+	cursor: pointer;
+
+	display: inline-block;
+	text-align: center;
+
+	position: absolute;
+	top: 3px;
+	right: 4px;
+
+	width: 20px;
+	height: 20px;
 }
