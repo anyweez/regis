@@ -19,17 +19,20 @@ import face.util.QuestionManager as qm
 QUESTION_SERVER = 'http://localhost:7070/question_server_stub'
 
 ########################################################
-########         /api/questions                 ########
+###   GET/POST   /api/questions                 ########
 ########################################################
 def api_questions(request):
-    questions = load_visible_questions(request)
-    return HttpResponse(json.dumps(questions), mimetype='application/json')
+    if request.method == 'GET':
+        questions = load_visible_questions(request)
+        return HttpResponse(json.dumps(questions), mimetype='application/json')
+    if request.method == 'POST':
+        return None
     
 def load_visible_questions(request):
     visible_questions = []
     questions = load_questions(request)
     for question in questions:
-        if user_has_question_permission(request.user, question):
+        if user_has_question_permission(request.user, question['question_id']):
             visible_questions.append( question )
     return visible_questions
     
@@ -48,7 +51,7 @@ def load_questions(request):
     for third_party_question in third_party_questions:
         question = {
             'status' : get_status(third_party_question),
-            'id' : third_party_question['id'],
+            'question_id' : third_party_question['id'],
             'decoded_text' : third_party_question['content'],
             'time_released' : 'Today',
             'gradable' : third_party_question['gradable'],
@@ -61,36 +64,31 @@ def load_questions(request):
     return questions
 
 ''' TODO(cartland): Complete stub '''
-def user_has_question_permission(user, question):
+def user_has_question_permission(user, question_id):
     return True
-    q = models.ServerQuestion.objects.filter(id=question['id'])
-    if len(q) == 0:
-        q = models.ServerQuestion(question_id=question['id'])
-        q.save()
-        q.users.add(1)
-        q.save()
-    elif len(q) == 1:
-        q = q[1]
-    else:
-        assert False
-    q.users.add(user).save()
-    return 1 == len(models.ServerQuestion.objects.filter(users__id=user.id))
+    squestions = models.ServerQuestion.objects.filter(question_id=question_id)
+    for q in squestions:
+        if len(q.users.filter(id=user.id)) > 0:
+            return True
+    return False
 
 ########################################################
-#            GET/POST /api/decks                           #
+#        GET/POST /api/decks                           #
 ########################################################
 def api_decks(request):
+    if request.method == 'POST' or \
+            ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
+        name = request.REQUEST['name'] if 'name' in request.REQUEST else 'New Deck'
+        shared_with = request.REQUEST['shared_with'] if 'shared_with' in request.REQUEST else 'public'
+        new_deck = models.Deck(name=name, shared_with=shared_with)
+        new_deck.save()
+        #new_deck.users.add(request.user)
+        #new_deck.save()
+        deck = load_deck(request, new_deck.id)
+        return HttpResponse(json.dumps(deck), mimetype='application/json')
     if request.method == 'GET':
         decks = load_visible_decks(request)
         return HttpResponse(json.dumps(decks), mimetype='application/json')
-    if request.method == 'POST':
-        name = request.POST['name'] if 'name' in request.POST else 'New Deck'
-        shared_with = request.POST['shared_with'] if 'shared_with' in request.POST else 'private'
-        new_deck = models.Deck(name=name, shared_with=shared_with)
-        new_deck.users.add(request.user)
-        new_deck.save()
-        load_deck(request, new_deck.id)
-        return HttpResponse(json.dumps(deck), mimetype='application/json')
     return None
     
 def load_visible_decks(request):
@@ -103,41 +101,54 @@ def load_visible_decks(request):
 
 ''' Database lookup or API request '''
 def load_decks(request):
-    decks_resource = []
-    decks = models.Deck.objects.all()
-    for deck in decks:
-        question_ids_list = load_question_ids_from_deck(request, deck)
-        decks_resource.append( {
-            "id" : deck.id,
-            "name" : deck.name,
-            "questions" : question_ids_list,
-        } )
-    return json.loads(decks_resource)
+    decks = []
+    db_decks = models.Deck.objects.all()
+    for db_deck in db_decks:
+        deck = get_deck_from_db_deck(request, db_deck)
+        decks.append(deck)
+    return decks
+
+def get_deck_from_db_deck(request, db_deck):
+    question_ids_list = load_question_ids_from_deck(request, db_deck)
+    deck = {
+        "deck_id" : db_deck.id,
+        "name" : db_deck.name,
+        "questions" : question_ids_list,
+        "shared_with" : db_deck.shared_with,
+    }
+    return deck
 
 ''' TODO(cartland): Complete stub '''
 def user_has_deck_permission(user, deck):
     return True
-    if 1 == len(models.Deck.objects.filter(users__id=user.id)):
+    db_decks = models.Deck.objects.filter(id=deck['deck_id'])
+    if 0 < len(db_decks.users.filter(id=user.id)):
         return True
-    elif 1 == len(models.Deck.objects.filter(shared_with='public')):
+    elif 0 < len(models.Deck.objects.filter(shared_with='public')):
         return True
     return False
 
 ''' TODO(cartland): Deck needs questions=ManyToMany(Question) 
 Deck needs question_id=???'''
-def load_question_ids_from_deck(request, deck):
+def load_question_ids_from_deck(request, db_deck):
     question_ids = []
-    for server_question in deck.questions:
+    for db_question in db_deck.questions.all():
         if user_has_question_permission(request.user, server_question.question_id):
             question_ids.append(server_question.question_id)
     return question_ids
 
 ########################################################
-########       /api/deck/{{deck_id}}            ########
+###       GET/DELETE  /api/deck/{{deck_id}}          ###
 ########################################################
 def api_deck(request, deck_id):
-    deck = load_visible_deck(request, deck_id)
-    return HttpResponse(json.dumps(deck), mimetype='application/json')
+    if 'GET' == request.method:
+        deck = load_visible_deck(request, deck_id)
+        return HttpResponse(json.dumps(deck), mimetype='application/json')
+    if 'DELETE' == request.method:
+        deck = delete_visible_deck(request, deck_id)
+        return HttpResponse(json.dumps(deck), mimetype='application/json')
+    return None
+        
 
 def load_visible_deck(request, deck_id):
     deck = load_deck(request, deck_id)
@@ -145,16 +156,23 @@ def load_visible_deck(request, deck_id):
         return deck
     return None
 
+def delete_visible_deck(request, deck_id):
+    deck = load_deck(request, deck_id)
+    if user_has_deck_permission(request.user, deck):
+        return delete_deck(request, deck_id)
+    return None
+
 ''' Database lookup or API request '''
 def load_deck(request, deck_id):
-    deck = models.Deck.objects.get(id=deck_id)
-    question_ids_list = load_question_ids_from_deck(request, deck)
-    deck_resource = {
-        "id" : deck.id,
-        "name" : deck.name,
-        "questions" : question_ids_list,
-    } 
-    return decks_resource
+    db_deck = models.Deck.objects.get(id=deck_id)
+    deck = get_deck_from_db_deck(request, db_deck)
+    return deck
+
+''' Database or API request '''
+def delete_deck(request, deck_id):
+    db_deck = models.Deck.objects.get(id=deck_id)
+    de_deck.delete()
+    return 'Successfully deleted'
 
 ########################################################
 # PUT /api/decks/{{deck_id}}/questions/{{question_id}} ##
@@ -206,20 +224,6 @@ def home_deck(response):
     cards.append({'card_id' : 423, 'html' : howitworks_card.render(Context()) })
     cards.append({'card_id' : 7823, 'html' : about_card.render(Context()) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
-
-def get_decks(request):
-    decks = []
-    
-    decks.append({'name' : 'First Wave', 'members' : [2, 4]})
-    decks.append({'name' : 'Second Wave', 'members' : [2, 4, 7]})
-
-    return HttpResponse(json.dumps(decks), mimetype='application/json')
-
-def get_questions(request):
-    cards = []
-    return HttpResponse(json.dumps(cards), 
-                mimetype='application/json')
-    
 
 
 def test_third_party_latency(request):

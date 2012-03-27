@@ -16,7 +16,6 @@ urlpatterns = patterns('',
     ('^$', core.index),
     ('^path$', core.path),
     
-    ('^api/decks$', api.get_decks),
     ('^api/decks/home$', api.home_deck),
     ('^api/decks/users$', api.get_users),
 #    ('^api/decks/([a-f0-9]+)', api.get_deck),

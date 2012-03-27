@@ -15,7 +15,6 @@ import face.util.QuestionManager as qm
 
 
 
-QUESTION_SERVER = 'http://localhost:8080/question_server'
 
 def questions(request):
     questions = []
@@ -23,7 +22,7 @@ def questions(request):
         questions.append( {
             "id" : x,
             "kind" : "question",
-            "content" : "question%d" % x,
+            "content" : "Content and text for question%d" % x,
             "answerable" : True,
             "gradable" : False,
         } )
