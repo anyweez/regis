@@ -42,39 +42,10 @@ def load_visible_questions(request):
     
 def load_questions(request):
     question_p = provider.getQuestionProvider()
-    questions = question_p.get_questions(request.user.id)
+    questions = question_p.get_questions(1)
+    #questions = question_p.get_questions(request.user.id)
     return questions
 
-def get_question_from_third_party_question(third_party_question):
-    question_tpl = get_template('question.tpl')
-    def get_status(question):
-        if question['answerable']:
-            return 'released'
-        elif question['gradable']:
-            return 'gradable'
-        return 'unknown'
-    question = {
-        'status' : get_status(third_party_question),
-        'question_id' : third_party_question['question_id'],
-        'decoded_text' : third_party_question['content'],
-        'time_released' : 'Today',
-        'gradable' : third_party_question['gradable'],
-        'answerable' : third_party_question['answerable'],
-    }
-    question['html'] = question_tpl.render(Context( {
-        'question' : question
-    } ))
-    try:
-        db_question = models.ServerQuestion.objects.get(question_id=question['question_id'])
-        question['shared_with'] = db_question.shared_with
-    except models.ServerQuestion.DoesNotExist:
-        db_question = models.ServerQuestion(question_id=question['question_id'], shared_with='private')
-        db_question.save()
-        question['shared_with'] = db_question.shared_with
-#    models.ServerQuestion.objects.all().delete() # DELETE ALL QUESTIONS!!!
-    return question
-
-''' TODO(cartland): Complete stub '''
 def user_has_question_permission(user, question_id):
     try:
         db_question = models.ServerQuestion.objects.get(question_id=question_id)

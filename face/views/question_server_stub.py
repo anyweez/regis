@@ -13,7 +13,7 @@ import face.util.QuestionManager as qm
 
 
 
-def questions(request):
+def questions(request, user_id):
     if 'POST' == request.method or \
             ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
         question = {

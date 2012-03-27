@@ -39,11 +39,12 @@ def get_questions(user_id):
     for third_party_question in third_party_questions:
         question = {
             'status' : get_status(third_party_question),
-            'question_id' : third_party_question['id'],
+            'question_id' : third_party_question['question_id'],
             'decoded_text' : third_party_question['content'],
             'time_released' : 'Today',
             'gradable' : third_party_question['gradable'],
             'answerable' : third_party_question['answerable'],
+            'shared_with' : 'public',
         }
         question['html'] = question_tpl.render(Context({
             'question' : question
