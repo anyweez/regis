@@ -24,6 +24,8 @@ def questions(request):
             "id" : x,
             "kind" : "question",
             "content" : "question%d" % x,
+            "answerable" : True,
+            "gradable" : False,
         } )
     return HttpResponse(json.dumps(questions), mimetype='application/json')
 

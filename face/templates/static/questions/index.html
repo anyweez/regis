@@ -3,9 +3,28 @@
     <link rel="stylesheet" href="style.css" />
     <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
     <script type="text/javascript" src="underscore.js"></script>
+<!---
+-->
     <script type="text/javascript" src="jquery.js"></script>
+    <script type="text/javascript" src="jquery-ui-1.8.18.custom.min.js"></script>
+    <script type="text/javascript" src="jquery.layout.min-1.2.0.js"></script>
     <script type="text/javascript" src="backbone.js"></script>
     <script type="text/javascript" src="regis.js"></script>
+<script>
+    $(document).ready(function () {
+      $('body').layout({ 
+          applyDefaultStyles: true, 
+          resizeable: true, 
+          onopen : function () { 
+                $(".ui-layout-south").css("z-index", 1000);
+                $(".ui-layout-resizer-south").css("z-index", 1000);
+                return true;
+          },
+      });
+      $(".ui-layout-south").css("z-index", 1000);
+      $(".ui-layout-resizer-south").css("z-index", 1000);
+    });
+</script>
   </head>
 
   <body>
@@ -17,6 +36,18 @@
       </div>
       <div id='card-stack'>
       </div>
+      <div id='playlist'>
+      </div>
+    </div>
+    <div class="ui-layout-south">
+      <ul>
+        <li class="deck-item">All (37)</li>
+        <li class="deck-item">Instructor (12)</li>
+        <li class="deck-item">Unanswered (2)</li>
+        <li class="deck-item">Midterm Review (8)</li>
+        <li class="deck-item">Final Review (1)</li>	
+        <li class="deck-item">My Questions (2)</li>	
+      </ul>
     </div>
   </body>
 
