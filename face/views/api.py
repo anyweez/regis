@@ -29,8 +29,6 @@ def api_questions(request):
     if request.method == 'GET':
         questions = load_visible_questions(request)
         return HttpResponse(json.dumps(questions), mimetype='application/json')
-    if request.method == 'POST':
-        return None
     
 def load_visible_questions(request):
     visible_questions = []
@@ -87,6 +85,30 @@ def request_new_question(values):
     response = urllib2.urlopen(url, None, 5000)
     third_party_question = json.loads(response.read())[0]
     return get_question_from_third_party_question(third_party_question)
+
+########################################################
+###      PUT  /api/question/{{question_id}}          ###
+########################################################
+def api_question(request, question_id):
+    if 'PUT' == request.method or \
+            ('PUT' in request.REQUEST and request.REQUEST['PUT'] == 'DEBUG'):
+        question = update_question(request, question_id)
+        return HttpResponse(json.dumps(questions), mimetype='application/json')
+
+def update_question(request, question_id):
+    db_question = models.ServerQuestion.objects.get(question_id=question_id)
+    keys = [
+        ('shared_with', db_question.shared_with, lambda s: s),
+    ]
+    values = {}
+    for key, default, converter in keys:
+         values[key] = converter(request.REQUEST[key]) if key in request.REQUEST else converter(default)
+    db_question.shared_with = values['shared_with']
+    db_question.save()
+    
+    question_p = provider.getQuestionProvider()
+    question = question_p.get_question(request.user.id, question_id)
+    return question
 
 ########################################################
 #        GET/POST /api/decks                           #

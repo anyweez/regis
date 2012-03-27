@@ -57,8 +57,9 @@ def get_questions(user_id):
 ##
 ## Note: this method should always return a single JSON object
 ## or raise an exception.
-def get_question(question_id):
-    questions = get_questions()
+def get_question(user_id, question_id):
+    user_id = 0 if user_id is None else user_id
+    questions = get_questions(user_id)
     
     for question in questions:
         if question['question_id'] == question_id:

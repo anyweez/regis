@@ -43,6 +43,7 @@ urlpatterns = patterns('',
     ('ajax/hints/vote/no/([a-f0-9]+)', core.tally_vote, { 'vote' : False }),
     ('^questions', core.questions_unknown), # Redirect to /questions/list
     ('^api/questions$', api.api_questions),
+    ('^api/question/([a-f0-9]+)$', api.api_question),
     ('^api/decks$', api.api_decks),
     ('^api/decks/(\d+)$', api.api_deck),
     ('^question_server_stub/users/([a-f0-9]+)/questions', question_server_stub.questions),
