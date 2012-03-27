@@ -32,20 +32,7 @@
     </div>
     <div id='card-stack'>
     </div>
-    
   </div>
-    <div id='deck-icons' class="ui-layout-south"></div>
-<!---
-  <div id="" class="ui-layout-south">
-    <ul id="deck-bench">
-      <li class="deck-icon" style="display:inline; margin-right:10px;">All (37)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Instructor (12)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Unanswered (2)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Midterm Review (8)</li>
-      <li class="deck-icon" style="display:inline; margin-right:10px;">Final Review (1)</li>	
-      <li class="deck-icon" style="display:inline; margin-right:10px;">My Questions (2)</li>	
-    </ul>
-  </div>
--->
+
 </body>
 </html>

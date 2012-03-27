@@ -448,10 +448,12 @@ def fakelist(response):
 def home_deck(response):
     login_card = get_template('login.tpl')
     about_card = get_template('about.tpl')
+    howitworks_card = get_template('howitworks.tpl')
     
     cards = []
-    cards.append({'html' : login_card.render(Context()) })
-    cards.append({'html' : about_card.render(Context()) })
+    cards.append({'card_id' : 123, 'html' : login_card.render(Context()) })
+    cards.append({'card_id' : 423, 'html' : howitworks_card.render(Context()) })
+    cards.append({'card_id' : 7823, 'html' : about_card.render(Context()) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
 
 @login_required
@@ -463,10 +465,9 @@ def get_deck(request, deck_name):
     
     for question in questions:
         cards.append({
+          'card_id' : question.template.id,
           'html' : question_tpl.render(Context({
-            'text' : question.text, 
-            'time_released' : str(question.time_released),
-            'question_num' : question.template.id
+            'question' : question
           }))
         })
     
