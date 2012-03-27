@@ -65,12 +65,16 @@ def load_questions(request):
 
 ''' TODO(cartland): Complete stub '''
 def user_has_question_permission(user, question_id):
-    return True
-    squestions = models.ServerQuestion.objects.filter(question_id=question_id)
-    for q in squestions:
-        if len(q.users.filter(id=user.id)) > 0:
-            return True
-    return False
+    try:
+        models.ServerQuestion.objects.all().delete()
+        db_question = models.ServerQuestion.objects.get(question_id=question_id)
+        try:
+          db_question.users.get(id=user.id)
+          return True
+        except models.User.DoesNotExist:
+          return False 
+    except models.ServerQuestion.DoesNotExist as e:
+        return False
 
 ########################################################
 #        GET/POST /api/decks                           #
@@ -120,13 +124,12 @@ def get_deck_from_db_deck(request, db_deck):
 
 ''' TODO(cartland): Complete stub '''
 def user_has_deck_permission(user, deck):
-    return True
-    db_decks = models.Deck.objects.filter(id=deck['deck_id'])
-    if 0 < len(db_decks.users.filter(id=user.id)):
-        return True
-    elif 0 < len(models.Deck.objects.filter(shared_with='public')):
-        return True
-    return False
+    db_deck = models.Deck.objects.get(id=deck['deck_id'])
+    try:
+      db_deck.users.get(id=user.id)
+      return True
+    except models.User.DoesNotExist:
+      return db_deck.shared_with == 'public' 
 
 ''' TODO(cartland): Deck needs questions=ManyToMany(Question) 
 Deck needs question_id=???'''
