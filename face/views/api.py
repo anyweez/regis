@@ -1,7 +1,6 @@
 from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.http import HttpResponse
-from django.template.loader import get_template
 from django.template import Context
 
 from django.contrib.auth.decorators import login_required
@@ -13,7 +12,7 @@ import face.models.models as models
 import face.msg.msghub as msghub
 import face.util.exceptions as exception
 import face.util.QuestionManager as qm
-
+import face.modules.providers.Provider as provider
 
 
 QUESTION_SERVER = 'http://localhost:7070/question_server_stub'
@@ -43,24 +42,26 @@ def load_questions(request):
         elif question['gradable']:
             return 'gradable'
         return 'unknown'
-    questions = []
-    url = QUESTION_SERVER + '/questions'
-    f = urllib2.urlopen(url, None, 5000)
-    third_party_questions = json.loads(f.read())
-    question_tpl = get_template('question.tpl')
-    for third_party_question in third_party_questions:
-        question = {
-            'status' : get_status(third_party_question),
-            'question_id' : third_party_question['id'],
-            'decoded_text' : third_party_question['content'],
-            'time_released' : 'Today',
-            'gradable' : third_party_question['gradable'],
-            'answerable' : third_party_question['answerable'],
-        }
-        question['html'] = question_tpl.render(Context( {
-            'question' : question
-        } ))
-        questions.append(question) 
+    question_p = provider.getQuestionProvider()
+    questions = question_p.get_questions(request.user.id)
+    
+#    url = QUESTION_SERVER + '/questions'
+#    f = urllib2.urlopen(url, None, 5000)
+#    third_party_questions = json.loads(f.read())
+#    question_tpl = get_template('question.tpl')
+#    for third_party_question in third_party_questions:
+#        question = {
+#            'status' : get_status(third_party_question),
+#            'question_id' : third_party_question['id'],
+#            'decoded_text' : third_party_question['content'],
+#            'time_released' : 'Today',
+#            'gradable' : third_party_question['gradable'],
+#            'answerable' : third_party_question['answerable'],
+#        }
+#        question['html'] = question_tpl.render(Context( {
+#            'question' : question
+#        } ))
+#        questions.append(question) 
     return questions
 
 ''' TODO(cartland): Complete stub '''

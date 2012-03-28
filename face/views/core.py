@@ -12,6 +12,7 @@ import face.util.QuestionManager as qm
 import face.util.Concierge as question_link
 import face.msg.msghub as msghub
 import face.util.exceptions as exception
+import face.modules.providers.Provider as provider
 
 import re, json
 
@@ -193,22 +194,26 @@ def check_q(request):
         except users.Question.DoesNotExist:
             raise exception.UnauthorizedAttemptException(request.user, qid)
         
-        question_m = qm.QuestionManager()
-        correct, msg = question_m.check_question(question, answer)
+        question_p = provider.getQuestionProvider()
+        response = question_p.submit_attempt(question.id, request.user.id, answer)
         
-        msghub.register_message(msg, target=qid, status=correct)
-        
-        # Record the guess.
-        g = users.Guess(user=request.user, 
-                        question=question, 
-                        value=answer, 
-                        correct=correct, 
-                        time_guessed=datetime.datetime.now())
-        g.save()
+#        msghub.register_message(msg, target=qid, status=correct)
+#        question_m = qm.QuestionManager()
+#        correct, msg = question_m.check_question(question, answer)
+#        
+#        msghub.register_message(msg, target=qid, status=correct)
+#        
+#        # Record the guess.
+#        g = users.Guess(user=request.user, 
+#                        question=question, 
+#                        value=answer, 
+#                        correct=correct, 
+#                        time_guessed=datetime.datetime.now())
+#        g.save()
         
         # If correct, change the status of the question and select a next candidate.
         # Make sure that the question hasn't been solved already!
-        if correct and question.status != 'solved':
+        if response['correct'] and question.status != 'solved':
             question.status = 'solved'
             question.save()
             try:

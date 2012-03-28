@@ -45,7 +45,7 @@ urlpatterns = patterns('',
     ('^api/questions$', api.api_questions),
     ('^api/decks$', api.api_decks),
     ('^api/decks/(\d+)$', api.api_deck),
-    ('^question_server_stub/questions$', question_server_stub.questions),
+    ('^question_server_stub/users/([a-f0-9]+)/questions', question_server_stub.questions),
     
     ('^test/thirdpartylatency$', api.test_third_party_latency),
     ('^test/latency$', core.test_latency),
