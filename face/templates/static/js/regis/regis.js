@@ -52,6 +52,7 @@ var CardTypeView = Backbone.View.extend({
       $(this.el).css('display', 'none');
    },
 
+   // TODO (luke): can we get rid of setCollectionView?
    setCollectionView: function(view) {
       this.collectionView = view;
    },
@@ -80,13 +81,13 @@ var CardListType = Backbone.Collection.extend({
  */
 var DeckType = Backbone.Collection.extend({
 	model: CardType,
-	url: '/api/decks/',
+	url: '/api/decks',
 	ready: false,
 	aci: null,									// active card index
 	
 	initialize: function(deck_name) {
-	  if (deck_name != null) this.url = this.url + deck_name;
-	  
+	  if (deck_name != null) this.url = this.url + '/' + deck_name;
+
 	  _.bindAll(this);
 	},
 	
@@ -142,6 +143,7 @@ var DeckCollectionType = Backbone.Collection.extend({
 
 	parse: function(response) {
 	  var models = [];
+	  console.log('Parsing decks from server.');
 	  _.each(response, function(deck_opt) {
 		  var new_deck = new DeckType();
 //		  var new_deck = new DeckType({ 
@@ -155,19 +157,23 @@ var DeckCollectionType = Backbone.Collection.extend({
 		  new_deck.deck_id = deck_opt.deck_id;
 		  
 		  regis.getCardList().each(function(card, index) {
-			  if (deck_opt.members.indexOf(card.get('card_id')) > -1) {
+			  if (deck_opt.members != undefined && 
+				  deck_opt.members.indexOf(card.get('card_id')) > -1) {
 			    new_deck.add(card);
 			  }
 		  });
 		  
-		  console.log('Added ' + new_deck.size() + ' cards to deck "' + new_deck.name + '"');
+		  console.log('  Added ' + new_deck.size() + ' cards to deck "' + new_deck.name + '"');
 
    	  	  // Set the active card to the first one
 		  new_deck.aci = (new_deck.length > 0) ? 0 : null;
 		  
 		  // Define the views that go along with this deck.
 		  new_deck.view = new DeckTypeView({collection: new_deck});
-		  new_deck.icon = new DeckTypeIconView({collection: new_deck});
+		  new_deck.icon = new DeckTypeIconView({
+			  collection: new_deck, 
+			  add_to_shelf: true
+		  });
 
 		  new_deck.on('add', new_deck.icon.render);
 		  new_deck.on('remove', new_deck.icon.render);
@@ -178,6 +184,7 @@ var DeckCollectionType = Backbone.Collection.extend({
 		  
 		  models.push(new_deck);
 	  });
+	  console.log('Done.');
 	  
 	  return models;
 	},
@@ -192,8 +199,12 @@ var DeckTypeIconView = Backbone.View.extend({
 	  'click' : 'activate'
   },
   
-  initialize: function() {
-    $('#deck-icons').append(this.el);
+  initialize: function(deck_opts) {
+    // Add the deck to the shelf as long as the user doesn't specify otherwise
+	// via setting add_to_shelf = false.
+	add_to_shelf = (deck_opts.add_to_shelf == null) ? true : deck_opts.add_to_shelf; 
+	console.log('Adding deck to shelf? ' + add_to_shelf);
+    if (add_to_shelf) $('#deck-icons').append(this.el);
     
     _.bindAll(this);
   },
@@ -215,6 +226,10 @@ var DeckTypeIconView = Backbone.View.extend({
 	else {
 		$(this.el).addClass('deck-size-lg');		
 	}
+	
+	// Fade the decks that don't have anything in them.
+	if (this.collection.length == 0) $(this.el).css('opacity', '.4');
+	else $(this.el).css('opacity', '1');
 	
     $(this.el).html(icon_html);
     $(this.el).css('display', 'inline-block');
@@ -400,12 +415,14 @@ function regis_init() {
   /// Regis API code ///
   regis = (function() {
     var activeDeck = null;
-  
     var cardList = new CardListType();
-    // Maybe we could use this collection to get the list of decks from the server?
+    
     var dc = new DeckCollectionType();
     var dctv = new DeckCollectionTypeView({collection: dc});
 
+    // Re-render the DCTV whenever a new deck is added.
+    dctv.on('add', dctv.render);
+    
     // Fetch all questions from the server.
     cardList.fetch( { success: function() {
     	cardList.ready = true;
@@ -420,23 +437,47 @@ function regis_init() {
     }});
   
     return {
-      Deck: function(deck_name, deck_endpoint) {
-        var deck = new DeckType(deck_endpoint);
-        deck.name = deck_name;
-        deck.id = deck_endpoint;
-      
-        deck.fetch({ success: function(target_deck) {
-          target_deck.view = new DeckTypeView({collection: target_deck, draggable: false});
-   	  	  // Set the active card to the first one
-   	  	  if (target_deck.length > 0) {
-   			target_deck.aci = 0;
-   		  }
+      Deck: function(deck_opts) {//deck_name, deck_endpoint) {
+        var deck = ('endpoint' in deck_opts) ? new DeckType(deck_opts['endpoint']) : new DeckType();
+
+        if ('name' in deck_opts) deck.name = deck_opts['name'];
+//        deck.id = deck_endpoint;
+        deck.aci = null;
+
+        deck.view = new DeckTypeView({collection: deck, draggable: false});
+        deck.icon = new DeckTypeIconView({
+          collection: deck, 
+          add_to_shelf: ('add_to_shelf' in deck_opts) ? deck_opts['add_to_shelf'] : true,
+        });
+        
+        if (deck.icon.options.add_to_shelf) {
+        	console.log('Adding deck "' + deck.name + '" to shelf');
+        	dc.add(deck);
+        }
+
+        if ('endpoint' in deck_opts) {
+          deck.fetch({ success: function(target_deck) {
+            // Render the views now that all of the data is loaded.
+        	deck.view.render();
+            if (deck.icon.options.add_to_shelf) deck.icon.render();            
+
+              // Set the active card to the first one
+   	  	    if (target_deck.length > 0) target_deck.aci = 0;
    	  	  
-   		  // Render the deck's icon view.
-//		  target_deck.icon.render();
-   		  target_deck.ready = true;
-   	    }}, deck);
-      
+   		    // Render the deck's icon view.
+   		    target_deck.ready = true;
+   	      }}, deck);
+        }
+        else {
+        	// No data is coming right away...render now!
+            deck.view.render();
+            if (deck.icon.options.add_to_shelf) deck.icon.render();
+
+            deck.ready = true;
+    		console.log('size: ' + deck.size());
+        }
+		
+		
         return deck;
     },
     
