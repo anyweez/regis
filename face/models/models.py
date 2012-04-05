@@ -5,15 +5,16 @@ from django.contrib import admin
 import re, hashlib
 
 
-class ServerQuestion(models.Model):
-    users = models.ManyToManyField(User)
-    question_id = models.IntegerField()
-
 REGIS_SHARING_OPTIONS = (
     ('public', 'Public'),
     ('league', 'League'),
     ('private', 'Private'),
 )
+class ServerQuestion(models.Model):
+    users = models.ManyToManyField(User)
+    question_id = models.IntegerField()
+    shared_with = models.CharField(max_length=10, choices=REGIS_SHARING_OPTIONS)
+
 class Deck(models.Model):
     questions = models.ManyToManyField(ServerQuestion)
     users = models.ManyToManyField(User)

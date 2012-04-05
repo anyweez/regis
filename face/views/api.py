@@ -6,7 +6,7 @@ from django.template.loader import get_template
 
 from django.contrib.auth.decorators import login_required
 
-import urllib2 # for Django requests to third party servers 
+import socket, urllib, urllib2 # for Django requests to third party servers 
 import json, datetime
 import face.util.UserStats as UserStats
 import face.models.models as models
@@ -17,11 +17,16 @@ import face.modules.providers.Provider as provider
 
 
 QUESTION_SERVER = 'http://localhost:7070/question_server_stub'
+socket.setdefaulttimeout(5)
 
 ########################################################
 ###   GET/POST   /api/questions                 ########
 ########################################################
 def api_questions(request):
+    if request.method == 'POST' or \
+            ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
+        question = create_new_question(request)
+        return HttpResponse(json.dumps(question), mimetype='application/json')
     if request.method == 'GET':
         questions = load_visible_questions(request)
         return HttpResponse(json.dumps(questions), mimetype='application/json')
@@ -37,42 +42,81 @@ def load_visible_questions(request):
     return visible_questions
     
 def load_questions(request):
+    question_p = provider.getQuestionProvider()
+    questions = question_p.get_questions(request.user.id)
+    return questions
+
+def get_question_from_third_party_question(third_party_question):
+    question_tpl = get_template('question.tpl')
     def get_status(question):
         if question['answerable']:
             return 'released'
         elif question['gradable']:
             return 'gradable'
         return 'unknown'
-    question_p = provider.getQuestionProvider()
-    questions = question_p.get_questions(request.user.id)
-    
-#    url = QUESTION_SERVER + '/questions'
-#    f = urllib2.urlopen(url, None, 5000)
-#    third_party_questions = json.loads(f.read())
-#    question_tpl = get_template('question.tpl')
-#    for third_party_question in third_party_questions:
-#        question = {
-#            'status' : get_status(third_party_question),
-#            'question_id' : third_party_question['id'],
-#            'decoded_text' : third_party_question['content'],
-#            'time_released' : 'Today',
-#            'gradable' : third_party_question['gradable'],
-#            'answerable' : third_party_question['answerable'],
-#        }
-#        question['html'] = question_tpl.render(Context( {
-#            'question' : question
-#        } ))
-#        questions.append(question) 
-    return questions
+    question = {
+        'status' : get_status(third_party_question),
+        'question_id' : third_party_question['question_id'],
+        'decoded_text' : third_party_question['content'],
+        'time_released' : 'Today',
+        'gradable' : third_party_question['gradable'],
+        'answerable' : third_party_question['answerable'],
+    }
+    question['html'] = question_tpl.render(Context( {
+        'question' : question
+    } ))
+    try:
+        db_question = models.ServerQuestion.objects.get(question_id=question['question_id'])
+        question['shared_with'] = db_question.shared_with
+    except models.ServerQuestion.DoesNotExist:
+        db_question = models.ServerQuestion(question_id=question['question_id'], shared_with='private')
+        db_question.save()
+        question['shared_with'] = db_question.shared_with
+#    models.ServerQuestion.objects.all().delete() # DELETE ALL QUESTIONS!!!
+    return question
 
 ''' TODO(cartland): Complete stub '''
 def user_has_question_permission(user, question_id):
-    return True
-    squestions = models.ServerQuestion.objects.filter(question_id=question_id)
-    for q in squestions:
-        if len(q.users.filter(id=user.id)) > 0:
-            return True
-    return False
+    try:
+        db_question = models.ServerQuestion.objects.get(question_id=question_id)
+        try:
+          db_question.users.get(id=user.id)
+          return True
+        except models.User.DoesNotExist:
+          return 'public' == db_question.shared_with 
+    except models.ServerQuestion.DoesNotExist as e:
+        return False
+
+def create_new_question(request):
+    keys = [
+        ('kind', 'freeresponsequestion', lambda s: s), 
+        ('content', 'New question content', lambda s: s), 
+        ('author', request.user.id, lambda s: int(s)), 
+        ('answers', [], lambda s: s.split(',')), 
+        ('rubricsuggestions', [], lambda s: s.split(',')), 
+        ('max_score', 1, lambda s: int(s)), 
+        ('shared_with', 'public', lambda s: s),
+        ('answerable', True, lambda s: s),
+        ('gradable', False, lambda s: s),
+    ]
+    values = {}
+    for key, default, converter in keys:
+        values[key] = converter(request.REQUEST[key]) if key in request.REQUEST else default
+    question = request_new_question(values)
+    return question
+
+def request_new_question(values):
+    url = QUESTION_SERVER + '/questions'
+    data = urllib.urlencode(values)
+
+##    response = urllib2.urlopen(url, data, 5000)
+
+#    req = urllib2.Request(url, data)
+#    response = urllib2.urlopen(req)
+#    third_party_question = json.loads(f.read())
+    response = urllib2.urlopen(url, None, 5000)
+    third_party_question = json.loads(response.read())[0]
+    return get_question_from_third_party_question(third_party_question)
 
 ########################################################
 #        GET/POST /api/decks                           #
@@ -97,7 +141,7 @@ def load_visible_decks(request):
     visible_decks = []
     decks_resource = load_decks(request)
     for deck in decks_resource:
-        if user_has_deck_permission(request.user, deck):
+        if user_has_deck_permission(request.user, deck['deck_id']):
             visible_decks.append(deck)
     return visible_decks
 
@@ -121,14 +165,13 @@ def get_deck_from_db_deck(request, db_deck):
     return deck
 
 ''' TODO(cartland): Complete stub '''
-def user_has_deck_permission(user, deck):
-    return True
-    db_decks = models.Deck.objects.filter(id=deck['deck_id'])
-    if 0 < len(db_decks.users.filter(id=user.id)):
-        return True
-    elif 0 < len(models.Deck.objects.filter(shared_with='public')):
-        return True
-    return False
+def user_has_deck_permission(user, deck_id):
+    db_deck = models.Deck.objects.get(id=deck_id)
+    try:
+      db_deck.users.get(id=user.id)
+      return True
+    except models.User.DoesNotExist:
+      return db_deck.shared_with == 'public' 
 
 ''' TODO(cartland): Deck needs questions=ManyToMany(Question) 
 Deck needs question_id=???'''
@@ -147,22 +190,34 @@ def api_deck(request, deck_id):
         deck = load_visible_deck(request, deck_id)
         return HttpResponse(json.dumps(deck), mimetype='application/json')
     if 'DELETE' == request.method:
-        deck = delete_visible_deck(request, deck_id)
-        return HttpResponse(json.dumps(deck), mimetype='application/json')
+        result = delete_visible_deck(request, deck_id)
+        return HttpResponse(json.dumps(result), mimetype='application/json')
     return None
         
 
 def load_visible_deck(request, deck_id):
-    deck = load_deck(request, deck_id)
-    if user_has_deck_permission(request.user, deck):
+    if user_has_deck_permission(request.user, deck_id):
+        deck = load_deck(request, deck_id)
         return deck
     return None
 
 def delete_visible_deck(request, deck_id):
-    deck = load_deck(request, deck_id)
-    if user_has_deck_permission(request.user, deck):
-        return delete_deck(request, deck_id)
-    return None
+    if user_has_deck_permission(request.user, deck_id):
+        result = delete_deck(request, deck_id)
+    return 'Deck %d deleted' % deck_id
+
+'''
+DELETE requests are idempotent,
+so we should accept requests to 
+delete non-existent objects
+'''
+def delete_deck(request, deck_id):
+    try:
+        db_deck = models.Deck.objects.get(id=deck_id)
+        db_deck.delete()
+    except models.Deck.DoesNotExist:
+        pass
+    return True
 
 ''' Database lookup or API request '''
 def load_deck(request, deck_id):
@@ -177,16 +232,35 @@ def delete_deck(request, deck_id):
     return 'Successfully deleted'
 
 ########################################################
-# PUT /api/decks/{{deck_id}}/questions/{{question_id}} ##
+# PUT /api/decks/{{deck_id}}/questions/{{question_id}} #
 ########################################################
+def api_put_question_into_deck(request, deck_id, question_id):
+    deck = load_visible_deck(request, deck_id)
+    if deck is not None and \
+            user_has_question_permission(request.user, question_id):
+        put_question_into_deck(request, deck_id, question_id)
+        return deck
+    return None
 
-########################################################
-#           DELETE /api/decks/{{deck_id}}              #
-########################################################
+def put_question_into_deck(request, deck_id, question_id):
+    db_deck = models.Deck.objects.get(id=deck_id)
+    db_question = models.ServerQuestion.objects.get(question_id=question_id)
+    db_deck.questions.add(db_question)
+    db_deck.save()
+    return load_deck(request, deck_id)
 
 ########################################################
 #   POST /api/decks/{{deck_id}}/union/{{deck_id}}      #
 ########################################################
+def api_deck_union(request, dest_deck_id, source_deck_id):
+    source_deck = load_visible_deck(request, source_deck_id)
+    if user_has_deck_permission(request.user, dest_deck_id) and \
+            user_has_deck_permission(request.user, source_deck_id):
+        for question_id in source_deck['questions']:
+            api_put_question_into_deck(request, dest_deck_id, question_id)
+        dest_deck = load_visible_deck(request, dest_deck_id)
+        return HttpResponse(json.dumps(dest_deck), mimetype='application/json')
+    return None
 
 ########################################################
 # DELETE /api/decks/{{deck_id}}/questions/{{question_id}} #
