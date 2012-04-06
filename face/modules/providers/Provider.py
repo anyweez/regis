@@ -10,8 +10,8 @@ class ProviderException(object):
 ## and return the appropriate provider type.
 ## TODO: Make {Question|User}Providers dynamic.
 def getQuestionProvider():
-    return CourseSharingQuestionProvider
-#    return LocalQuestionProvider
+#    return CourseSharingQuestionProvider
+    return LocalQuestionProvider
 
 def getUserProvider():
     return LocalUserProvider

@@ -5,20 +5,20 @@
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
   <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
   <script type="text/javascript" src="/static/js/underscore.js"></script>
-  <script type="text/javascript" src="/static/js/api.js"></script>
   <script type="text/javascript" src="/static/js/jquery.js"></script>
   <script type="text/javascript" src="/static/js/backbone.js"></script>
+  <script type="text/javascript" src="/static/js/api.js"></script>
   <script type="text/javascript" src="/static/js/regis/regis.js"></script>
 
   <script type="text/javascript">
     $(document).ready(function() {
       // Initialize Regis and get some decks.
       regis_init();
-      deck = regis.Deck('Home', 'home');
-      
+      user_deck = regis.Deck({ 'name': 'Home', 'endpoint': 'home', 'add_to_shelf': false });      
+
       // Activate a deck after some time has passed.  This should be
       // converted to an event eventually.
-      setTimeout(function() { regis.activateDeck(deck); }, 500);
+      setTimeout(function() { regis.activateDeck(user_deck); }, 500);
     });
   </script>
 

@@ -29,6 +29,10 @@ def api_questions(request):
         return HttpResponse(json.dumps(question), mimetype='application/json')
     if request.method == 'GET':
         questions = load_visible_questions(request)
+
+        for i, question in enumerate(questions):
+            questions[i]['html'] = get_template('question.tpl').render(Context({'question': question}))
+        
         return HttpResponse(json.dumps(questions), mimetype='application/json')
     if request.method == 'POST':
         return None
@@ -36,14 +40,16 @@ def api_questions(request):
 def load_visible_questions(request):
     visible_questions = []
     questions = load_questions(request)
-    for question in questions:
-        if user_has_question_permission(request.user, question['question_id']):
-            visible_questions.append( question )
-    return visible_questions
+    return questions
+# TODO: Temporarily disabled.
+#    for question in questions:
+#        if user_has_question_permission(request.user, question['question_id']):
+#            visible_questions.append( question )
+#    return visible_questions
     
 def load_questions(request):
     question_p = provider.getQuestionProvider()
-    questions = question_p.get_questions(request.user.id)
+    questions = [q for q in question_p.get_questions(request.user.id) if q['status'] in ['released', 'solved']]
     return questions
 
 def get_question_from_third_party_question(third_party_question):
@@ -133,17 +139,33 @@ def api_decks(request):
         deck = load_deck(request, new_deck.id)
         return HttpResponse(json.dumps(deck), mimetype='application/json')
     if request.method == 'GET':
-        decks = load_visible_decks(request)
+#        decks = load_visible_decks(request)
+        decks = [{
+            'deck_id' : 1,
+            'name' : 'My Questions',
+            'members' : [1933,]
+        }, {
+            'deck_id' : 2,
+            'name' : 'Midterm Review',
+            'members' : [1933, 1386, 1823]
+        }, {
+            'deck_id' : 3,
+            'name' : 'Practice Problems',
+            'members' : [1933, 1406]
+        }]
         return HttpResponse(json.dumps(decks), mimetype='application/json')
     return None
     
 def load_visible_decks(request):
+    print 'found decks'
     visible_decks = []
     decks_resource = load_decks(request)
-    for deck in decks_resource:
-        if user_has_deck_permission(request.user, deck['deck_id']):
-            visible_decks.append(deck)
-    return visible_decks
+    return decks_resource
+# TODO: Temporarily disabled.
+#    for deck in decks_resource:
+#        if user_has_deck_permission(request.user, deck['deck_id']):
+#            visible_decks.append(deck)
+#    return visible_decks
 
 ''' Database lookup or API request '''
 def load_decks(request):
@@ -155,12 +177,15 @@ def load_decks(request):
     return decks
 
 def get_deck_from_db_deck(request, db_deck):
-    question_ids_list = load_question_ids_from_deck(request, db_deck)
+# TODO: Temporarily disabled.
+#    question_ids_list = load_question_ids_from_deck(request, db_deck)
+    question_ids_list = [question.template_id for question in db_deck.questions.all()]
     deck = {
         "deck_id" : db_deck.id,
         "name" : db_deck.name,
         "questions" : question_ids_list,
-        "shared_with" : db_deck.shared_with,
+# TODO: Temporarily disabled this field.        
+#        "shared_with" : db_deck.shared_with,
     }
     return deck
 
@@ -286,9 +311,9 @@ def home_deck(response):
     howitworks_card = get_template('howitworks.tpl')
     
     cards = []
-    cards.append({'card_id' : 123, 'html' : login_card.render(Context()) })
-    cards.append({'card_id' : 423, 'html' : howitworks_card.render(Context()) })
-    cards.append({'card_id' : 7823, 'html' : about_card.render(Context()) })
+    cards.append({'card_id' : 1, 'html' : login_card.render(Context()) })
+    cards.append({'card_id' : 2, 'html' : howitworks_card.render(Context()) })
+    cards.append({'card_id' : 3, 'html' : about_card.render(Context()) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
 
 def get_decks(request):

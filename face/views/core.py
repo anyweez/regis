@@ -20,11 +20,8 @@ import re, json
 # There's not a lot of dynamic action here at
 # this point.
 def index(request):
-    if request.user.is_authenticated():
-        return redirect('/path')
-    else:
-        return render_to_response('index.tpl',
-            context_instance=RequestContext(request))
+    return render_to_response('index.tpl',
+        context_instance=RequestContext(request))
 
 @login_required
 def path(request):

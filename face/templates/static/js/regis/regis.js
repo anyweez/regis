@@ -146,20 +146,16 @@ var DeckCollectionType = Backbone.Collection.extend({
 	  console.log('Parsing decks from server.');
 	  _.each(response, function(deck_opt) {
 		  var new_deck = new DeckType();
-//		  var new_deck = new DeckType({ 
-//			  'name' : deck_opt.name,
-//			  'aci' : null,
-//			  'ready' : false,
-//			  'view' : null,
-//			  'icon' : null,
-//		  });
+
 		  new_deck.name = deck_opt.name;
 		  new_deck.deck_id = deck_opt.deck_id;
 		  
 		  regis.getCardList().each(function(card, index) {
 			  if (deck_opt.members != undefined && 
-				  deck_opt.members.indexOf(card.get('card_id')) > -1) {
-			    new_deck.add(card);
+				  deck_opt.members.indexOf(card.get('question_id')) > -1) {
+
+//				  if (card.view == null) card.view = new CardTypeView({model: card});
+				  new_deck.add(card);
 			  }
 		  });
 		  
@@ -175,6 +171,10 @@ var DeckCollectionType = Backbone.Collection.extend({
 			  add_to_shelf: true
 		  });
 
+		  new_deck.forEach(function(card) {
+			 card.view.render(); 
+		  });
+		  
 		  new_deck.on('add', new_deck.icon.render);
 		  new_deck.on('remove', new_deck.icon.render);
 		  new_deck.on('remove', new_deck.view.update);
@@ -268,7 +268,7 @@ var DeckTypeView = Backbone.View.extend({
 		if (this.options.draggable === false) this.draggable = this.options.draggable;
 
 		this.collection.each(function(card) {
-			card.view = new CardTypeView({model: card});
+			if (card.view == undefined) card.view = new CardTypeView({model: card});
 			if (that.draggable) $(card.view.el).addClass('draggable');
 
 			card.view.setCollectionView(that);
@@ -299,6 +299,13 @@ var DeckTypeView = Backbone.View.extend({
 	  });
 	},
 	
+	render: function() {
+		this.collection.forEach(function(card) {
+			if (card.view == null) card.view = new CardTypeView({model: card});
+			card.view.render();
+		})
+	},
+	
 	update: function() {
 	  if (this.collection.aci == null) return;
 	  var that = this;
@@ -320,16 +327,17 @@ var DeckTypeView = Backbone.View.extend({
 	  });
 	  
       // Move cards according to their relative placement to the active card.
-      this.collection.each(function(card, index) {
+	  this.collection.each(function(card, index) {
   		var aci = that.collection.aci;
-  		
+
+  		console.log(card);
         if (index == aci - 2) {
           $(card.view.el).css({'z-index' : 1});
           $(card.view.el).show();
           $(card.view.el).animate({ 'left' : '-120%', 'top' : '26%' }, 500);
         }
         // The element before the current element should appear on the left.
-        if (index == aci - 1) {
+        else if (index == aci - 1) {
           $(card.view.el).css({'z-index' : 2});
           $(card.view.el).show();
           $(card.view.el).animate({ 'left' : '-50%', 'top' : '26%' }, 500);
@@ -411,7 +419,7 @@ function initialize_ui() {
  * This function should be called after the document has been loaded but before
  * any other Regis API code usage.
  */
-function regis_init() {
+function regis_init(regis_opts) {
   /// Regis API code ///
   regis = (function() {
     var activeDeck = null;
@@ -422,26 +430,30 @@ function regis_init() {
 
     // Re-render the DCTV whenever a new deck is added.
     dctv.on('add', dctv.render);
+    dc.view = dctv;    
     
-    // Fetch all questions from the server.
-    cardList.fetch( { success: function() {
-    	cardList.ready = true;
+    // If the deck should be loaded during initialization, go for it.
+    if (regis_opts != null && 'load_full' in regis_opts && regis_opts['load_full']) {
+    	// Fetch all questions from the server.
+    	cardList.fetch( { success: function() {
+    		cardList.ready = true;
+    		
+//    		cardList.forEach(function(card) {
+//    			card.view.render();
+//    		});
     	
-    	dc.fetch({ success: function() {
-    	    dctv.render();
-    	    dc.view = dctv;
-    	    
-        	initialize_ui();
-        }});
-    	
-    }});
-  
+    		dc.fetch({ success: function() {
+    			dc.view.render();
+    			initialize_ui();
+    		}});
+    	}});
+    }
+    
     return {
-      Deck: function(deck_opts) {//deck_name, deck_endpoint) {
+      Deck: function(deck_opts) {
         var deck = ('endpoint' in deck_opts) ? new DeckType(deck_opts['endpoint']) : new DeckType();
 
         if ('name' in deck_opts) deck.name = deck_opts['name'];
-//        deck.id = deck_endpoint;
         deck.aci = null;
 
         deck.view = new DeckTypeView({collection: deck, draggable: false});
@@ -450,16 +462,21 @@ function regis_init() {
           add_to_shelf: ('add_to_shelf' in deck_opts) ? deck_opts['add_to_shelf'] : true,
         });
         
+//		deck.on('add', deck.icon.render);
+//		deck.on('remove', deck.icon.render);
+//		deck.on('remove', deck.view.update);
+        
         if (deck.icon.options.add_to_shelf) {
         	console.log('Adding deck "' + deck.name + '" to shelf');
         	dc.add(deck);
         }
 
+        // Only do a remote fetch if there's an endpoint specified.
         if ('endpoint' in deck_opts) {
           deck.fetch({ success: function(target_deck) {
-            // Render the views now that all of the data is loaded.
-        	deck.view.render();
-            if (deck.icon.options.add_to_shelf) deck.icon.render();            
+        	// Render the views now that all of the data is loaded.
+        	target_deck.view.render();
+            if (target_deck.icon.options.add_to_shelf) target_deck.icon.render();            
 
               // Set the active card to the first one
    	  	    if (target_deck.length > 0) target_deck.aci = 0;
@@ -474,9 +491,7 @@ function regis_init() {
             if (deck.icon.options.add_to_shelf) deck.icon.render();
 
             deck.ready = true;
-    		console.log('size: ' + deck.size());
         }
-		
 		
         return deck;
     },
@@ -556,13 +571,14 @@ function regis_init() {
     },
     
     activateDeck : function(target_deck) {
-      console.log('Switching to deck "' + target_deck.name + '"');
+      console.log('Switching to deck "' + target_deck.name + '" (size: ' + target_deck.size() + ')');
 	  // Hide the currently active deck.
 	  if (activeDeck != null) {
 	    activeDeck.view.hide();
 	  }
-	  
+
 	  // Show the newly activated deck and save it as the active deck.
+	  // TODO: bug occurs here! Apr 5, 2012
   	  target_deck.view.update();
   	  target_deck.view.show();
   	  activeDeck = target_deck;

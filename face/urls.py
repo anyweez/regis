@@ -10,10 +10,11 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
-    (r'^robots\.txt$', direct_to_template, {'template': 'robots.tpl', 'mimetype': 'text/plain'}),
+
+    # The index page.
     ('^$', core.index),
+    (r'^robots\.txt$', direct_to_template, {'template': 'robots.tpl', 'mimetype': 'text/plain'}),
     ('^path$', core.path),
     
     ('^api/decks/home$', api.home_deck),
