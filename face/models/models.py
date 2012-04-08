@@ -34,6 +34,10 @@ REGIS_TEMPLATE_STATUS = (
 
 # A single QuestionTemplate exists per question.  The template
 # ID is how questions are identified externally.
+#
+# QuestionTemplates are used to store the pre-parsed question,
+# including questions that don't have any parsing variables in
+# them.
 class QuestionTemplate(models.Model):
     type = models.CharField(max_length=10, choices=REGIS_QUESTION_TYPES)
     text = models.TextField()
@@ -45,6 +49,10 @@ class QuestionTemplate(models.Model):
     live = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_TEMPLATE_STATUS)
 
+# A particular instance of a QuestionTemplate after the template
+# is compiled.  There are usually many of these per question template,
+# but it's also possible to have a one-to-one mapping if there aren't
+# any variables in the body.
 class QuestionInstance(models.Model):
     template = models.ForeignKey(QuestionTemplate)
     
@@ -64,6 +72,14 @@ class QuestionInstance(models.Model):
             text = self.text.replace(matches.group(0), '<a href="/%s">View link</a>' % path)
             return text
 
+# A mapping between a QuestionInstance and a User.  Multiple users
+# can be mapped to the same QuestionInstance, and in theory many
+# QuestionInstances can be matched to a single User, although this
+# doesn't make as much sense in normal cases.
+#
+# These records also store all user-specific information about a
+# specific question, such as the order that it should appear in,
+# the status of the question, and activity flags.
 class UserQuestion(models.Model):
     user = models.ForeignKey(User)
     instance = models.ForeignKey(QuestionInstance)
@@ -76,9 +92,15 @@ class UserQuestion(models.Model):
     answerable = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_QUESTION_STATUS)
 
+# Not currently implemented.
+#
+# QuestionTags will be used to loosely categorize questions, either
+# publicly or privately.
 class QuestionTag(models.Model):
     name = models.CharField(max_length=100)
 
+# Stores a single guess from a user, both for correct and incorrect
+# guesses.
 class Guess(models.Model):
     user = models.ForeignKey(User)
     question = models.ForeignKey(UserQuestion)
@@ -87,6 +109,10 @@ class Guess(models.Model):
     correct = models.BooleanField()
     time_guessed = models.DateTimeField()
 
+# Stores answers for particular QuestionInstances, whether the answer
+# is correct or not.  Specific incorrect answers can be stored by
+# solvers if custom messages should be presented when the answer is
+# provided.
 class Answer(models.Model):
     question = models.ForeignKey(QuestionInstance)
     correct = models.BooleanField()
@@ -96,11 +122,9 @@ class Answer(models.Model):
     
     time_computed = models.DateTimeField(auto_now_add=True)
 
-#class ServerQuestion(models.Model):
-#    users = models.ManyToManyField(User)
-#    question_id = models.IntegerField()
-#    shared_with = models.CharField(max_length=10, choices=REGIS_SHARING_OPTIONS)
-
+# A collection of QuestionTemplates.  Decks can be created by users
+# and QuestionTemplates can be added / removed.  They can also be
+# shared with others.
 class Deck(models.Model):
     # TODO: I think this needs an 'owner' field (luke)...why the users field again?
     questions = models.ManyToManyField('QuestionTemplate')
@@ -142,97 +166,9 @@ class RegisEvent(models.Model):
     
     target = models.CharField(max_length=50, null=True)
 
-#class QuestionManager(models.Manager):
-#    def get_query_set(self):
-#        return super(QuestionManager, self).get_query_set()
-#
-#class Question(models.Model):
-#    template = models.ForeignKey(QuestionTemplate)
-#    user = models.ForeignKey(User, null=True)
-#    
-#    text = models.TextField()
-#    variables = models.TextField()
-#    
-#    time_computed = models.DateTimeField(auto_now_add=True)
-#    time_released = models.DateTimeField(null=True)
-#    
-#    status = models.CharField(max_length=10, choices=QUESTION_STATUS)
-#    order = models.IntegerField()
-#    
-#    # Record properties of this question.
-#    categories = models.ManyToManyField(QuestionTag)
-#    
-#    def decoded_text(self):
-#        base_url = 'http://localhost:8000'
-#            
-#        pattern = re.compile('\[\[([a-z0-9\/]+)\]\]')
-#        matches = pattern.search(self.text)
-#        if matches is None:
-#            return self.text
-#        else:
-#            path = matches.group(0)[2:-2]
-#            text = self.text.replace(matches.group(0), '<a href="%s/%s">View link</a>' % (base_url, path))
-#            return text
-     
-#class QuestionHint(models.Model):
-#    template = models.ForeignKey(QuestionTemplate)
-#    # The person who provided the hint
-#    src = models.ForeignKey(User)
-#    text = models.TextField()
-#    
-#    def get_hash(self):
-#        return hashlib.sha1(str(self.id) + self.text).hexdigest()
-#
-#class QuestionHintRating(models.Model):
-#    hint = models.ForeignKey(QuestionHint)
-#    # The person who provided the rating.
-#    src = models.ForeignKey(User)
-#    rating = models.BooleanField()
-#
-##class QuestionSet(models.Model):
-##    created_on = models.DateTimeField(auto_now_add=True)
-##    # Keeps track of the actual user that has reserved the question set.
-##    reserved_by = models.ForeignKey(User, null=True)
-##    questions = models.ManyToManyField(Question, related_name="questionset")
-#    
-#class Suggestion(models.Model):
-#    user = models.ForeignKey(User)
-#    question = models.TextField()
-#    answer = models.TextField()    
-#    time_submitted = models.DateTimeField()
-#
-#FEEDBACK_TYPES = (
-#    ('like', 'like'),
-#    ('challenge', 'challenge')
-#)
-#
-#class QuestionFeedback(models.Model):
-#    # The template that the feedback is provided for.
-#    template = models.ForeignKey(QuestionTemplate)
-#    user = models.ForeignKey(User)
-#    
-#    # The type of feedback: either 'like' or 'challenge'
-#    category = models.CharField(max_length=10, choices=FEEDBACK_TYPES)
-#    # The actual feedback value as an integer.
-#    value = models.IntegerField()
-
-# Add some stuff to the admin interface.
-#admin.site.register(RegisLeague)
-#admin.site.register(RegisUser)
-#admin.site.register(QuestionTemplate)
-#admin.site.register(Question)
-#admin.site.register(QuestionHint)
-#admin.site.register(Answer)
-#admin.site.register(Guess)
-#admin.site.register(Suggestion)
-
 # Social auth handlers.
 from social_auth.signals import socialauth_registered
-#from social_auth.backends.google import GoogleBackend
 from social_auth.backends.facebook import FacebookBackend
-
-#def google_extra_values(sender, user, response, details, **kwargs):
-#    return True
 
 # TODO: This currently doesn't work.  Not a big deal for us but would be nice to fix.
 def facebook_extra_values(sender, user, response, details, **kwargs):
