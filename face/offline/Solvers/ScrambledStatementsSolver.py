@@ -18,7 +18,7 @@ class ScrambledStatementsSolver(Solver.BaseSolver):
 	
 	def correct(self, st, params):
 		p = st.prepare_params(params)
-		phrase = list(str(p['phrase'][0]))
+		phrase = list(str(p['phrase']))
 		operations = self.load_userfile()
 
 		for op in operations:
@@ -29,7 +29,6 @@ class ScrambledStatementsSolver(Solver.BaseSolver):
 			elif op == 'duplicate':
 				phrase = self.op_duplicate(phrase)
 			else:
-#				print op
 				raise Exception('Unknown input operation...no idea what to do!')
 
 		return [(''.join(phrase), None),]

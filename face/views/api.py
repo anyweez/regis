@@ -7,12 +7,9 @@ from django.template.loader import get_template
 from django.contrib.auth.decorators import login_required
 
 import socket, urllib, urllib2 # for Django requests to third party servers 
-import json, datetime
-import face.util.UserStats as UserStats
+import json
 import face.models.models as models
-import face.msg.msghub as msghub
-import face.util.exceptions as exception
-import face.util.QuestionManager as qm
+import face.util.QuestionManager as QuestionManager
 import face.modules.providers.Provider as provider
 
 
@@ -22,18 +19,18 @@ socket.setdefaulttimeout(5)
 ########################################################
 ###   GET/POST   /api/questions                 ########
 ########################################################
+@login_required
 def api_questions(request):
     if request.method == 'POST' or \
             ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
         question = create_new_question(request)
         return HttpResponse(json.dumps(question), mimetype='application/json')
     if request.method == 'GET':
-        questions = load_visible_questions(request)
+        # Get all of the questions for the user from the question manager as JSON.
+        qm = QuestionManager.QuestionManager()
+        questions = qm.get_questions(request.user, json=True)
 
-        for i, question in enumerate(questions):
-            questions[i]['html'] = get_template('question.tpl').render(Context({'question': question}))
-        
-        return HttpResponse(json.dumps(questions), mimetype='application/json')
+        return HttpResponse(questions, mimetype='application/json')
     if request.method == 'POST':
         return None
     

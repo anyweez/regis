@@ -1,9 +1,10 @@
-import face.offline.ParserTools.SolverTools as SolverTools
+#import face.offline.ParserTools.SolverTools as SolverTools
+import face.util.FileManager as FileManager
 
 class BaseSolver(object):
-	def __init__(self, qset, template):
-		self.qset = qset
-		self.template = template 
+	def __init__(self, question):
+		self.instance = question
+		self.template = question.template 
 		
 	# Returns a list of values that are correct answers for the provided
 	# parameters.  Messages (or None) should be provided as well.
@@ -24,4 +25,4 @@ class BaseSolver(object):
 		raise NotImplementedError
 	
 	def load_userfile(self):
-		return SolverTools.load_userfile(self.qset, self.template)
+		return FileManager.FileManager().load_file(self.template, self.instance)

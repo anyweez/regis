@@ -1,4 +1,4 @@
-import imp, os, re
+import imp, re
 
 '''
 Parses a question and returns the new question string as well as the
@@ -7,11 +7,10 @@ parameters that were used to complete the string.
 class QuestionParser(object):
 	def __init__(self):
 		self.user = None
-		self.template = None
 		
-	def parse(self, qtxt):
+	def parse(self, template, instance):
 		# Replace each [*] with the appropriate value.
-		lines = [x.strip() for x in qtxt.split('\n') if len(x.strip()) > 0]
+		lines = [x.strip() for x in template.text.split('\n') if len(x.strip()) > 0]
 		
 		variables = {}
 		question = []
@@ -44,8 +43,9 @@ class QuestionParser(object):
 				#
 				# Format:
 				#   variables[var_name] = (display_value, store_value)
-				term_obj.qset = self.qset
-				term_obj.template = self.template
+				term_obj.template = template
+				term_obj.instance = instance
+				
 				returned = term_obj.execute(def_components[1:])
 				try:
 					variables[var_name] = tuple(returned[0:2])

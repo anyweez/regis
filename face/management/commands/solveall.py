@@ -1,73 +1,63 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 import face.offline.QuestionSolver as qs
-import face.models.models as regis
+import face.models.models as models
 
 class Command(BaseCommand):
     args = 'none'
     help = 'Solves all of the questions that havent been solved for all users.'
 
-    # Checks to see if there are any retired questions for this template
-    # We want to copy some of their state if so.
-    def find_ancestor(self, question):
-        try:
-            ancestors = regis.Question.objects.filter(
-                    status='retired',
-                    template=question.template,
-                    user=question.user).order_by('-id')
-            return ancestors[0]
-        except regis.Question.DoesNotExist:
-            return None
-
     def handle(self, *args, **options):
         solver = qs.QuestionSolver()
-        qlist = self.get_question_list()
-
+        questions = models.QuestionInstance.objects.all()
+        
         missing_solvers = []
         solved_count = 0
-        for q in qlist:
+        for question in questions:
+            num_answers = models.Answer.objects.filter(question=question).count()
+
+            if num_answers > 0:
+                continue
+
             try:
-                results = solver.solve(q)
+                results = solver.solve(question)
             
                 for val, msg in results['correct']:
-                    ans = regis.Answer(question=q, correct=True, value=val, message=msg)
+                    ans = models.Answer(question=question, correct=True, value=val, message=msg)
                     ans.save()
                 
                 for val, msg in results['mistakes']:
-                    ans = regis.Answer(question=q, correct=False, value=val, message=msg)
+                    ans = models.Answer(question=question, correct=False, value=val, message=msg)
                     ans.save()
             
-                ancestor = self.find_ancestor(q)
-                if ancestor is not None:
-                    q.order = ancestor.order
-                    if ancestor.time_released is not None:
-                        q.status = 'released'
-                        q.time_released = ancestor.time_released
-                    else:
-                        q.status = 'ready'
-                    q.save()
-                else:
-                    q.status = 'ready'
-                    q.save()
+                question.status = 'ready'
+                question.save()
             
                 solved_count += 1
             except ImportError:
-                missing_solvers.append(q.template.id)
+                missing_solvers.append(question.template.id)
             except Exception as e:
-                print 'Exception thrown while running solver %s:' % q.template.solver_name
+                print 'Exception thrown while running solver %s:' % question.template.solver_name
                 print e
                 continue
+            
+        # All peer templates are ready.
+        templates = models.QuestionTemplate.objects.filter(type='peer')
+        for template in templates:
+            template.status = 'ready'
+            template.save()
         
+        # Change the status of pending question templates if all of their 
+        # instances have been solved.
+        print 'Activating templates...'
+        templates = models.QuestionTemplate.objects.filter(type='auto', status='pending')
+        num_activated = 0
+        for template in templates:
+            instances = models.QuestionInstance.objects.filter(template=template)
+            unsolved = [instance for instance in instances if models.Answer.objects.filter(question=instance).count() == 0]
+            if len(unsolved) is 0:
+                num_activated += 1
+                template.status = 'ready'
+                template.save()
         print 'Solved %d new problems.' % solved_count
+        print 'Activated %d new templates.' % num_activated
         print 'Missing solvers for %d templates.' % len(list(set(missing_solvers)))
-
-    def get_question_list(self):
-        all_q = regis.Question.objects.exclude(status='retired')
-        keepers = []
-      
-        for q in all_q:
-            num_ans = regis.Answer.objects.filter(question=q)
-
-            if len(num_ans) == 0:
-                keepers.append(q)
-              
-        return keepers
