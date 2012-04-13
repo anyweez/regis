@@ -2,16 +2,14 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.http import HttpResponse
 from django.template import Context
+from django.template.loader import get_template
 
 from django.contrib.auth.decorators import login_required
 
 import socket, urllib, urllib2 # for Django requests to third party servers 
-import json, datetime
-import face.util.UserStats as UserStats
+import json
 import face.models.models as models
-import face.msg.msghub as msghub
-import face.util.exceptions as exception
-import face.util.QuestionManager as qm
+import face.util.QuestionManager as QuestionManager
 import face.modules.providers.Provider as provider
 
 
@@ -21,27 +19,39 @@ socket.setdefaulttimeout(5)
 ########################################################
 ###   GET/POST   /api/questions                 ########
 ########################################################
+@login_required
 def api_questions(request):
     if request.method == 'POST' or \
             ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
         question = create_new_question(request)
         return HttpResponse(json.dumps(question), mimetype='application/json')
     if request.method == 'GET':
-        questions = load_visible_questions(request)
-        return HttpResponse(json.dumps(questions), mimetype='application/json')
+        # Get all of the questions for the user from the question manager as JSON.
+        qm = QuestionManager.QuestionManager()
+        questions = qm.get_questions(request.user, json=True)
+
+        return HttpResponse(questions, mimetype='application/json')
+    if request.method == 'POST':
+        return None
     
 def load_visible_questions(request):
     visible_questions = []
     questions = load_questions(request)
-    for question in questions:
-        if user_has_question_permission(request.user, question['question_id']):
-            visible_questions.append( question )
-    return visible_questions
+    return questions
+# TODO: Temporarily disabled.
+#    for question in questions:
+#        if user_has_question_permission(request.user, question['question_id']):
+#            visible_questions.append( question )
+#    return visible_questions
     
 def load_questions(request):
     question_p = provider.getQuestionProvider()
+<<<<<<< HEAD
     questions = question_p.get_questions(1)
     #questions = question_p.get_questions(request.user.id)
+=======
+    questions = [q for q in question_p.get_questions(request.user.id) if q['status'] in ['released', 'solved']]
+>>>>>>> 65e7f5f83ec4c3640142c3cb8de55ea9e42c7843
     return questions
 
 def user_has_question_permission(user, question_id):
@@ -125,17 +135,33 @@ def api_decks(request):
         deck = load_deck(request, new_deck.id)
         return HttpResponse(json.dumps(deck), mimetype='application/json')
     if request.method == 'GET':
-        decks = load_visible_decks(request)
+#        decks = load_visible_decks(request)
+        decks = [{
+            'deck_id' : 1,
+            'name' : 'My Questions',
+            'members' : [1933,]
+        }, {
+            'deck_id' : 2,
+            'name' : 'Midterm Review',
+            'members' : [1933, 1386, 1823]
+        }, {
+            'deck_id' : 3,
+            'name' : 'Practice Problems',
+            'members' : [1933, 1406]
+        }]
         return HttpResponse(json.dumps(decks), mimetype='application/json')
     return None
     
 def load_visible_decks(request):
+    print 'found decks'
     visible_decks = []
     decks_resource = load_decks(request)
-    for deck in decks_resource:
-        if user_has_deck_permission(request.user, deck['deck_id']):
-            visible_decks.append(deck)
-    return visible_decks
+    return decks_resource
+# TODO: Temporarily disabled.
+#    for deck in decks_resource:
+#        if user_has_deck_permission(request.user, deck['deck_id']):
+#            visible_decks.append(deck)
+#    return visible_decks
 
 ''' Database lookup or API request '''
 def load_decks(request):
@@ -147,12 +173,15 @@ def load_decks(request):
     return decks
 
 def get_deck_from_db_deck(request, db_deck):
-    question_ids_list = load_question_ids_from_deck(request, db_deck)
+# TODO: Temporarily disabled.
+#    question_ids_list = load_question_ids_from_deck(request, db_deck)
+    question_ids_list = [question.template_id for question in db_deck.questions.all()]
     deck = {
         "deck_id" : db_deck.id,
         "name" : db_deck.name,
         "questions" : question_ids_list,
-        "shared_with" : db_deck.shared_with,
+# TODO: Temporarily disabled this field.        
+#        "shared_with" : db_deck.shared_with,
     }
     return deck
 
@@ -278,9 +307,9 @@ def home_deck(response):
     howitworks_card = get_template('howitworks.tpl')
     
     cards = []
-    cards.append({'card_id' : 123, 'html' : login_card.render(Context()) })
-    cards.append({'card_id' : 423, 'html' : howitworks_card.render(Context()) })
-    cards.append({'card_id' : 7823, 'html' : about_card.render(Context()) })
+    cards.append({'card_id' : 1, 'html' : login_card.render(Context()) })
+    cards.append({'card_id' : 2, 'html' : howitworks_card.render(Context()) })
+    cards.append({'card_id' : 3, 'html' : about_card.render(Context()) })
     return HttpResponse(json.dumps(cards), mimetype='application/json')
 
 def get_decks(request):

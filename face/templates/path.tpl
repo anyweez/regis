@@ -15,9 +15,10 @@
     $(document).ready(function() {
     
       // Initialize Regis and get some decks.
-      regis_init();
+      regis_init({'load_full' : true });
       
-      user_deck = regis.Deck('Users', 'users');
+      user_deck = regis.Deck({ 'name': 'Users', 'endpoint': 'users', 'add_to_shelf': false });      
+//      a_new_deck = regis.Deck({ 'name': 'New Deck' });
       
       $('#profile-btn').click(function() {
         regis.activateDeck(user_deck);

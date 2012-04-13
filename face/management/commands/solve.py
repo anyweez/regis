@@ -1,4 +1,4 @@
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 import face.offline.QuestionSolver as qs
 import face.models.models as regis
 
@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         solver = qs.QuestionSolver()
-        q = regis.Question.objects.get(id=args[0])
+        q = regis.QuestionInstance.objects.get(id=args[0])
 
         print '**********'
         print 'QUESTION:'
@@ -23,11 +23,3 @@ class Command(BaseCommand):
             print '(%d) %s' % (i+1, result[0])
         print ''
         print 'Solved!'
-
-# Get all questions that are inactive.
-
-# For each question, run the solver with the parameters list from the
-# database.
-
-# Store the output in the database and flip the READY flag for the
-# question to true.

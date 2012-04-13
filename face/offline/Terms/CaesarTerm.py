@@ -1,6 +1,5 @@
-import offline.Terms.Term as Term
-import offline.ParserTools.ParserTools as ParserTools
-import random
+import face.offline.Terms.Term as Term
+import face.offline.ParserTools.ParserTools as ParserTools
 
 class CaesarTerm(Term.BaseTerm):
 	def execute(self, params):

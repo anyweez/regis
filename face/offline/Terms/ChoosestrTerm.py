@@ -14,9 +14,8 @@ class ChoosestrTerm(Term.BaseTerm):
         pt = ParserTools.ParserTools()
         lines = pt.load_datafile(filename)
 
-
         line = random.choice(lines).strip()
         while len(line) is 0:
             line = random.choice(lines).strip()
 
-        return ([line,], [line,])
+        return (line, line)
