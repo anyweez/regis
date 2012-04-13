@@ -46,12 +46,7 @@ def load_visible_questions(request):
     
 def load_questions(request):
     question_p = provider.getQuestionProvider()
-<<<<<<< HEAD
-    questions = question_p.get_questions(1)
-    #questions = question_p.get_questions(request.user.id)
-=======
     questions = [q for q in question_p.get_questions(request.user.id) if q['status'] in ['released', 'solved']]
->>>>>>> 65e7f5f83ec4c3640142c3cb8de55ea9e42c7843
     return questions
 
 def user_has_question_permission(user, question_id):
