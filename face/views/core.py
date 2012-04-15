@@ -2,6 +2,7 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 
 import face.models.models as models
@@ -98,10 +99,11 @@ def get_question_file(request, tid):
     return render_to_response('show_file.tpl', { 'data' : contents }, mimetype='text/plain')
 
 @login_required
+@csrf_exempt
 def check_q(request, template_id):
     json_response = {}
     try:
-        answer = str(request.POST['answer']).strip()
+        answer = str(request.POST['guess']).strip()
 
         try:
             template = models.QuestionTemplate.objects.get(id=int(template_id))

@@ -11,7 +11,43 @@
  * The only field the card requires is the 'html' field, which is the
  * data that is directly injected into the card's body.
  */
-var CardType = Backbone.Model.extend({});
+var CardType = Backbone.Model.extend({
+	guess_base_url: '/api/answer/',
+	
+	submit_guess : function(guess_val) {
+		guess_url = this.guess_base_url + this.get('template_id');
+		console.log('Submitting guess (' + guess_val + ') to ' + guess_url);
+		
+		that = this;
+		$.ajax({
+			url: guess_url,
+			type: 'POST',
+			data: {
+				'guess' : guess_val
+			},
+			success: function(response) {
+				that.update_on_guess(response);
+			}
+		});
+	},
+	
+	update_on_guess : function(response) {
+		console.log('updating card #' + this.get('template_id'));
+		if (response.hasOwnProperty('error')) {
+			console.log('Error! ' + response.error);
+		}
+		else if (response.hasOwnProperty('correct')) {
+			console.log('Correct? ' + response.correct);
+			if (response.correct) {
+				$(this.view.el).find('h2').css('background-color', '#009933');
+				$(this.view.el).find('h2').css('border-bottom', '1px solid black');
+			}
+			else {
+				$(this.view.el).find('h2').effect("highlight", { 'color' : '#ff0000' }, 2000);
+			}
+		}
+	},
+});
 
 /**
  * The view for a single CardType.
@@ -21,7 +57,8 @@ var CardTypeView = Backbone.View.extend({
    className: 'card',
 
    events : {
-	   'click h2' : 'local_activate'
+	   'click h2' : 'local_activate',
+	   'click input[type=button]' : 'submit_guess',
    },
    
    initialize: function() {
@@ -30,7 +67,11 @@ var CardTypeView = Backbone.View.extend({
       _.bindAll(this);
    },
    
-   // Activates this card in the deck that' currently active.
+   submit_guess: function() {
+	   this.model.submit_guess($(this.el).find(':input[type=text]').val());
+   },
+   
+   // Activates this card in the deck that's currently active.
    local_activate : function() {
 	   regis.getActiveDeck().activate(this.model);
    },
@@ -435,11 +476,9 @@ function regis_init(regis_opts) {
     // If the deck should be loaded during initialization, go for it.
     if (regis_opts != null && 'load_full' in regis_opts && regis_opts['load_full']) {
     	// Fetch all questions from the server.
-    	console.log('reading card list');
     	cardList.fetch( { success: function() {
     		cardList.ready = true;
     		
-    		console.log('getting decks');
     		dc.fetch({ success: function() {
     			dc.view.render();
     			initialize_ui();
