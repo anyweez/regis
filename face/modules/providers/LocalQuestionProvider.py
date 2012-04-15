@@ -27,12 +27,12 @@ def get_questions(user_id):
 ##
 ## Note: this method should always return a single JSON object
 ## or raise an exception.
-#def get_question(question_id):
-#    try:
-#        question = models.Question.objects.get(id=question_id)
-#        return json.dumps(question)
-#    except models.Question.DoesNotExist:
-#        raise provider.ProviderException('A question with an ID of %s does not exist.' % question_id)
+def get_question(question_id):
+    try:
+        question = models.QuestionInstance.objects.get(id=question_id)
+        return question
+    except models.QuestionInstance.DoesNotExist:
+        raise provider.ProviderException('A question with an ID of %s does not exist.' % question_id)
 
 ## Submits an attempt for the provided question.  Should return
 ## JSON object describing attempt.  This is also a good place to
@@ -42,22 +42,26 @@ def get_questions(user_id):
 ##   correct : true / false
 ## }
 def submit_attempt(question_id, user_id, attempt):
-    question = get_question(question_id)
-    user = provider.getUserProvider().getUser(user_id)
+    # Get question
+    # Get user
+    # Get userquestion.instance
+    # check question against answers to instance
     
-    dj_question = models.Question.objects.get(id=question['id'])
-    dj_user = models.User.objects.get(id=user['id'])
+    question = get_question(question_id)
+    user = provider.getUserProvider().get_user(user_id)
+    
+    user_q = models.UserQuestion.objects.exclude(status='retired').get(instance=question, user=user)
     
     manager = qm.QuestionManager()
     correct, reason = manager.check_question(question, attempt)
     
     guess = models.Guess(
-        user = dj_user,
-        question = dj_question,
+        user = user,
+        question = user_q,
         value = attempt,
         correct = correct,
         time_guessed=datetime.datetime.now()
     )
     guess.save()
 
-    return {'correct' : correct}
+    return guess

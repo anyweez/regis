@@ -2,6 +2,8 @@ from django.shortcuts import render_to_response, redirect
 from django.template import RequestContext
 from django.contrib import auth
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 
 import face.models.models as models
 import face.util.QuestionManager as qm
@@ -96,51 +98,35 @@ def get_question_file(request, tid):
     
     return render_to_response('show_file.tpl', { 'data' : contents }, mimetype='text/plain')
 
-#    try:
-#        template = users.QuestionTemplate.objects.get(id=tid)
-#    
-#        data = None
-#        field = []
-#
-#        try:
-#            questions = users.Question.objects.filter(user=request.user, template=template).exclude(status='retired')
-#            data = json.loads(questions[0].variables)
-#            for actual, visible in data.values():
-#                try:
-#                    if list(actual) == actual and len(actual) > len(field):
-#                        field = actual
-#                except TypeError:
-#                    continue
-#        except users.Question.DoesNotExist:
-#            pass
-#    except users.QuestionTemplate.DoesNotExist:
-#        pass
-    
-
 @login_required
-def check_q(request):
+@csrf_exempt
+def check_q(request, template_id):
+    json_response = {}
     try:
-        qid = int(request.POST['qid'])
-        answer = str(request.POST['answer'])
-        
-        if len(answer.strip()) == 0:
-            return render_to_response('error.tpl', 
-                { 'errors' : ['Please provide an answer before submitting.',] })
-        
-        # Check to make sure the current user is allowed to answer this question.
+        answer = str(request.POST['guess']).strip()
+
         try:
-            question = users.Question.objects.get(id=qid, user=request.user)
-        except users.Question.DoesNotExist:
-            raise exception.UnauthorizedAttemptException(request.user, qid)
+            template = models.QuestionTemplate.objects.get(id=int(template_id))
+            user_q = models.UserQuestion.objects.exclude(status='retired').get(user=request.user, template=template)
+            q_instance = user_q.instance
+        except models.QuestionTemplate.DoesNotExist:
+            json_response['error'] = 'Invalid template ID.'
+            return json_response
+        except models.UserQuestion.DoesNotExist:
+            json_response['error'] = 'The requested question is not available.'
+            return json_response
         
         question_p = provider.getQuestionProvider()
-        response = question_p.submit_attempt(question.id, request.user.id, answer)
+        response = question_p.submit_attempt(q_instance.id, request.user.id, answer)
         
         # If correct, change the status of the question and select a next candidate.
         # Make sure that the question hasn't been solved already!
-        if response['correct'] and question.status != 'solved':
-            question.status = 'solved'
-            question.save()
+        if response.correct and user_q.status != 'solved':
+            user_q.status = 'solved'
+#            user_q.save()
+            
+            json_response['correct'] = True
+            json_response['status'] = 'solved'            
             try:
                 question_m = qm.QuestionManager()
                 # Activate the next question.
@@ -148,14 +134,17 @@ def check_q(request):
             except exception.NoQuestionReadyException:
                 # TODO cartland: Should we record this?
                 pass
-        return redirect('/question/status/%d' % g.id)
+        else:
+            json_response['correct'] = response.correct
+            
+        return HttpResponse(json.dumps(json_response), mimetype='application/json')
         
     # Either the QID or the answer value wasn't set.
-    except KeyError:        
-        return render_to_response('error.tpl', 
-            { 'errors' : ['There was a problem retrieving information about your guess.  Please refresh the question page and try submitting again.',] })
+    except KeyError:
+        json_response['error'] = 'Please provide a guess.'
+        return HttpResponse(json.dumps(json_response), mimetype='application/json')
     except exception.UnauthorizedAttemptException:
-        return render_to_response('error.tpl', 
-            { 'errors' : ['You haven\'t unlocked that question yet.',] })
+        json_response['error'] = "You don't have permission to view that question yet."
+        return HttpResponse(json.dumps(json_response), mimetype='application/json')
 
 
