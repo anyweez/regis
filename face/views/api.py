@@ -30,7 +30,7 @@ def api_questions(request):
         qm = QuestionManager.QuestionManager()
         questions = qm.get_questions(request.user, json=True)
 
-        return HttpResponse(questions, mimetype='application/json')
+        return HttpResponse(json.dumps(questions), mimetype='application/json')
     if request.method == 'POST':
         return None
     
