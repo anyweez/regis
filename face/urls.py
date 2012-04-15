@@ -20,6 +20,7 @@ urlpatterns = patterns('',
     ('^api/decks/users$', api.get_users),
 #    ('^api/decks/([a-f0-9]+)', api.get_deck),
     
+    ('^api/answer/(\d+)$', core.check_q),
     ('^login$', core.index),
 #    ('^about$', core.about),
 #    ('^bomb$', core.bomb),

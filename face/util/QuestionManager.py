@@ -14,6 +14,11 @@ class QuestionManager(object):
     def bind_questions(self, user):
         all_t = models.QuestionTemplate.objects.filter(status='ready')
 
+        # If there are no templates then our work here is done.  This is a
+        # fairly useless situation to be in but shouldn't crash.
+        if len(all_t) is 0:
+            return False
+        
         # Put the template at the end of the queue for each user by default.
         # The personalization process can update this later.        
         starting_order = models.UserQuestion.objects.filter(user=user).aggregate(Max('order'))
@@ -79,7 +84,6 @@ class QuestionManager(object):
     # or 'solved.'  Those are the only two status's that should ever be visible.  
     def get_questions(self, user, json=True):
         provider = providers.LocalQuestionProvider
-                
         questions = provider.get_questions(user.id)
                 
         # Render the HTML template for the question before returning it.

@@ -16,10 +16,7 @@ def get_users():
     return users
 
 def get_user(user_id):
-    users = get_users();
-    
-    for user in users:
-        if user['id'] == user_id:
-            return user
-        
-    raise provider.ProviderException('A user with an ID of %s does not exist.' % user_id)
+    try:
+        return models.User.objects.get(id=user_id)
+    except:
+        raise provider.ProviderException('A user with an ID of %s does not exist.' % user_id)

@@ -435,13 +435,11 @@ function regis_init(regis_opts) {
     // If the deck should be loaded during initialization, go for it.
     if (regis_opts != null && 'load_full' in regis_opts && regis_opts['load_full']) {
     	// Fetch all questions from the server.
+    	console.log('reading card list');
     	cardList.fetch( { success: function() {
     		cardList.ready = true;
     		
-//    		cardList.forEach(function(card) {
-//    			card.view.render();
-//    		});
-    	
+    		console.log('getting decks');
     		dc.fetch({ success: function() {
     			dc.view.render();
     			initialize_ui();
