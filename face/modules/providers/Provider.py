@@ -1,3 +1,4 @@
+import LocalDeckProvider
 import LocalQuestionProvider, CourseSharingQuestionProvider
 import LocalUserProvider
 
@@ -15,3 +16,6 @@ def getQuestionProvider():
 
 def getUserProvider():
     return LocalUserProvider
+
+def getDeckProvider():
+    return LocalDeckProvider

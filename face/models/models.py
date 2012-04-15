@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-import re
+import json, re
 
 REGIS_SHARING_OPTIONS = (
     ('public', 'Public'),
@@ -48,6 +48,17 @@ class QuestionTemplate(models.Model):
     
     live = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_TEMPLATE_STATUS)
+    def jsonify(self):
+        return {
+            'template_id' : self.id,
+            'text' : self.text,
+            'type' : self.type,
+            'status' : self.status,
+#            'added_on' : self.added_on,
+            }
+
+    def __str__(self):
+        return json.dumps(self.jsonify())
 
 # A particular instance of a QuestionTemplate after the template
 # is compiled.  There are usually many of these per question template,
@@ -92,6 +103,17 @@ class UserQuestion(models.Model):
     answerable = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_QUESTION_STATUS)
 
+    def jsonify(self):
+        return { 
+            'user' : self.user.id,
+            'template_id' : self.template.id,
+#            'released' : self.released,
+#            'visible' : self.visible,
+            'status' : self.status
+            }
+    def __str__(self):
+        return json.dumps(self.jsonify())
+
 # Not currently implemented.
 #
 # QuestionTags will be used to loosely categorize questions, either
@@ -131,6 +153,15 @@ class Deck(models.Model):
     users = models.ManyToManyField(User)
     name = models.CharField(max_length=100)
     shared_with = models.CharField(max_length=10, choices=REGIS_SHARING_OPTIONS)
+    def jsonify(self):
+        return {
+            'deck_id' : self.id,
+            'name' : self.name,
+            'members' : [q.id for q in self.questions.all()],
+            }
+
+    def __str__(self):
+        return json.dumps(self.jsonify())
 
 ######################################
 ####### Administrative models ########

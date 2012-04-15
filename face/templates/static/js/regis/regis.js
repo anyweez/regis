@@ -185,6 +185,9 @@ var DeckCollectionType = Backbone.Collection.extend({
 	parse: function(response) {
 	  var models = [];
 	  console.log('Parsing decks from server.');
+          response.reverse();
+          response.push({'deck_id' : -1, 'name' : 'All', 'members' : []});
+          response.reverse();
 	  _.each(response, function(deck_opt) {
 		  var new_deck = new DeckType();
 
@@ -192,8 +195,9 @@ var DeckCollectionType = Backbone.Collection.extend({
 		  new_deck.deck_id = deck_opt.deck_id;
 		  
 		  regis.getCardList().each(function(card, index) {
-			  if (deck_opt.members != undefined && 
-				  deck_opt.members.indexOf(card.get('question_id')) > -1) {
+			  if ((deck_opt.name == 'All' && deck_opt.deck_id == -1) ||
+                                  deck_opt.members != undefined && 
+				  deck_opt.members.indexOf(card.get('template_id')) > -1) {
 
 //				  if (card.view == null) card.view = new CardTypeView({model: card});
 				  new_deck.add(card);
@@ -570,7 +574,7 @@ function regis_init(regis_opts) {
     	  // TODO (luke): Try to integrate deck updating w/ Backbone.
     	  $.ajax({
     	    type: 'put',
-    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + target_card.get('card_id'),
+    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + '1',// target_card.get('card_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
           });
       }
       catch (err) {
@@ -598,7 +602,7 @@ function regis_init(regis_opts) {
       	    // TODO (luke): Try to integrate deck updating w/ Backbone.
       	    $.ajax({
       	      type: 'delete',
-      	      url: '/api/decks/' + activeDeck.deck_id + '/questions/' + target_card.get('card_id'),
+    	      url: '/api/decks/' + activeDeck.deck_id + '/questions/' + '1',// target_card.get('card_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
             });
       	  
         	if (activeDeck.aci == target_index) {

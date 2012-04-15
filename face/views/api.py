@@ -115,6 +115,21 @@ def update_question(request, question_id):
     question = question_p.get_question(request.user.id, question_id)
     return question
 
+def api_deck_question(request, deck_id, template_id):
+#    question_p = provider.getQuestionProvider()
+#    questions = [q for q in question_p.get_questions(request.user.id) if q.template.id==template_id or True]
+#    question = questions[0].jsonify()
+    if request.method == 'PUT' or \
+            ('PUT' in request.REQUEST and request.REQUEST['PUT'] == 'DEBUG'):
+        deck_provider = provider.getDeckProvider()
+        deck = deck_provider.add_question_to_deck(template_id, deck_id)
+        return HttpResponse(json.dumps(deck), mimetype='application/json')
+    if request.method == 'DELETE' or \
+            ('DELETE' in request.REQUEST and request.REQUEST['DELETE'] == 'DEBUG'):
+        deck_provider = provider.getDeckProvider()
+        deck = deck_provider.remove_question_from_deck(template_id, deck_id)
+        return HttpResponse(json.dumps(deck), mimetype='application/json')
+
 ########################################################
 #        GET/POST /api/decks                           #
 ########################################################
@@ -130,16 +145,8 @@ def api_decks(request):
         deck = load_deck(request, new_deck.id)
         return HttpResponse(json.dumps(deck), mimetype='application/json')
     if request.method == 'GET':
-#        decks = load_visible_decks(request)
-        decks = [{
-            'deck_id' : 1,
-            'name' : 'My Questions',
-            'members' : [683,]
-        }, {
-            'deck_id' : 2,
-            'name' : 'Midterm Review',
-            'members' : [683, 100]
-        }]
+        deck_provider = provider.getDeckProvider()
+        decks = deck_provider.get_decks(request.user.id)
         return HttpResponse(json.dumps(decks), mimetype='application/json')
     return None
     
@@ -208,7 +215,7 @@ def api_deck(request, deck_id):
         
 
 def load_visible_deck(request, deck_id):
-    if user_has_deck_permission(request.user, deck_id):
+    if True or user_has_deck_permission(request.user, deck_id):
         deck = load_deck(request, deck_id)
         return deck
     return None
@@ -233,9 +240,13 @@ def delete_deck(request, deck_id):
 
 ''' Database lookup or API request '''
 def load_deck(request, deck_id):
-    db_deck = models.Deck.objects.get(id=deck_id)
-    deck = get_deck_from_db_deck(request, db_deck)
-    return deck
+    try:
+        deck = models.Deck.objects.get(id=deck_id)
+        #deck = get_deck_from_db_deck(request, db_deck)
+    except models.Deck.DoesNotExist:
+        deck = models.Deck()
+        deck.save()
+    return deck.jsonify()
 
 ''' Database or API request '''
 def delete_deck(request, deck_id):
