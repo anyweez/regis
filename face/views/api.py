@@ -140,15 +140,11 @@ def api_decks(request):
         decks = [{
             'deck_id' : 1,
             'name' : 'My Questions',
-            'members' : [1933,]
+            'members' : [683,]
         }, {
             'deck_id' : 2,
             'name' : 'Midterm Review',
-            'members' : [1933, 1386, 1823]
-        }, {
-            'deck_id' : 3,
-            'name' : 'Practice Problems',
-            'members' : [1933, 1406]
+            'members' : [683, 100]
         }]
         return HttpResponse(json.dumps(decks), mimetype='application/json')
     return None

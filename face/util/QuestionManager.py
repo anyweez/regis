@@ -58,7 +58,12 @@ class QuestionManager(object):
             except models.UserQuestion.DoesNotExist:
                 raise exception.NoQuestionReadyException(user)
 
-            question = target_order[0]
+            # If there are no questions to unlock then return false.
+            if len(target_order):
+                question = target_order[0]
+            else:
+                return False
+            
             # If there is a question to be released, release it.
             question.released = datetime.datetime.now()
             question.visible = True
