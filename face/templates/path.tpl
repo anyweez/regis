@@ -13,6 +13,20 @@
 
   <script type="text/javascript">
     $(document).ready(function() {
+      // New deck button TODO cartland: move into better place.
+      $("#new-deck-box").submit(function() {
+         $.ajax({
+         	url: '/api/decks',
+         	type: 'POST',
+         	data: {
+         		'name' : $("input[name='name']").val()
+         	},
+         	success: function(response) {
+                    alert('Deck ' + response.deck_id + ' ' + response.name);
+         	}
+         });
+         return false;
+      });
     
       // Initialize Regis and get some decks.
       regis_init({'load_full' : true });
@@ -59,6 +73,11 @@
     <div id='card-stack'>
     </div>
   </div>
-    <div id='deck-icons' class="ui-layout-south"></div>
+  <div id='deck-icons' class="ui-layout-south">
+    <form id="new-deck-box" style="float: right;">
+      <input type="text" value="Untitled" name="name">
+      <input type="submit" value="New Deck" name="submit">
+    </form>
+  </div>
 </body>
 </html>

@@ -149,9 +149,12 @@ class Answer(models.Model):
 # shared with others.
 class Deck(models.Model):
     # TODO: I think this needs an 'owner' field (luke)...why the users field again?
+    owner = models.ForeignKey(User, related_name='owner')
     questions = models.ManyToManyField('QuestionTemplate')
-    users = models.ManyToManyField(User)
+    # The users field is not being used yet. This field will help define permissions. 'users' are all of the users that have explicit access to this deck. 
+    users = models.ManyToManyField(User, related_name='viewers')
     name = models.CharField(max_length=100)
+    # 'shared_with' is a special string to determine the general sharing category. Right now, everything is 'public'.
     shared_with = models.CharField(max_length=10, choices=REGIS_SHARING_OPTIONS)
     def jsonify(self):
         return {

@@ -26,7 +26,7 @@ var CardType = Backbone.Model.extend({
 				'guess' : guess_val
 			},
 			success: function(response) {
-				that.update_on_guess(response);
+				alert("success!");
 			}
 		});
 	},
@@ -406,6 +406,56 @@ var DeckTypeView = Backbone.View.extend({
         }
       });
 	}
+});
+
+/**
+ * The view for a single CardType.
+ */
+var CardTypeView = Backbone.View.extend({
+   tagName: 'div',
+   className: 'card',
+
+   events : {
+	   'click h2' : 'local_activate',
+	   'click input[type=button]' : 'submit_guess',
+   },
+   
+   initialize: function() {
+      $('#card-stack').append(this.el);
+      
+      _.bindAll(this);
+   },
+   
+   submit_guess: function() {
+	   this.model.submit_guess($(this.el).find(':input[type=text]').val());
+   },
+   
+   // Activates this card in the deck that's currently active.
+   local_activate : function() {
+	   regis.getActiveDeck().activate(this.model);
+   },
+
+   render: function() {
+      $(this.el).html(this.model.get('html'));
+      $(this.el).css('display', 'none');
+      $(this.el).css('position', 'absolute');
+      $(this.el).css('top', '180px');
+      $(this.el).css('left', '250px');
+      return this;
+   },
+   
+   show: function() {
+      $(this.el).css('display', 'block');
+   },  
+    
+   hide: function() {
+      $(this.el).css('display', 'none');
+   },
+
+   // TODO (luke): can we get rid of setCollectionView?
+   setCollectionView: function(view) {
+      this.collectionView = view;
+   },
 });
 
 function initialize_ui() {

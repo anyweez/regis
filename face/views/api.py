@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.template import Context
 from django.template.loader import get_template
 
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 
 import socket, urllib, urllib2 # for Django requests to third party servers 
@@ -133,16 +134,17 @@ def api_deck_question(request, deck_id, template_id):
 ########################################################
 #        GET/POST /api/decks                           #
 ########################################################
+@login_required
+@csrf_exempt
 def api_decks(request):
     if request.method == 'POST' or \
             ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
         name = request.REQUEST['name'] if 'name' in request.REQUEST else 'New Deck'
         shared_with = request.REQUEST['shared_with'] if 'shared_with' in request.REQUEST else 'public'
-        new_deck = models.Deck(name=name, shared_with=shared_with)
-        new_deck.save()
         #new_deck.users.add(request.user)
         #new_deck.save()
-        deck = load_deck(request, new_deck.id)
+        deck_provider = provider.getDeckProvider()
+        deck = deck_provider.create(owner=request.user, name=name, shared_with=shared_with)
         return HttpResponse(json.dumps(deck), mimetype='application/json')
     if request.method == 'GET':
         deck_provider = provider.getDeckProvider()
