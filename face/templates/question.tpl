@@ -4,8 +4,8 @@
   <p style="font-size: small;">released on {{ question.released }}</p>
   <p>{{question.decoded_text|safe}}</p>
 
-  <div id="answerbox" style="height: 40px;">
+  <form id="answerbox" style="height: 40px;">
     <input type="text" value="" name="answer">
-    <input type="button" value="Check" name="submit">
-  </div>
+    <input type="submit" value="Check" name="submit">
+  </form>
 </div>

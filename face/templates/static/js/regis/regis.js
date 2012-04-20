@@ -417,7 +417,7 @@ var CardTypeView = Backbone.View.extend({
 
    events : {
 	   'click h2' : 'local_activate',
-	   'click input[type=button]' : 'submit_guess',
+	   'submit #answerbox' : 'submit_guess',
    },
    
    initialize: function() {
@@ -427,7 +427,8 @@ var CardTypeView = Backbone.View.extend({
    },
    
    submit_guess: function() {
-	   this.model.submit_guess($(this.el).find(':input[type=text]').val());
+	   this.model.submit_guess($(this.el).find(':input[name=answer]').val());
+	   return false;
    },
    
    // Activates this card in the deck that's currently active.
