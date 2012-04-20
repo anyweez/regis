@@ -85,31 +85,12 @@ class QuestionManager(object):
     def get_questions(self, user, json=True):
         provider = providers.LocalQuestionProvider
         questions = provider.get_questions(user.id)
-                
+        output = []
         # Render the HTML template for the question before returning it.
-        for i, question in enumerate(questions):
-            questions[i].html = get_template('question.tpl').render(Context({'question': question}))
+        for question in questions:
+            question['html'] = get_template('question.tpl').render(Context({'question': question}))
 
-        if json:
-            json_q = []
-            for question in questions:
-            
-                item = {
-                    'user' : question.user.id,
-                    'time_released' : question.time_released,
-                    'template_id' : question.template.id,
-                    'question_id' : question.instance.id,
-                    'answerable' : question.answerable,
-                    'visible' : question.visible,
-                    'text' : question.instance.text,
-                    'html' : question.html
-                }
-            
-                json_q.append(item)
-            
-            return json_q
-        else:
-            return questions
+        return questions
     
     # Returns a tuple (bool, str) that states whether the answer
     # is correct and an accompanying message.

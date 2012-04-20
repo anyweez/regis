@@ -15,7 +15,7 @@ var CardType = Backbone.Model.extend({
 	guess_base_url: '/api/answer/',
 	
 	submit_guess : function(guess_val) {
-		guess_url = this.guess_base_url + this.get('template_id');
+		guess_url = this.guess_base_url + this.get('question_id');
 		console.log('Submitting guess (' + guess_val + ') to ' + guess_url);
 		
 		that = this;
@@ -26,13 +26,13 @@ var CardType = Backbone.Model.extend({
 				'guess' : guess_val
 			},
 			success: function(response) {
-				alert("success!");
+				that.update_on_guess(response);
 			}
 		});
 	},
 	
 	update_on_guess : function(response) {
-		console.log('updating card #' + this.get('template_id'));
+		console.log('updating card #' + this.get('question_id'));
 		if (response.hasOwnProperty('error')) {
 			console.log('Error! ' + response.error);
 		}
@@ -197,7 +197,7 @@ var DeckCollectionType = Backbone.Collection.extend({
 		  regis.getCardList().each(function(card, index) {
 			  if ((deck_opt.name == 'All' && deck_opt.deck_id == -1) ||
                                   deck_opt.members != undefined && 
-				  deck_opt.members.indexOf(card.get('template_id')) > -1) {
+				  deck_opt.members.indexOf(card.get('question_id')) > -1) {
 
 //				  if (card.view == null) card.view = new CardTypeView({model: card});
 				  new_deck.add(card);
@@ -624,7 +624,7 @@ function regis_init(regis_opts) {
     	  // TODO (luke): Try to integrate deck updating w/ Backbone.
     	  $.ajax({
     	    type: 'put',
-    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + '1',// target_card.get('card_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
+    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + target_card.get('question_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
           });
       }
       catch (err) {

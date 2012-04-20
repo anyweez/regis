@@ -9,7 +9,7 @@ import datetime
 ## done outside of the data provider.
 ##
 ## Note: this method should always return a list of JSON objects.
-def get_questions(user_id, jsonify=None):
+def get_questions(user_id):
     # Get all of questions for the specified user.
     try:
         user = models.User.objects.get(id=user_id)
@@ -21,9 +21,7 @@ def get_questions(user_id, jsonify=None):
     for i, db_question in enumerate(db_questions):
         db_questions[i].time_released = db_question.released.isoformat()
         
-    if jsonify:
-        return [d.jsonify() for d in db_questions]
-    return db_questions
+    return [d.jsonify() for d in db_questions]
 
 ## Get a single question as specified by the question_id.
 ##

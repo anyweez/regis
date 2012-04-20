@@ -106,9 +106,13 @@ class UserQuestion(models.Model):
     def jsonify(self):
         return { 
             'user' : self.user.id,
-            'template_id' : self.template.id,
-#            'released' : self.released,
-#            'visible' : self.visible,
+            'question_id' : self.template.id,
+            'order' : self.order,
+            'released' : self.released.isoformat(),
+            'visible' : self.visible,
+            'answerable' : self.answerable,
+            'text' : self.instance.text,
+            'decoded_text' : self.instance.decoded_text(),
             'status' : self.status
             }
     def __str__(self):
@@ -127,7 +131,7 @@ class Guess(models.Model):
     user = models.ForeignKey(User)
     question = models.ForeignKey(UserQuestion)
     
-    value = models.CharField(max_length=100)
+    value = models.CharField(max_length=500)
     correct = models.BooleanField()
     time_guessed = models.DateTimeField()
 

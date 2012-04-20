@@ -29,7 +29,7 @@ def api_questions(request):
     if request.method == 'GET':
         # Get all of the questions for the user from the question manager as JSON.
         qm = QuestionManager.QuestionManager()
-        questions = qm.get_questions(request.user, json=True)
+        questions = qm.get_questions(request.user)
 
         return HttpResponse(json.dumps(questions), mimetype='application/json')
     if request.method == 'POST':
