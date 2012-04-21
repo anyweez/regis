@@ -5,8 +5,8 @@
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
   <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
   <script type="text/javascript" src="/static/js/underscore.js"></script>
-  <script type="text/javascript" src="/static/js/jquery.js"></script>
-  <script type="text/javascript" src="/static/js/jquery-ui-1.8.18.custom.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>
+  <script type="text/javascript" src="/static/js/jquery-ui-1.8.19.custom.min.js"></script>
   <script type="text/javascript" src="/static/js/jquery.layout.min-1.2.0.js"></script>
   <script type="text/javascript" src="/static/js/backbone.js"></script>
   <script type="text/javascript" src="/static/js/regis/regis.js"></script>
@@ -57,6 +57,7 @@
 //	  layout.sizePane("south", 180);
       $(".ui-layout-pane").css("background-color", "rgba(0,0,0, 0.6)");
       $(".ui-layout-pane").css("background-color", "rgba(255,255,255, 0.6)");
+
     });
   </script>
 

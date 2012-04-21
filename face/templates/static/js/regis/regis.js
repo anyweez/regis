@@ -462,7 +462,7 @@ var CardTypeView = Backbone.View.extend({
 function initialize_ui() {
 	$('.draggable').each(function(index, el) {
 		$(el).draggable({ 
-		  cancel: ':input,button,p',
+		  cancel: ':input,button,p,div.scrap,div.peeranswer',
 		  distance: 30,
 		  revert: true,
 		  start: function(event, ui) {

@@ -50,6 +50,45 @@ body {
 	display: none;
 }
 
+.scrap {
+	border-top: 3px solid black;
+}
+
+.user-text {
+	font-style: italic;
+}
+
+.given-answer-text {
+	display: inline;
+}
+
+.peer-answers {
+	height: 150px;
+	padding-top: 10px;
+	border-top: 1px solid #dddddd;
+	overflow-y: scroll;
+}
+
+.peer-line {
+	display:inline;
+}
+
+.peer-grading {
+	margin-left: 20px;
+}
+
+.peer-score {
+	padding-right: 40px;
+	border-top: 1px solid #dddddd;
+	border-left: 1px solid #dddddd;
+	border-right: 1px solid #dddddd;
+}
+
+.attempt-text {
+	margin-top: 10px;
+	margin-bottom: 30px;
+}
+
 .card h2 {
 	color: white;
 	background-color: black;

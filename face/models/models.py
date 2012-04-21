@@ -101,6 +101,7 @@ class UserQuestion(models.Model):
     
     visible = models.BooleanField()
     answerable = models.BooleanField()
+    gradable = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_QUESTION_STATUS)
 
     def jsonify(self):
@@ -111,8 +112,8 @@ class UserQuestion(models.Model):
             'released' : self.released.isoformat(),
             'visible' : self.visible,
             'answerable' : self.answerable,
-            'text' : self.instance.text,
-            'decoded_text' : self.instance.decoded_text(),
+            'gradable' : self.gradable,
+            'text' : self.instance.decoded_text(),
             'status' : self.status
             }
     def __str__(self):
@@ -133,7 +134,17 @@ class Guess(models.Model):
     
     value = models.CharField(max_length=500)
     correct = models.BooleanField()
-    time_guessed = models.DateTimeField()
+    time_guessed = models.DateTimeField(auto_now_add=True)
+    
+    def jsonify(self):
+        return {
+            'attempt_id' : self.id,
+            'user_id' : self.user.id,
+            'question_id' : self.question.id,
+            'text' : self.value,
+            'correct' : self.correct,
+            'time_guessed' : self.time_guessed.isoformat(),
+        }
 
 # Stores answers for particular QuestionInstances, whether the answer
 # is correct or not.  Specific incorrect answers can be stored by
@@ -147,6 +158,43 @@ class Answer(models.Model):
     message = models.CharField(max_length=200, null=True)
     
     time_computed = models.DateTimeField(auto_now_add=True)
+    
+    def jsonify(self):
+        return { 
+            'answer_id' : self.id,
+            'question_id' : self.question.template.id,
+            'correct' : self.correct,
+            'text' : self.value,
+            'message' : self.message,
+            'time_computed' : self.time_computed.isoformat()
+        }
+
+
+class EvaluationMessage(models.Model):
+    message = models.CharField(max_length=500)
+    
+    def stringify(self):
+        return self.message
+
+class GuessEvaluation(models.Model):
+    author = models.ForeignKey(User, related_name='author')
+    guesser = models.ForeignKey(User, related_name='guesser')
+    attempt = models.ForeignKey(Guess, related_name='attempt')
+
+    messages = models.ManyToManyField(EvaluationMessage)
+    
+    score = models.IntegerField()
+    time_guessed = models.DateTimeField(auto_now_add=True)
+    def jsonify(self):
+        return {
+            'id' : self.id,
+            'attempt' : self.attempt.id,
+            'author' : self.author.id,
+            'guesser' : self.guesser.id,
+            'score' : self.score,
+            'time_guessed' : self.time_guessed.isoformat()
+        }
+
 
 # A collection of QuestionTemplates.  Decks can be created by users
 # and QuestionTemplates can be added / removed.  They can also be

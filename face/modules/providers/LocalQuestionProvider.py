@@ -64,4 +64,69 @@ def submit_attempt(question_id, user_id, attempt):
     )
     guess.save()
 
+    if correct:
+        user_q.gradable = True
+        user_q.save()
+
     return guess
+
+# question_id is a template id.
+def submit_grade_for_attempt(author_id, attempt_id, score, messages=None):
+    try:
+        author = models.User.objects.get(id=author_id)
+    except models.User.DoesNotExist:
+        raise provider.ProviderException('The specified user does not exist.')
+
+    try:
+        attempt = models.Guess.objects.get(id=attempt_id)
+    except models.User.DoesNotExist:
+        raise provider.ProviderException('The specified user does not exist.')
+
+    try:
+        evaluation = models.GuessEvaluation.objects.get(attempt=attempt, author=author, guesser=attempt.user)
+        evaluation.score = score
+    except models.GuessEvaluation.DoesNotExist:
+        evaluation = models.GuessEvaluation(attempt=attempt, author=author, guesser=attempt.user, score=score)
+    except models.GuessEvaluation.MultipleObjectsReturned:
+        models.GuessEvaluation.objects.delete(attempt=attempt, author=author, guesser=attempt.user)
+        evaluation = models.GuessEvaluation(attempt=attempt, author=author, guesser=attempt.user, score=score)
+        
+    evaluation.save()
+    return evaluation.jsonify()
+
+# question_id is a template id. TODO (cartland) make this real
+def get_attempts_to_grade(user_id, question_id, limit=None):
+    fields = [
+            'attempt_id',
+            'question_id',
+            'text']
+    attempts = models.Guess.objects.filter(question__id=question_id).order_by('value')
+    jattempts = [a.jsonify() for a in attempts]
+    output = []
+    for j in jattempts:
+        if limit is not None and len(output) == limit:
+            return output
+        values = {}
+        for k, v in j.items():
+            if k in fields:
+                values[k] = v
+        try:
+          evaluation = models.GuessEvaluation.objects.get(author__id=user_id, attempt__id=j['attempt_id'])
+          values['evaluation'] = evaluation.jsonify()
+        except models.GuessEvaluation.DoesNotExist:
+          values['evaluation'] = None
+        output.append(values)
+    return output
+
+
+# question_id is a template id
+def get_given_answers(user_id, question_id, correct=None):
+    user_q = models.UserQuestion.objects.get(user=user_id, template__id=question_id)
+
+    if correct is None:
+        answers = models.Answer.objects.filter(question__template__id=question_id, question__id=user_q.instance.id)
+    else:
+        answers = models.Answer.objects.filter(question__template__id=question_id, question__id=user_q.instance.id, correct=correct)
+    return [a.jsonify() for a in answers]
+
+

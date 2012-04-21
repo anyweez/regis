@@ -347,5 +347,13 @@ def test_third_party_latency(request):
     f = urllib2.urlopen(url)
     return HttpResponse(f.read())
 
-
+@login_required
+@csrf_exempt
+def evaluations(request, question_id, attempt_id):
+    if request.method == 'POST' or \
+            ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
+        question_p = provider.getQuestionProvider()
+        evaluation = question_p.submit_grade_for_attempt(request.user.id, attempt_id, request.REQUEST['score'], messages=request.REQUEST['messages'])
+        return HttpResponse(json.dumps(evaluation), mimetype='application/json')
+    
 

@@ -89,6 +89,16 @@ class QuestionManager(object):
         # Render the HTML template for the question before returning it.
         for question in questions:
             question['html'] = get_template('question.tpl').render(Context({'question': question}))
+            if question['gradable']:
+                score_options = range(5)
+                given_answers = provider.get_given_answers(user.id, question['question_id'], correct=True)
+                peer_attempts = provider.get_attempts_to_grade(user.id, question['question_id'], limit=None)
+                question['html'] += get_template('grading.tpl').render(Context({
+                    'question': question, 
+                    'peer_attempts' : peer_attempts, 
+                    'given_answers' : given_answers,
+                    'score_options' : score_options,
+                }))
 
         return questions
     
