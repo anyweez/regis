@@ -75,9 +75,16 @@ body {
 
 .peer-answers {
 	height: 150px;
-	padding-top: 10px;
-	border-top: 1px solid #555555;
 	overflow-y: scroll;
+	border-top: 1px solid #555555;
+}
+
+.peer-answer { 
+	padding-top: 15px;
+	padding-bottom: 20px;
+}
+
+.peer-response-container {
 }
 
 .peer-line {
@@ -85,18 +92,10 @@ body {
 }
 
 .peer-score {
-	padding-top: 10px;
 	padding-right: 50px;
 	padding-bottom: 10px;
-	border-top: 1px solid #dddddd;
-/*	border-left: 1px solid #dddddd;*/
+	border-bottom: 1px solid #dddddd;
 	border-right: 1px solid #dddddd;
-}
-
-.peer-response-container {
-	margin-top: 10px;
-	margin-bottom: 30px;
-	border-bottom: 1px solid #555555;
 }
 
 .card h2 {

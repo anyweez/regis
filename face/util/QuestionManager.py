@@ -94,13 +94,14 @@ class QuestionManager(object):
                 score_options = grading_package['score_options']
                 given_answers = grading_package['given_answers']
                 peer_attempts = grading_package['peer_attempts']
-                question['html'] += get_template('grading.tpl').render(Context({
+                grading_html = get_template('grading.tpl').render(Context({
                     'question': question, 
                     'peer_attempts' : peer_attempts, 
                     'given_answers' : given_answers,
                     'score_options' : score_options,
                 }))
 
+                question['html'] +=  grading_html
         return questions
     
     # Returns a tuple (bool, str) that states whether the answer
