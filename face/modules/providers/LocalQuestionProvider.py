@@ -95,7 +95,9 @@ def submit_grade_for_attempt(author_id, attempt_id, score, messages=None):
     return evaluation.jsonify()
 
 # question_id is a template id. TODO (cartland) make this real
-def get_attempts_to_grade(user_id, question_id, limit=None):
+def __get_attempts_to_grade(user_id, question_id, limit=None, include_graded=None):
+    if include_graded is None:
+        include_graded = False
     fields = [
             'attempt_id',
             'question_id',
@@ -115,12 +117,13 @@ def get_attempts_to_grade(user_id, question_id, limit=None):
           values['evaluation'] = evaluation.jsonify()
         except models.GuessEvaluation.DoesNotExist:
           values['evaluation'] = None
-        output.append(values)
+        if values['evaluation'] is None or include_graded:
+          output.append(values)
     return output
 
 
 # question_id is a template id
-def get_given_answers(user_id, question_id, correct=None):
+def __get_given_answers(user_id, question_id, correct=None):
     user_q = models.UserQuestion.objects.get(user=user_id, template__id=question_id)
 
     if correct is None:
@@ -129,4 +132,12 @@ def get_given_answers(user_id, question_id, correct=None):
         answers = models.Answer.objects.filter(question__template__id=question_id, question__id=user_q.instance.id, correct=correct)
     return [a.jsonify() for a in answers]
 
+def get_grading_package(user_id, question_id, correct=None, limit=None, include_graded=None):
+    package = {}
+    package['user_id'] = user_id
+    package['question_id'] = question_id
+    package['score_options'] = [[0, "Incorrect"], [1, "On topic"], [2, "Demonstrates some understanding"], [3, "Good answer"], [4, "Best answer"]]
+    package['given_answers'] = __get_given_answers(user_id, question_id, correct=correct)
+    package['peer_attempts'] = __get_attempts_to_grade(user_id, question_id, limit=limit, include_graded=include_graded)
+    return package
 

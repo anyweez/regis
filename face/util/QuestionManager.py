@@ -90,9 +90,10 @@ class QuestionManager(object):
         for question in questions:
             question['html'] = get_template('question.tpl').render(Context({'question': question}))
             if question['gradable']:
-                score_options = range(5)
-                given_answers = provider.get_given_answers(user.id, question['question_id'], correct=True)
-                peer_attempts = provider.get_attempts_to_grade(user.id, question['question_id'], limit=None)
+                grading_package = provider.get_grading_package(user.id, question['question_id'], correct=True, limit=None, include_graded=False)
+                score_options = grading_package['score_options']
+                given_answers = grading_package['given_answers']
+                peer_attempts = grading_package['peer_attempts']
                 question['html'] += get_template('grading.tpl').render(Context({
                     'question': question, 
                     'peer_attempts' : peer_attempts, 
