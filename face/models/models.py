@@ -55,7 +55,7 @@ class QuestionTemplate(models.Model):
             'type' : self.type,
             'status' : self.status,
 #            'added_on' : self.added_on,
-            }
+        }
 
     def __str__(self):
         return json.dumps(self.jsonify())
@@ -130,7 +130,7 @@ class QuestionTag(models.Model):
 # guesses.
 class Guess(models.Model):
     user = models.ForeignKey(User)
-    question = models.ForeignKey(UserQuestion)
+    instance = models.ForeignKey(QuestionInstance)
     
     value = models.CharField(max_length=500)
     correct = models.BooleanField()
@@ -140,7 +140,7 @@ class Guess(models.Model):
         return {
             'attempt_id' : self.id,
             'user_id' : self.user.id,
-            'question_id' : self.question.id,
+            'question_id' : self.instance.template.id,
             'text' : self.value,
             'correct' : self.correct,
             'time_guessed' : self.time_guessed.isoformat(),
@@ -177,7 +177,9 @@ class EvaluationMessage(models.Model):
         return self.message
 
 class GuessEvaluation(models.Model):
+    # The evaluator.
     author = models.ForeignKey(User, related_name='author')
+    # The person who wrote the answer that is being evaluated.
     guesser = models.ForeignKey(User, related_name='guesser')
     attempt = models.ForeignKey(Guess, related_name='attempt')
 
@@ -200,10 +202,10 @@ class GuessEvaluation(models.Model):
 # and QuestionTemplates can be added / removed.  They can also be
 # shared with others.
 class Deck(models.Model):
-    # TODO: I think this needs an 'owner' field (luke)...why the users field again?
     owner = models.ForeignKey(User, related_name='owner')
     questions = models.ManyToManyField('QuestionTemplate')
     # The users field is not being used yet. This field will help define permissions. 'users' are all of the users that have explicit access to this deck. 
+    # TODO: 'users' may not be required, depending on how fine-grained we want to get with this.
     users = models.ManyToManyField(User, related_name='viewers')
     name = models.CharField(max_length=100)
     # 'shared_with' is a special string to determine the general sharing category. Right now, everything is 'public'.

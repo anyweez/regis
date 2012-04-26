@@ -10,7 +10,6 @@
   <script type="text/javascript" src="/static/js/jquery.layout.min-1.2.0.js"></script>
   <script type="text/javascript" src="/static/js/backbone.js"></script>
   <script type="text/javascript" src="/static/js/regis/regis.js"></script>
-  <script type="text/javascript" src="static/js/grading.js"></script>
 
   <script type="text/javascript">
     $(document).ready(function() {
