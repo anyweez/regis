@@ -100,11 +100,11 @@ class UserQuestion(models.Model):
     user = models.ForeignKey(User)
     instance = models.ForeignKey(QuestionInstance)
     template = models.ForeignKey(QuestionTemplate)
-    released = models.DateTimeField(auto_now_add=False, null=True)
+    released = models.DateTimeField(auto_now_add=True, null=True)
     
     order = models.SmallIntegerField()
     
-    visible = models.BooleanField()
+    visible = models.BooleanField(default=True)
     answerable = models.BooleanField()
     gradable = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_QUESTION_STATUS)

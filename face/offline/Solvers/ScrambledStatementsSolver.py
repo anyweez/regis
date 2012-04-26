@@ -31,7 +31,7 @@ class ScrambledStatementsSolver(Solver.BaseSolver):
 			else:
 				raise Exception('Unknown input operation...no idea what to do!')
 
-		return [(''.join(phrase), None),]
+		return [(''.join(phrase[:5]), None),]
 		
 	def mistakes(self, params):
 		return []

@@ -171,6 +171,14 @@ h1 .cp_second {
 	padding: 0;
 }
 
+.question-body blockquote {
+	margin: 5px 0 5px 15px;
+}
+
+.question-body p {
+	margin: 0;
+}
+
 .deck-icon {
 	width: 182px;
 	height: 120px;

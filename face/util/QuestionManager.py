@@ -103,7 +103,7 @@ class QuestionManager(object):
     # Get all of the questions for the specified user that are either 'released'
     # or 'solved.'  Those are the only two status's that should ever be visible.  
     def get_questions(self, user, json=True):
-        provider = providers.LocalQuestionProvider
+        provider = providers.Provider.getQuestionProvider() #LocalQuestionProvider
         questions = provider.get_questions(user.id)
         output = []
         # Render the HTML template for the question before returning it.
