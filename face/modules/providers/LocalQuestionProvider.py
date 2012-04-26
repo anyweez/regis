@@ -34,9 +34,9 @@ def get_question(question_id):
     except models.QuestionInstance.DoesNotExist:
         raise provider.ProviderException('A question with an ID of %s does not exist.' % question_id)
 
-## Submits an attempt for the provided question.  Should return
-## JSON object describing attempt.  This is also a good place to
-## store the attempt if desired. 
+## Submits an attempt for the provided question instance.  Should return
+## JSON object describing attempt.  This is also a good place to store the 
+## attempt if desired. 
 ##
 ## Response: {
 ##   correct : true / false
@@ -65,6 +65,8 @@ def submit_attempt(question_id, user_id, attempt):
 
     if correct:
         user_q.gradable = True
+        # TODO: should the status always become 'solved' if they get it correct?  I think so...
+        user_q.status = 'solved'
         user_q.save()
 
     return guess

@@ -57,9 +57,7 @@
 //	  layout.sizePane("south", 180);
       $(".ui-layout-pane").css("background-color", "rgba(0,0,0, 0.6)");
       $(".ui-layout-pane").css("background-color", "rgba(255,255,255, 0.6)");
-
-
-
+      $(".ui-layout-pane").css("z-index", 10);
     });
   </script>
 
@@ -76,7 +74,7 @@
     <div id='card-stack'>
     </div>
   </div>
-  <div id='deck-icons' class="ui-layout-south">
+  <div id='deck-icons' class="ui-layout-south" style="z-index: 5;">
     <form id="new-deck-box" style="float: right;">
       <input type="text" value="Untitled" name="name">
       <input type="submit" value="New Deck" name="submit">

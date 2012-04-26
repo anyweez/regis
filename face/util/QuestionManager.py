@@ -104,8 +104,9 @@ class QuestionManager(object):
                 question['html'] +=  grading_html
         return questions
     
-    # Returns a tuple (bool, str) that states whether the answer
-    # is correct and an accompanying message.
+    # Returns a tuple (bool, str) that states whether the answer to the 
+    # specified QuestionInstance is correct and provides an accompanying 
+    # message.
     def check_question(self, question, answer):
         answers = models.Answer.objects.filter(question=question)
         
