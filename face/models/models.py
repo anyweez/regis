@@ -71,6 +71,11 @@ class QuestionInstance(models.Model):
     variables = models.TextField()
     
     generated_on = models.DateTimeField(auto_now_add=True)
+    
+    # Whether the question instance should be used for anything.  The only reason
+    # that an instance becomes inactive is if the template that it is generated 
+    # from is retired.
+    active = models.BooleanField(default=True)
 
     def decoded_text(self):
         print 'decoding text...'

@@ -1,13 +1,46 @@
-import imp, re
+import imp, re, json
+import face.models.models as models
 
 '''
 Parses a question and returns the new question string as well as the
 parameters that were used to complete the string.
 '''
 class QuestionParser(object):
+	permutations = {
+		'auto' : 100,
+		'peer' : 1
+	}
+	
 	def __init__(self):
 		self.user = None
 		
+	def process(self, template):
+		num_instances = models.QuestionInstance.objects.filter(template=template, active=True).count()
+		try:
+			req_instances = self.permutations[template.type]
+		except KeyError:
+			raise Exception('Invalid template type for #%d: %s' % (template.id, template.type))
+		
+		print 'Parsing %d / %d instances of template #%d' % (req_instances - num_instances, req_instances, template.id)
+			
+		for i in xrange(req_instances - num_instances):
+			instance = models.QuestionInstance(template=template, text='', variables='')
+			instance.save()
+
+			try:			   
+				text, values = self.parse(template, instance)
+				
+				instance.text = text
+				instance.variables = json.dumps(values)
+				instance.save()
+				# If there are any errors, let's delete them.
+			except Exception as e:
+				instance.delete()
+				print e
+					
+		template.status = 'pending'
+		template.save()
+			
 	def parse(self, template, instance):
 		# Replace each [*] with the appropriate value.
 		lines = [x.strip() for x in template.text.split('\n') if len(x.strip()) > 0]

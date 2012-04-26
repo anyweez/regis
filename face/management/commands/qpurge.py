@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand, CommandError
 import face.offline.QuestionSolver as qs
 import face.models.models as regis
 
+# TODO: This is out of date and no longer works.  Still seems potentially
+# useful but will need to be revamped.
 class Command(BaseCommand):
     args = 'none'
     help = 'Purges questions and question sets for users that no longer exist.'
