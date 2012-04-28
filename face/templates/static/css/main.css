@@ -38,7 +38,7 @@ body {
 
 .card {
 	width: 60%;
-	min-height: 250px;
+	/*min-height: 250px;*/
 	
 	background-color: white;
    	border: 3px solid black;

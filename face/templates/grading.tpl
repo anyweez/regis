@@ -26,76 +26,21 @@
       });
     
       // collapse all scraps
-      $('.grading-scrap-body').hide();
-      $('.grading-scrap-header').click(function(event) {
-         var body = $(this).siblings('.grading-scrap-body');
+      $('.grading-scrap-body{{question.question_id}}').hide();
+      $('.grading-scrap-header{{question.question_id}}').click(function(event) {
+         var body = $(this).siblings('.grading-scrap-body{{question.question_id}}');
          if (body.css('display') == 'none') {
             body.slideDown();
          } else {
             body.slideUp();
          }
       });
-
-      
-        //$('.hint-form > input').hide();
-        $('a.hint-button').click(function(event) {
-           event.preventDefault();
-           $( "#dialog-form" ).dialog( "open" );
-        });
-        $('#dialog-form-form').submit(function(event) {
-           event.preventDefault();
-           var p = $(this);
-           $("#dialog-form").dialog( "close" );
-           $.ajax({
-                 url: '/api/questions/' + p.attr('question_id') + '/hints',
-                 type: 'POST',
-                 data: {
-                    'text' : $(this).find('input[name="hint"]').val(),
-                 },
-                 success: function(response) {
-                 }
-           });
-        });
-
-	$( "#dialog-form" ).dialog({
-			autoOpen: false,
-			height: 200,
-			width: 350,
-			modal: true,
-			buttons: {
-				"Leave hint": function() {
-					$( this ).dialog( "close" );
-					$('#dialog-form-form').trigger('submit');
-				},
-				Cancel: function() {
-					$( this ).dialog( "close" );
-				}
-			},
-			close: function() {
-			}
-		});
-
-
-
    });
 </script>
-	
-
-<div id="dialog-form" title="Leave hint">
-	<form id="dialog-form-form" question_id={{question.question_id}} action="/test/" method="POST">
-	<fieldset>
-		<label for="hint">Hint</label>
-		<input type="text" name="hint" id="hint" class="text ui-widget-content ui-corner-all" />
-	</fieldset>
-	</form>
-</div>
-
-
 
 <div class="scrap peer-grading" question_id="{{question.question_id}}">
-  <div class="scrap-header grading-scrap-header">Peer grading</div>
-  <div class="grading-scrap-body">
-    <a href="#" class="hint-button">Leave a hint</a> or grade answers from other students.
+  <div class="scrap-header grading-scrap-header{{question.question_id}}">Peer grading</div>
+  <div class="grading-scrap-body{{question.question_id}}">
     Grade answers from other students.
     <div class="given-answers">
       {% for answer in given_answers %}

@@ -346,6 +346,7 @@ var DeckTypeView = Backbone.View.extend({
 		
 	hide: function() {
 		this.collection.each(function(card) {
+                        console.log(card);
 			card.view.hide();
 		});
 	},
@@ -540,6 +541,7 @@ function initialize_ui() {
 function regis_init(regis_opts) {
   /// Regis API code ///
   regis = (function() {
+    var allDeck = null;
     var activeDeck = null;
     var cardList = new CardListType();
     
@@ -613,6 +615,9 @@ function regis_init(regis_opts) {
     getActiveDeck : function() {
     	return activeDeck;
     },
+
+    getAllDeck : function () {
+    },
     
     getCardList : function() {
     	return cardList;
@@ -636,6 +641,7 @@ function regis_init(regis_opts) {
       var target_card = null;
       var target_deck = null;
       activeDeck.each(function(current_card) {
+          console.log(current_card);
     	  if (current_card.view.el == in_card) target_card = current_card;
       });
       
@@ -643,6 +649,9 @@ function regis_init(regis_opts) {
     	  if (current_deck.attributes.icon.el == in_deck) target_deck = current_deck.attributes;
       });
       
+      if (target_card == null) {
+    	  console.log('target card does not exist');
+      }
       try {
     	  target_deck.add(target_card);
     	  // Send a POST request so that the server gets the update.  There's
@@ -705,7 +714,11 @@ function regis_init(regis_opts) {
     
     keyResponse : function(key) {
       var earlyActive = activeDeck;
-      if (activeDeck != null) {
+      // The cards should not move while the user is typing in a field.
+      // Text boxes, modal dialogs and other objects have the "focus"
+      // when they are being used, so as long as anything has a focus
+      // the keypress should be ignored by the decks. 
+      if (activeDeck != null && $('*:focus').length == 0) {
         var updated = false;
     	// right arrow key
         if (key.keyCode == 39) activeDeck.incrActive();
@@ -722,6 +735,7 @@ function regis_init(regis_opts) {
 })();
 
   $(document).ready(function() {
+    //$('.card').bind('keydown', regis.keyResponse);
     $(document).bind('keydown', regis.keyResponse);
   });
 }

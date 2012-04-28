@@ -108,15 +108,22 @@ class QuestionManager(object):
         output = []
         # Render the HTML template for the question before returning it.
         for question in questions:
+            self.add_question_html(question, provider, user, include_hints)
+        return questions
+
+
+    def add_question_html(self, question, provider, user, include_hints=True):
             question['html'] = get_template('question.tpl').render(Context({'question': question}))
             if include_hints:
                 hints = provider.get_hints(user.id, question['question_id'])
-                question['html'] += get_template('hints-scrap.tpl').render(Context({'question': question}))
+                hint_html = get_template('hints-scrap.tpl').render(Context({'question': question}))
+                question['html'] += hint_html
             if question['gradable']:
                 grading_package = provider.get_grading_package(user.id, question['question_id'], correct=True, limit=None, include_graded=False)
                 score_options = grading_package['score_options']
                 given_answers = grading_package['given_answers']
                 peer_attempts = grading_package['peer_attempts']
+                print peer_attempts
                 grading_html = get_template('grading.tpl').render(Context({
                     'question': question, 
                     'peer_attempts' : peer_attempts, 
@@ -125,7 +132,6 @@ class QuestionManager(object):
                 }))
 
                 question['html'] +=  grading_html
-        return questions
     
     # Returns a tuple (bool, str) that states whether the answer to the 
     # specified QuestionInstance is correct and provides an accompanying 

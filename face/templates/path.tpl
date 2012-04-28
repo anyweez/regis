@@ -58,17 +58,16 @@
 //	  layout.sizePane("south", 180);
       $(".ui-layout-pane").css("background-color", "rgba(0,0,0, 0.6)");
       $(".ui-layout-pane").css("background-color", "rgba(255,255,255, 0.6)");
-      $(".ui-layout-pane").css("z-index", 10);
+      $(".ui-layout-south").css("z-index", 1000);
+      $(".ui-layout-resizer-south").css("z-index", 1000);
       
-        $('#new-question-btn').click(function(event) {
+      $('#new-question-btn').click(function(event) {
+         event.preventDefault();
+         $( "#new-question-dialog" ).dialog( "open" );
+      });
+        $('#new-question-dialog-form').submit(function(event) {
            event.preventDefault();
-//           regis.createQuestionCard(function(response) {
-//           });
-           $( "#dialog-new-question" ).dialog( "open" );
-        });
-        $('#dialog-new-question-form').submit(function(event) {
-           event.preventDefault();
-           $("#dialog-new-question").dialog( "close" );
+           $("#new-question-dialog").dialog( "close" );
            $.ajax({
                  url: '/api/questions',
                  type: 'POST',
@@ -77,11 +76,18 @@
                     'correctanswer' : $(this).find('input[name="correctanswer"]').val(),
                  },
                  success: function(response) {
+                    var clist = regis.getCardList();
+                    var d = regis.getActiveDeck();
+                    var card = response; 
+                    card.view = new CardTypeView({model: card});
+                    clist.add(card);
+                    console.log(card);
+                    d.add(card);
                  }
            });
         });
 
-	$( "#dialog-new-question" ).dialog({
+	$( "#new-question-dialog" ).dialog({
 			autoOpen: false,
 			height: 300,
 			width: 550,
@@ -89,7 +95,7 @@
 			buttons: {
 				"Create Question": function() {
 					$( this ).dialog( "close" );
-					$('#dialog-new-question-form').trigger('submit');
+					$('#new-question-dialog-form').trigger('submit');
 				},
 				Cancel: function() {
 					$( this ).dialog( "close" );
@@ -101,16 +107,6 @@
 
     });
   </script>
-<div id="dialog-new-question" title="New question">
-	<form id="dialog-new-question-form">
-	<fieldset>
-		<label for="question">Question</label>
-		<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all" /><br />
-		<label for="correctanswer">Correct Answer</label>
-		<input type="text" name="correctanswer" id="correctanswer" class="text ui-widget-content ui-corner-all" />
-	</fieldset>
-	</form>
-</div>
 
   <title>Welcome to codepath!</title>
   {% include 'include/common_header.tpl' %}
@@ -134,8 +130,17 @@
   </div>
 </body>
 </html>
-</script>
 	
 
 
+<div id="new-question-dialog" title="New question">
+	<form id="new-question-dialog-form">
+	<fieldset>
+		<label for="question">Question</label>
+		<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all" /><br />
+		<label for="correctanswer">Correct Answer</label>
+		<input type="text" name="correctanswer" id="correctanswer" class="text ui-widget-content ui-corner-all" />
+	</fieldset>
+	</form>
+</div>
 

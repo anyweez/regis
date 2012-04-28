@@ -105,7 +105,7 @@ class UserQuestion(models.Model):
     order = models.SmallIntegerField()
     
     visible = models.BooleanField(default=True)
-    answerable = models.BooleanField()
+    answerable = models.BooleanField(default=True)
     gradable = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_QUESTION_STATUS)
 
