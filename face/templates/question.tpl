@@ -8,4 +8,6 @@
     <input type="text" value="" name="answer">
     <input type="submit" value="Check" name="submit">
   </form>
+  <div id="hintbox" style="display:inline;">
+  </div>
 </div>

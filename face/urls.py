@@ -45,6 +45,7 @@ urlpatterns = patterns('',
 #    ('^questions', core.questions_unknown), # Redirect to /questions/list
     ('^api/questions$', api.api_questions),
     ('^api/questions/(\d+)/attempts/(\d+)/evaluations$', api.evaluations),
+    ('^api/questions/(\d+)/hints$', api.questions_hints),
     ('^api/question/([a-f0-9]+)$', api.api_question),
     ('^api/decks$', api.api_decks),
     ('^api/decks/(\d+)$', api.api_deck),

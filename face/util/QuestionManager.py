@@ -82,13 +82,16 @@ class QuestionManager(object):
     
     # Get all of the questions for the specified user that are either 'released'
     # or 'solved.'  Those are the only two status's that should ever be visible.  
-    def get_questions(self, user, json=True):
+    def get_questions(self, user, json=True, include_hints=True):
         provider = providers.LocalQuestionProvider
         questions = provider.get_questions(user.id)
         output = []
         # Render the HTML template for the question before returning it.
         for question in questions:
             question['html'] = get_template('question.tpl').render(Context({'question': question}))
+            if include_hints:
+                hints = provider.get_hints(user.id, question['question_id'])
+                question['html'] += get_template('hints-scrap.tpl').render(Context({'question': question}))
             if question['gradable']:
                 grading_package = provider.get_grading_package(user.id, question['question_id'], correct=True, limit=None, include_graded=False)
                 score_options = grading_package['score_options']
@@ -119,3 +122,6 @@ class QuestionManager(object):
                     correct = True
                 
         return (correct, msg)
+
+    def format_hints_html(self, hints):
+        return get_template('hints.tpl').render(Context({'hints': hints}))

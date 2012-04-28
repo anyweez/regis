@@ -600,6 +600,11 @@ function regis_init(regis_opts) {
     getDeckCollection: function() {
     	return dc;
     },
+    
+    createQuestionCard: function(callback) {
+        callback();
+    	return dc;
+    },
 
     // Pass in HTML elements.  We need to scan through to determine which (a) card
     // and (b) deck the elements are referring to.  This should be able to be O(1)

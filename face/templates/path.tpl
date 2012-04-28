@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="/static/css/main.css" />
+  <link rel="stylesheet" type="text/css" href="/static/css/cupertino/jquery-ui-1.8.19.custom.css" />
   <link href='http://fonts.googleapis.com/css?family=Pontano+Sans' rel='stylesheet' type='text/css'>
   <script type="text/javascript" src="/static/js/underscore.js"></script>
   <script type="text/javascript" src="/static/js/jquery-1.7.2.min.js"></script>
@@ -23,7 +24,7 @@
          		'name' : $("input[name='name']").val()
          	},
          	success: function(response) {
-                    alert('Deck ' + response.deck_id + ' ' + response.name);
+                    a_new_deck = regis.Deck({ 'name': response.name });
          	}
          });
          return false;
@@ -34,7 +35,7 @@
       
       user_deck = regis.Deck({ 'name': 'Users', 'endpoint': 'users', 'add_to_shelf': false });      
 //      a_new_deck = regis.Deck({ 'name': 'New Deck' });
-      
+
       $('#profile-btn').click(function() {
         regis.activateDeck(user_deck);
       });
@@ -59,10 +60,58 @@
       $(".ui-layout-pane").css("background-color", "rgba(0,0,0, 0.6)");
       $(".ui-layout-pane").css("background-color", "rgba(255,255,255, 0.6)");
 
+      
+        $('#new-question-btn').click(function(event) {
+           event.preventDefault();
+//           regis.createQuestionCard(function(response) {
+//           });
+           $( "#dialog-new-question" ).dialog( "open" );
+        });
+        $('#dialog-new-question-form').submit(function(event) {
+           event.preventDefault();
+           $("#dialog-new-question").dialog( "close" );
+           $.ajax({
+                 url: '/api/questions',
+                 type: 'POST',
+                 data: {
+                    'question' : $(this).find('input[name="question"]').val(),
+                    'correctanswer' : $(this).find('input[name="correctanswer"]').val(),
+                 },
+                 success: function(response) {
+                 }
+           });
+        });
 
+	$( "#dialog-new-question" ).dialog({
+			autoOpen: false,
+			height: 300,
+			width: 550,
+			modal: true,
+			buttons: {
+				"Create Question": function() {
+					$( this ).dialog( "close" );
+					$('#dialog-new-question-form').trigger('submit');
+				},
+				Cancel: function() {
+					$( this ).dialog( "close" );
+				}
+			},
+			close: function() {
+			}
+		});
 
     });
   </script>
+<div id="dialog-new-question" title="New question">
+	<form id="dialog-new-question-form">
+	<fieldset>
+		<label for="question">Question</label>
+		<input type="text" name="question" id="question" class="text ui-widget-content ui-corner-all" /><br />
+		<label for="correctanswer">Correct Answer</label>
+		<input type="text" name="correctanswer" id="correctanswer" class="text ui-widget-content ui-corner-all" />
+	</fieldset>
+	</form>
+</div>
 
   <title>Welcome to codepath!</title>
   {% include 'include/common_header.tpl' %}
@@ -71,6 +120,7 @@
   <div id='main-display'>
     <h1 id="codepath-title"><span class="cp_first">code</span><span class="cp_second">path</span></h1>
     <div id="navigation">
+         <div id="new-question-btn"><img src="/static/img/profile.png" />new question</div>
          <div id="profile-btn"><img src="/static/img/profile.png" />profile</div>
          <div id="logout-btn"><a href="/account/logout"><img src="/static/img/profile.png" />logout</a></div>
     </div>
@@ -85,3 +135,8 @@
   </div>
 </body>
 </html>
+</script>
+	
+
+
+

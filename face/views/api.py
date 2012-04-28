@@ -21,10 +21,12 @@ socket.setdefaulttimeout(5)
 ###   GET/POST   /api/questions                 ########
 ########################################################
 @login_required
+@csrf_exempt
 def api_questions(request):
     if request.method == 'POST' or \
             ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
-        question = create_new_question(request)
+        question_p = provider.getQuestionProvider()
+        question = question_p.create_new_question(request.user.id, request.REQUEST['question'], request.REQUEST['correctanswer'])
         return HttpResponse(json.dumps(question), mimetype='application/json')
     if request.method == 'GET':
         # Get all of the questions for the user from the question manager as JSON.
@@ -355,5 +357,24 @@ def evaluations(request, question_id, attempt_id):
         question_p = provider.getQuestionProvider()
         evaluation = question_p.submit_grade_for_attempt(request.user.id, attempt_id, request.REQUEST['score'], messages=request.REQUEST['messages'])
         return HttpResponse(json.dumps(evaluation), mimetype='application/json')
-    
 
+@login_required
+@csrf_exempt
+def questions_hints(request, question_id):
+    if request.method == 'POST' or \
+            ('POST' in request.REQUEST and request.REQUEST['POST'] == 'DEBUG'):
+        question_p = provider.getQuestionProvider()
+        hint = question_p.submit_hint(request.user.id, question_id, request.REQUEST['text'])
+        return HttpResponse(json.dumps(hint), mimetype='application/json')
+    elif request.method == 'GET':
+        question_p = provider.getQuestionProvider()
+        hints = question_p.get_hints(request.user.id, question_id)
+        qm = QuestionManager.QuestionManager()
+
+        output = {}
+        output['items'] = hints 
+        output['html'] = qm.format_hints_html(hints)
+        return HttpResponse(json.dumps(output), mimetype='application/json')
+
+
+    
