@@ -5,6 +5,7 @@ from django.template.loader import get_template
 import face.models.models as models
 import face.util.exceptions as exception
 import face.modules.providers as providers
+import face.offline.QuestionParser as QuestionParser
 import datetime, random
 
 class QuestionManager(object):
@@ -19,17 +20,22 @@ class QuestionManager(object):
         if len(all_t) is 0:
             return False
         
+        self._bind_templates(all_t, user)  
+    
+    # This method takes care of actually generating the UserQuestions, one for each
+    # template in the TEMPLATES list.
+    def _bind_templates(self, templates, user):        
         # Put the template at the end of the queue for each user by default.
-        # The personalization process can update this later.        
+        # The personalization process can update this later.   
         starting_order = models.UserQuestion.objects.filter(user=user).aggregate(Max('order'))
         if starting_order['order__max'] is None:
             next_order = 0
         else:
             next_order = starting_order['order__max']
         
-        for template in all_t:
-            if models.UserQuestion.objects.filter(template=template).count() is 0:
-                inst = models.QuestionInstance.objects.filter(template=template)
+        for template in templates:
+            if models.UserQuestion.objects.exclude(status='retired').filter(template=template).count() is 0:
+                inst = models.QuestionInstance.objects.filter(template=template, active=True)
                 models.UserQuestion(user=user, 
                     template=template, 
                     order=next_order,
@@ -37,6 +43,20 @@ class QuestionManager(object):
                     instance=random.choice(inst)).save()
                 next_order += 1
         
+    # Parses the provided template and generates the appropriate number of 
+    # QuestionInstances (as specified in the parser).  Then binds an instance
+    # of the template to each user in the league.
+    def process_template(self, template, triggered_user):
+        parser = QuestionParser.QuestionParser()
+    
+        # Process (parse) the template and generate all of the QuestionInstances.
+        parser.process(template)
+    
+        # Take care of bindings for all users in the submitter's league.
+        rusers = models.RegisUser.objects.filter(league=triggered_user.get_profile().league)
+        for ruser in rusers:
+            self._bind_templates([template], ruser.user)
+    
     # Internal use only.  This is a predicate that determines whether a new  
     # question should be released for the specifed user.
     #
@@ -83,7 +103,7 @@ class QuestionManager(object):
     # Get all of the questions for the specified user that are either 'released'
     # or 'solved.'  Those are the only two status's that should ever be visible.  
     def get_questions(self, user, json=True, include_hints=True):
-        provider = providers.LocalQuestionProvider
+        provider = providers.Provider.getQuestionProvider() #LocalQuestionProvider
         questions = provider.get_questions(user.id)
         output = []
         # Render the HTML template for the question before returning it.
@@ -107,8 +127,9 @@ class QuestionManager(object):
                 question['html'] +=  grading_html
         return questions
     
-    # Returns a tuple (bool, str) that states whether the answer
-    # is correct and an accompanying message.
+    # Returns a tuple (bool, str) that states whether the answer to the 
+    # specified QuestionInstance is correct and provides an accompanying 
+    # message.
     def check_question(self, question, answer):
         answers = models.Answer.objects.filter(question=question)
         

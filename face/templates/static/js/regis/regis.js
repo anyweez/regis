@@ -39,8 +39,12 @@ var CardType = Backbone.Model.extend({
 		else if (response.hasOwnProperty('correct')) {
 			console.log('Correct? ' + response.correct);
 			if (response.correct) {
-				$(this.view.el).find('h2').css('background-color', '#009933');
-				$(this.view.el).find('h2').css('border-bottom', '1px solid black');
+//				this.view.render();
+				this.set('status', 'solved');
+				this.view.check_header();
+//				console.log(this.get('status'));
+//				$(this.view.el).find('h2').css('background-color', '#009933');
+//				$(this.view.el).find('h2').css('border-bottom', '1px solid black');
 			}
 			else {
 				$(this.view.el).find('h2').effect("highlight", { 'color' : '#ff0000' }, 2000);
@@ -50,54 +54,65 @@ var CardType = Backbone.Model.extend({
 });
 
 /**
- * The view for a single CardType.
+ * The view for a single Card.
  */
-var CardTypeView = Backbone.View.extend({
-   tagName: 'div',
-   className: 'card',
-
-   events : {
-	   'click h2' : 'local_activate',
-	   'click input[type=button]' : 'submit_guess',
-   },
-   
-   initialize: function() {
-      $('#card-stack').append(this.el);
-      
-      _.bindAll(this);
-   },
-   
-   submit_guess: function() {
-	   this.model.submit_guess($(this.el).find(':input[type=text]').val());
-   },
-   
-   // Activates this card in the deck that's currently active.
-   local_activate : function() {
-	   regis.getActiveDeck().activate(this.model);
-   },
-
-   render: function() {
-      $(this.el).html(this.model.get('html'));
-      $(this.el).css('display', 'none');
-      $(this.el).css('position', 'absolute');
-      $(this.el).css('top', '180px');
-      $(this.el).css('left', '250px');
-      return this;
-   },
-   
-   show: function() {
-      $(this.el).css('display', 'block');
-   },  
-    
-   hide: function() {
-      $(this.el).css('display', 'none');
-   },
-
-   // TODO (luke): can we get rid of setCollectionView?
-   setCollectionView: function(view) {
-      this.collectionView = view;
-   },
-});
+//var CardTypeView = Backbone.View.extend({
+//   tagName: 'div',
+//   className: 'card',
+//
+//   events : {
+//	   'click h2' : 'local_activate',
+//	   'click input[type=button]' : 'submit_guess',
+//   },
+//   
+//   initialize: function() {
+//      $('#card-stack').append(this.el);
+//      
+//      _.bindAll(this);
+//   },
+//   
+//   submit_guess: function() {
+//	   this.model.submit_guess($(this.el).find(':input[type=text]').val());
+//   },
+//   
+//   // Activates this card in the deck that's currently active.
+//   local_activate : function() {
+//	   regis.getActiveDeck().activate(this.model);
+//   },
+//
+//   check_header : function() {
+//	   console.log("CHECKING HEADER");
+//	   if (this.model.get('status') == 'solved') {
+//		   $(this.el).find('h2').css('background-color', '#009933');
+//		   $(this.el).find('h2').css('border-bottom', '1px solid black');  
+//	   }
+//   },
+//   
+//   render: function() {
+//      $(this.el).html(this.model.get('html'));
+//      $(this.el).css('display', 'none');
+//      $(this.el).css('position', 'absolute');
+//      $(this.el).css('top', '180px');
+//      $(this.el).css('left', '250px');
+//      
+//      this.check_header();
+//      
+//      return this;
+//   },
+//   
+//   show: function() {
+//      $(this.el).css('display', 'block');
+//   },  
+//    
+//   hide: function() {
+//      $(this.el).css('display', 'none');
+//   },
+//
+//   // TODO (luke): can we get rid of setCollectionView?
+//   setCollectionView: function(view) {
+//      this.collectionView = view;
+//   },
+//});
 
 /**
  * Keeps track of all cards that are viewable by the user.  This is the
@@ -375,7 +390,6 @@ var DeckTypeView = Backbone.View.extend({
 	  this.collection.each(function(card, index) {
   		var aci = that.collection.aci;
 
-  		console.log(card);
         if (index == aci - 2) {
           $(card.view.el).css({'z-index' : 1});
           $(card.view.el).show();
@@ -435,6 +449,13 @@ var CardTypeView = Backbone.View.extend({
    local_activate : function() {
 	   regis.getActiveDeck().activate(this.model);
    },
+   
+   check_header : function() {
+	   if (this.model.get('status') == 'solved') {
+		   $(this.el).find('h2').css('background-color', '#009933');
+		   $(this.el).find('h2').css('border-bottom', '1px solid black');  
+	   }
+   },
 
    render: function() {
       $(this.el).html(this.model.get('html'));
@@ -442,6 +463,9 @@ var CardTypeView = Backbone.View.extend({
       $(this.el).css('position', 'absolute');
       $(this.el).css('top', '180px');
       $(this.el).css('left', '250px');
+      
+      this.check_header();
+      
       return this;
    },
    
@@ -466,7 +490,6 @@ function initialize_ui() {
 		  distance: 30,
 		  revert: true,
 		  start: function(event, ui) {
-		    console.log('dragging');
 		    $(el).css('opacity', '.6');
 		  },
 		  stop: function(event, ui) {
@@ -479,11 +502,9 @@ function initialize_ui() {
 		$(el).droppable({ 
 		  tolerance: 'pointer',
 		  activate: function(event, ui) {
-			console.log('activated dragging (droppable noticed)');  
 		  },
 			
 		  drop: function(event, ui) {
-		    console.log('dropped onto icon');
 	        $(this).css('background-color', 'transparent');
 		    // this = droppable
 		    // ui.draggable = draggable

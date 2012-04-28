@@ -64,9 +64,9 @@ def create_new_question(user_id, question_text, correct_answer):
 
 
 
-## Submits an attempt for the provided question.  Should return
-## JSON object describing attempt.  This is also a good place to
-## store the attempt if desired. 
+## Submits an attempt for the provided question instance.  Should return
+## JSON object describing attempt.  This is also a good place to store the 
+## attempt if desired. 
 ##
 ## Response: {
 ##   correct : true / false
@@ -76,7 +76,6 @@ def submit_attempt(question_id, user_id, attempt):
     # Get user
     # Get userquestion.instance
     # check question against answers to instance
-    
     question = get_question(question_id)
     user = provider.getUserProvider().get_user(user_id)
     
@@ -87,7 +86,7 @@ def submit_attempt(question_id, user_id, attempt):
     
     guess = models.Guess(
         user = user,
-        question = user_q,
+        instance = user_q.instance,
         value = attempt,
         correct = correct,
         time_guessed=datetime.datetime.now()
@@ -96,6 +95,8 @@ def submit_attempt(question_id, user_id, attempt):
 
     if correct:
         user_q.gradable = True
+        # TODO: should the status always become 'solved' if they get it correct?  I think so...
+        user_q.status = 'solved'
         user_q.save()
 
     return guess
@@ -124,7 +125,6 @@ def submit_grade_for_attempt(author_id, attempt_id, score, messages=None):
     evaluation.save()
     return evaluation.jsonify()
 
-# question_id is a template id. TODO (cartland) make this real
 def __get_attempts_to_grade(user_id, question_id, limit=None, include_graded=None):
     if include_graded is None:
         include_graded = False
@@ -132,7 +132,10 @@ def __get_attempts_to_grade(user_id, question_id, limit=None, include_graded=Non
             'attempt_id',
             'question_id',
             'text']
-    attempts = models.Guess.objects.filter(question__id=question_id).order_by('value')
+    # TODO: assumes that only one instance is unlocked per template per user.
+    userq = models.UserQuestion.objects.exclude(status='retired').get(user__id=user_id, template__id=question_id)
+    attempts = models.Guess.objects.filter(instance=userq.instance).order_by('value')
+
     jattempts = [a.jsonify() for a in attempts]
     output = []
     for j in jattempts:

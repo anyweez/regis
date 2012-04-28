@@ -1,6 +1,6 @@
 <h2>{{question.status|capfirst}} Question</h2>
 <div class="card-close-btn">X</div>
-<div style="padding: 3px;">
+<div class="question-body" style="padding: 3px;">
   <p style="font-size: small;">released on {{ question.released }}</p>
   <p>{{question.text|safe}}</p>
 
