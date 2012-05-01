@@ -113,6 +113,7 @@ class UserQuestion(models.Model):
         return { 
             'user' : self.user.id,
             'question_id' : self.template.id,
+            'card_id' : self.template.id,
             'order' : self.order,
             'released' : self.released.isoformat(),
             'visible' : self.visible,
