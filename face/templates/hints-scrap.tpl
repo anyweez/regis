@@ -26,7 +26,7 @@
          buttons: {
             "Leave hint": function() {
                $( this ).dialog( "close" );
-//               $('#hint-form{{question.question_id}}').trigger('submit');
+               $('#hint-form{{question.question_id}}').trigger('submit');
             },
             Cancel: function() {
                $( this ).dialog( "close" );
