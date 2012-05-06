@@ -105,7 +105,7 @@ class UserQuestion(models.Model):
     order = models.SmallIntegerField()
     
     visible = models.BooleanField(default=True)
-    answerable = models.BooleanField()
+    answerable = models.BooleanField(default=True)
     gradable = models.BooleanField()
     status = models.CharField(max_length=10, choices=REGIS_QUESTION_STATUS)
 
@@ -113,6 +113,7 @@ class UserQuestion(models.Model):
         return { 
             'user' : self.user.id,
             'question_id' : self.template.id,
+            'card_id' : self.template.id,
             'order' : self.order,
             'released' : self.released.isoformat(),
             'visible' : self.visible,
@@ -201,6 +202,37 @@ class GuessEvaluation(models.Model):
             'score' : self.score,
             'time_guessed' : self.time_guessed.isoformat()
         }
+
+
+class Hint(models.Model):
+    template = models.ForeignKey(QuestionTemplate)
+    author = models.ForeignKey(User)
+    time_added = models.DateTimeField(auto_now_add=True)
+    text = models.CharField(max_length=500)
+    
+    def jsonify(self):
+        return {
+            'hint_id' : self.id,
+            'question_id' : self.template.id,
+            'author' : self.author.id,
+            'text' : self.text,
+        }
+
+
+class HintRating(models.Model):
+    hint = models.ForeignKey(Hint)
+    author = models.ForeignKey(User)
+    rating = models.BooleanField()
+    
+    def jsonify(self):
+        return {
+            'hint_rating_id' : self.id,
+            'hint_id' : self.hint.id,
+            'author' : self.author.id,
+            'rating' : self.rating,
+        }
+
+
 
 
 # A collection of QuestionTemplates.  Decks can be created by users

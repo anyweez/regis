@@ -38,7 +38,7 @@ body {
 
 .card {
 	width: 60%;
-	min-height: 250px;
+	/*min-height: 250px;*/
 	
 	background-color: white;
    	border: 3px solid black;
@@ -137,7 +137,7 @@ h1 .cp_second {
 #navigation {
 	position: absolute;
 	top: 20%;
-	left: 70%;
+	left: 60%;
 }
 
 #navigation div {

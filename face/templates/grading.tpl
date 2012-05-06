@@ -26,46 +26,22 @@
       });
     
       // collapse all scraps
-      $('.scrap-body').hide();
-      $('.scrap-header').click(function(event) {
-         var body = $(this).siblings('.scrap-body');
+      $('.grading-scrap-body{{question.question_id}}').hide();
+      $('.grading-scrap-header{{question.question_id}}').click(function(event) {
+         var body = $(this).siblings('.grading-scrap-body{{question.question_id}}');
          if (body.css('display') == 'none') {
             body.slideDown();
          } else {
             body.slideUp();
          }
       });
-
-      
-    //    $('.hint-form > input').hide();
-    //    $('a.hint-button').click(function(event) {
-    //       event.preventDefault();
-    //       $(this).parent().find('input').show();
-    //    });
-    //    $('.hint-form').submit(function(event) {
-    //       event.preventDefaul();
-    //       var p = $(this).parents('.scrap');
-    //       $.ajax({
-    //             url: '/api/questions/' + p.attr('question_id') + '/hints',
-    //             type: 'POST',
-    //             data: {
-    //                'text' : $(this).find('input[name="question-hint"]').val(),
-    //             },
-    //             success: function(response) {
-    //             }
-    //       });
-    //       $(p).fadeOut();
-    //    });
    });
 </script>
+
 <div class="scrap peer-grading" question_id="{{question.question_id}}">
-  <div class="scrap-header">Peer grading</div>
-  <div class="scrap-body">
-    <form class="hint-form">
-<!--    <input type="text" value="" name="question-hint">
-      <a href="#" class="hint-button">Leave a hint</a> or grade answers from other students. -->
-      Grade answers from other students.
-    </form>
+  <div class="scrap-header grading-scrap-header{{question.question_id}}">Peer grading</div>
+  <div class="grading-scrap-body{{question.question_id}}">
+    Grade answers from other students.
     <div class="given-answers">
       {% for answer in given_answers %}
         {% if answer.correct %}

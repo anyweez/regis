@@ -15,7 +15,7 @@ var CardType = Backbone.Model.extend({
 	guess_base_url: '/api/answer/',
 	
 	submit_guess : function(guess_val) {
-		guess_url = this.guess_base_url + this.get('question_id');
+		guess_url = this.guess_base_url + this.get('card_id');
 		console.log('Submitting guess (' + guess_val + ') to ' + guess_url);
 		
 		that = this;
@@ -32,7 +32,7 @@ var CardType = Backbone.Model.extend({
 	},
 	
 	update_on_guess : function(response) {
-		console.log('updating card #' + this.get('question_id'));
+		console.log('updating card #' + this.get('card_id'));
 		if (response.hasOwnProperty('error')) {
 			console.log('Error! ' + response.error);
 		}
@@ -212,7 +212,7 @@ var DeckCollectionType = Backbone.Collection.extend({
 		  regis.getCardList().each(function(card, index) {
 			  if ((deck_opt.name == 'All' && deck_opt.deck_id == -1) ||
                                   deck_opt.members != undefined && 
-				  deck_opt.members.indexOf(card.get('question_id')) > -1) {
+				  deck_opt.members.indexOf(card.get('card_id')) > -1) {
 
 //				  if (card.view == null) card.view = new CardTypeView({model: card});
 				  new_deck.add(card);
@@ -346,6 +346,7 @@ var DeckTypeView = Backbone.View.extend({
 		
 	hide: function() {
 		this.collection.each(function(card) {
+                        console.log(card);
 			card.view.hide();
 		});
 	},
@@ -540,6 +541,7 @@ function initialize_ui() {
 function regis_init(regis_opts) {
   /// Regis API code ///
   regis = (function() {
+    var allDeck = null;
     var activeDeck = null;
     var cardList = new CardListType();
     
@@ -613,12 +615,20 @@ function regis_init(regis_opts) {
     getActiveDeck : function() {
     	return activeDeck;
     },
+
+    getAllDeck : function () {
+    },
     
     getCardList : function() {
     	return cardList;
     },
     
     getDeckCollection: function() {
+    	return dc;
+    },
+    
+    createQuestionCard: function(callback) {
+        callback();
     	return dc;
     },
 
@@ -631,6 +641,7 @@ function regis_init(regis_opts) {
       var target_card = null;
       var target_deck = null;
       activeDeck.each(function(current_card) {
+          console.log(current_card);
     	  if (current_card.view.el == in_card) target_card = current_card;
       });
       
@@ -638,6 +649,9 @@ function regis_init(regis_opts) {
     	  if (current_deck.attributes.icon.el == in_deck) target_deck = current_deck.attributes;
       });
       
+      if (target_card == null) {
+    	  console.log('target card does not exist');
+      }
       try {
     	  target_deck.add(target_card);
     	  // Send a POST request so that the server gets the update.  There's
@@ -647,7 +661,7 @@ function regis_init(regis_opts) {
     	  // TODO (luke): Try to integrate deck updating w/ Backbone.
     	  $.ajax({
     	    type: 'put',
-    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + target_card.get('question_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
+    	    url: '/api/decks/' + target_deck.deck_id + '/questions/' + target_card.get('card_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
           });
       }
       catch (err) {
@@ -675,7 +689,7 @@ function regis_init(regis_opts) {
       	    // TODO (luke): Try to integrate deck updating w/ Backbone.
       	    $.ajax({
       	      type: 'delete',
-    	      url: '/api/decks/' + activeDeck.deck_id + '/questions/' + '1',// target_card.get('card_id'), // TODO(from cartland for Luke): target_card.get('card_id') = undefined
+    	      url: '/api/decks/' + activeDeck.deck_id + '/questions/' +  target_card.get('card_id'), 
             });
       	  
         	if (activeDeck.aci == target_index) {
@@ -700,7 +714,11 @@ function regis_init(regis_opts) {
     
     keyResponse : function(key) {
       var earlyActive = activeDeck;
-      if (activeDeck != null) {
+      // The cards should not move while the user is typing in a field.
+      // Text boxes, modal dialogs and other objects have the "focus"
+      // when they are being used, so as long as anything has a focus
+      // the keypress should be ignored by the decks. 
+      if (activeDeck != null && $('*:focus').length == 0) {
         var updated = false;
     	// right arrow key
         if (key.keyCode == 39) activeDeck.incrActive();
@@ -717,6 +735,7 @@ function regis_init(regis_opts) {
 })();
 
   $(document).ready(function() {
+    //$('.card').bind('keydown', regis.keyResponse);
     $(document).bind('keydown', regis.keyResponse);
   });
 }
