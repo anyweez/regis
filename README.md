@@ -1,5 +1,7 @@
 # REGIS
-Overview
+REGIS is a system for serving customized and personalized practice problems to students / users.
+We are currently using it in our [non-majors course](http://inst.eecs.berkeley.edu/~cs10)
+at UC Berkeley and are developing it for college, K-12 and informal learning environments.
 
 ## Status
 We currently do not recommend that you deploy REGIS on your own systems because 
@@ -8,11 +10,7 @@ running our own deployment and it is performing well but needs a couple of key
 features and bug fixes before we're going to consider it safe to deploy elsewhere.
 
 ## Core features
-REGIS is a system for serving customized and personalized practice problems to students / users. 
-We are currently using it in our [non-majors course](http://inst.eecs.berkeley.edu/~cs10) 
-at UC Berkeley and are developing it for college, K-12 and informal learning environments.
-
-The core features include:
+The core features that we have now or hope to have soon include:
 * Easy-to-use user interface based on a flash card analogy.
 * A simple templated question authoring language that can be used to write questions that are
 customized for different students.
