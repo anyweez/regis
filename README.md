@@ -37,6 +37,7 @@ The following software packages are required in order to run a REGIS deployment.
 * python-2.7 or newer
 * python-django
 * django-social-auth [ [https://github.com/omab/django-social-auth](https://github.com/omab/django-social-auth) ]
+* python-MySQLdb or other Python database wrapper
 * Some form of database that Django supports
 * Web server w/ mod\_wsgi or Passenger for production deployment
 
